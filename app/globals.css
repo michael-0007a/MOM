@@ -1,23 +1,103 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,100..900;1,100..900&family=Notable&display=swap');
 @import "tailwindcss";
+@import "./custom-colors.css";
 
 :root {
   --background: #ffffff;
-  --foreground: #1e40af;
-  --accent: #1e40af;
-  --light-blue: #f0f6ff;
+  --foreground: #2b91cb;
+  --accent: #2b91cb;
+  --light-blue: #eef8fd;
+  --blue-50: #eef8fd;
+  --blue-100: #d4eefa;
+  --blue-200: #a9ddf5;
+  --blue-600: #2b91cb;
+  --blue-700: #2377ad;
+  --blue-800: #2b91cb;
+  --blue-900: #1b5d8f;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: 'Poppins', system-ui, -apple-system, sans-serif;
+  --font-sans: 'Exo 2', system-ui, -apple-system, sans-serif;
+  --font-heading: 'Notable', sans-serif;
 }
 
 body {
   background: var(--background);
   color: #1f2937;
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Exo 2', sans-serif;
+}
+
+/* Notable font class */
+.notable-regular {
+  font-family: "Notable", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
+/* Exo 2 font utility classes */
+.exo-2-thin {
+  font-family: "Exo 2", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 100;
+  font-style: normal;
+}
+
+.exo-2-extralight {
+  font-family: "Exo 2", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 200;
+  font-style: normal;
+}
+
+.exo-2-light {
+  font-family: "Exo 2", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 300;
+  font-style: normal;
+}
+
+.exo-2-regular {
+  font-family: "Exo 2", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.exo-2-medium {
+  font-family: "Exo 2", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 500;
+  font-style: normal;
+}
+
+.exo-2-semibold {
+  font-family: "Exo 2", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 600;
+  font-style: normal;
+}
+
+.exo-2-bold {
+  font-family: "Exo 2", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 700;
+  font-style: normal;
+}
+
+.exo-2-extrabold {
+  font-family: "Exo 2", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 800;
+  font-style: normal;
+}
+
+.exo-2-black {
+  font-family: "Exo 2", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 900;
+  font-style: normal;
 }
 
 @keyframes float {

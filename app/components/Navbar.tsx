@@ -3,26 +3,35 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { Menu, X } from 'lucide-react';
+import Image from 'next/image';
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
 
   const navLinks = [
-    { name: 'Home', href: '#home' },
-    { name: 'Our Story', href: '#our-story' },
-    { name: 'Menu', href: '#menu' },
-    { name: 'Gallery', href: '#gallery' },
-    { name: 'Franchise', href: '#franchise' },
+    { name: 'Home', href: '/#home' },
+    { name: 'Our Story', href: '/#our-story' },
+    { name: 'Menu', href: '/#menu' },
+    { name: 'Gallery', href: '/#gallery' },
+    { name: 'Franchise', href: '/#franchise' },
     { name: 'Store Locator', href: '/store-locator' },
     { name: 'Contact', href: '/contact' },
   ];
 
   const handleClick = (href: string) => {
     setIsOpen(false);
-    if (href.startsWith('#')) {
-      const element = document.querySelector(href);
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth' });
+    if (href.startsWith('/#')) {
+      // If we're navigating to a homepage section
+      if (window.location.pathname !== '/') {
+        // If we're not on the homepage, navigate to home first then scroll
+        window.location.href = href;
+      } else {
+        // If we're already on homepage, just scroll to section
+        const sectionId = href.substring(2); // Remove '/#'
+        const element = document.querySelector(`#${sectionId}`);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }
       }
     }
   };
@@ -32,29 +41,34 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
           {/* Logo */}
-          <a
-            href="#home"
-            onClick={() => handleClick('#home')}
-            className="flex items-center space-x-2 group"
+          <Link
+            href="/"
+            className="flex items-center space-x-3 group"
           >
-            <div className="relative w-12 h-12 bg-blue-800 rounded-full flex items-center justify-center transition-transform group-hover:scale-110">
-              <div className="w-8 h-10 bg-blue-600 rounded-b-lg"></div>
-              <div className="absolute top-2 left-1/2 transform -translate-x-1/2 w-1 h-6 bg-white rounded-full"></div>
-            </div>
-            <span className="text-xl font-bold text-blue-800 hidden sm:block">
+            <Image
+              src="/logo.png"
+              alt="Makers of Milkshakes Logo"
+              width={48}
+              height={48}
+              className="transition-transform group-hover:scale-110"
+            />
+            <span className="text-xl font-bold text-blue-500 hidden sm:block">
               Makers of Milkshakes
             </span>
-          </a>
+          </Link>
 
           {/* Desktop Menu */}
           <div className="hidden md:flex space-x-1">
             {navLinks.map((link) =>
-              link.href.startsWith('#') ? (
+              link.href.startsWith('/#') ? (
                 <a
                   key={link.name}
                   href={link.href}
-                  onClick={() => handleClick(link.href)}
-                  className="px-4 py-2 rounded-full text-gray-700 hover:bg-blue-50 hover:text-blue-800 transition-all duration-300 font-medium cursor-pointer"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleClick(link.href);
+                  }}
+                  className="px-4 py-2 rounded-full text-gray-700 hover:bg-blue-50 hover:text-blue-500 transition-all duration-300 font-medium cursor-pointer"
                 >
                   {link.name}
                 </a>
@@ -62,7 +76,7 @@ export default function Navbar() {
                 <Link
                   key={link.name}
                   href={link.href}
-                  className="px-4 py-2 rounded-full text-gray-700 hover:bg-blue-50 hover:text-blue-800 transition-all duration-300 font-medium"
+                  className="px-4 py-2 rounded-full text-gray-700 hover:bg-blue-50 hover:text-blue-500 transition-all duration-300 font-medium"
                 >
                   {link.name}
                 </Link>
@@ -76,9 +90,9 @@ export default function Navbar() {
             className="md:hidden p-2 rounded-lg hover:bg-blue-50 transition-colors"
           >
             {isOpen ? (
-              <X className="w-6 h-6 text-blue-800" />
+              <X className="w-6 h-6 text-blue-500" />
             ) : (
-              <Menu className="w-6 h-6 text-blue-800" />
+              <Menu className="w-6 h-6 text-blue-500" />
             )}
           </button>
         </div>
@@ -89,12 +103,15 @@ export default function Navbar() {
         <div className="md:hidden bg-white border-t border-gray-100">
           <div className="px-4 py-4 space-y-2">
             {navLinks.map((link) => (
-              link.href.startsWith('#') ? (
+              link.href.startsWith('/#') ? (
                 <a
                   key={link.name}
                   href={link.href}
-                  onClick={() => handleClick(link.href)}
-                  className="block px-4 py-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-800 transition-all duration-300 font-medium cursor-pointer"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleClick(link.href);
+                  }}
+                  className="block px-4 py-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-500 transition-all duration-300 font-medium cursor-pointer"
                 >
                   {link.name}
                 </a>
@@ -103,7 +120,7 @@ export default function Navbar() {
                   key={link.name}
                   href={link.href}
                   onClick={() => setIsOpen(false)}
-                  className="block px-4 py-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-800 transition-all duration-300 font-medium"
+                  className="block px-4 py-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-500 transition-all duration-300 font-medium"
                 >
                   {link.name}
                 </Link>

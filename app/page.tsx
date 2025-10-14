@@ -273,14 +273,14 @@ export default function Home() {
           <div className={`transition-all duration-1000 ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
             {/* Sparkle Icon */}
             <div className="flex justify-center mb-6">
-              <Sparkles className="w-12 h-12 text-blue-800 animate-pulse" />
+              <Sparkles className="w-12 h-12 text-blue-500 animate-pulse" />
             </div>
 
             {/* Main Heading */}
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-blue-800 mb-6">
+            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-blue-500 mb-6">
               Sip the Joy.
               <br />
-              <span className="bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-blue-500 to-blue-600 bg-clip-text text-transparent">
                 Taste the Magic.
               </span>
             </h1>
@@ -294,7 +294,7 @@ export default function Home() {
             <div className={`my-12 flex justify-center transition-all duration-1000 delay-500 ${loaded ? 'opacity-100 scale-100' : 'opacity-0 scale-50'}`}>
               <div className="relative animate-float">
                 {/* Milkshake Cup */}
-                <div className="w-64 h-80 bg-gradient-to-b from-blue-600 to-blue-800 rounded-b-[3rem] shadow-2xl relative flex items-center justify-center">
+                <div className="w-64 h-80 bg-gradient-to-b from-blue-500 to-blue-600 rounded-b-[3rem] shadow-2xl relative flex items-center justify-center">
                   <Milk className="w-32 h-32 text-white" />
 
                   {/* Whipped Cream Top */}
@@ -317,7 +317,7 @@ export default function Home() {
             {/* CTA Button */}
             <a
               href="#menu"
-              className="inline-flex items-center space-x-2 bg-blue-800 text-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-blue-900 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl"
+              className="inline-flex items-center space-x-2 bg-blue-500 text-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-blue-600 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl"
             >
               <span>View Menu</span>
               <ArrowRight className="w-5 h-5" />
@@ -341,8 +341,8 @@ export default function Home() {
                   key={idx}
                   className="bg-white rounded-3xl p-8 text-center shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2"
                 >
-                  <Icon className="w-16 h-16 text-blue-800 mx-auto mb-4" />
-                  <h3 className="text-xl font-bold text-blue-800 mb-2">{feature.title}</h3>
+                  <Icon className="w-16 h-16 text-blue-500 mx-auto mb-4" />
+                  <h3 className="text-xl font-bold text-blue-500 mb-2">{feature.title}</h3>
                   <p className="text-gray-600">{feature.desc}</p>
                 </div>
               );
@@ -355,7 +355,7 @@ export default function Home() {
       <section id="our-story" className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-5xl font-bold text-blue-800 mb-6">Our Story</h2>
+            <h2 className="text-5xl font-bold text-blue-500 mb-6">Our Story</h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
               Every great shake has a story. Here&apos;s ours—a journey of passion, perseverance,
               and a whole lot of deliciousness.
@@ -364,7 +364,7 @@ export default function Home() {
 
           {/* Mission */}
           <div className="bg-blue-50 rounded-3xl p-12 text-center mb-20">
-            <h3 className="text-3xl font-bold text-blue-800 mb-6">Our Mission</h3>
+            <h3 className="text-3xl font-bold text-blue-500 mb-6">Our Mission</h3>
             <p className="text-lg text-gray-700 max-w-3xl mx-auto leading-relaxed">
               To bring joy to every sip and create moments of happiness through our handcrafted milkshakes.
               We believe in using only the finest ingredients, treating every customer like family,
@@ -374,7 +374,7 @@ export default function Home() {
 
           {/* Timeline */}
           <div className="mb-20">
-            <h3 className="text-4xl font-bold text-blue-800 text-center mb-16">Our Journey</h3>
+            <h3 className="text-4xl font-bold text-blue-500 text-center mb-16">Our Journey</h3>
 
             <div className="relative max-w-5xl mx-auto">
               {/* Timeline Line */}
@@ -393,9 +393,9 @@ export default function Home() {
                         <div className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2">
                           <div className={`flex items-center space-x-3 mb-3 ${isEven ? 'md:justify-end' : 'md:justify-start'} justify-start`}>
                             <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                              <Icon className="w-6 h-6 text-blue-800" />
+                              <Icon className="w-6 h-6 text-blue-500" />
                             </div>
-                            <span className="text-2xl font-bold text-blue-800">{milestone.year}</span>
+                            <span className="text-2xl font-bold text-blue-500">{milestone.year}</span>
                           </div>
                           <h4 className="text-xl font-bold text-gray-800 mb-2">{milestone.title}</h4>
                           <p className="text-gray-600">{milestone.description}</p>
@@ -404,7 +404,7 @@ export default function Home() {
 
                       {/* Center Icon */}
                       <div className="hidden md:flex w-2/12 justify-center">
-                        <div className="w-16 h-16 bg-blue-800 rounded-full flex items-center justify-center shadow-lg z-10">
+                        <div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center shadow-lg z-10">
                           <Icon className="w-8 h-8 text-white" />
                         </div>
                       </div>
@@ -420,7 +420,7 @@ export default function Home() {
 
           {/* Values */}
           <div>
-            <h3 className="text-4xl font-bold text-blue-800 text-center mb-12">Our Values</h3>
+            <h3 className="text-4xl font-bold text-blue-500 text-center mb-12">Our Values</h3>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {[
@@ -431,8 +431,8 @@ export default function Home() {
                 const Icon = value.icon;
                 return (
                   <div key={idx} className="bg-blue-50 rounded-2xl p-8 text-center shadow-md hover:shadow-xl transition-all duration-300">
-                    <Icon className="w-12 h-12 text-blue-800 mx-auto mb-4" />
-                    <h4 className="text-xl font-bold text-blue-800 mb-2">{value.title}</h4>
+                    <Icon className="w-12 h-12 text-blue-500 mx-auto mb-4" />
+                    <h4 className="text-xl font-bold text-blue-500 mb-2">{value.title}</h4>
                     <p className="text-gray-600">{value.desc}</p>
                   </div>
                 );
@@ -446,7 +446,7 @@ export default function Home() {
       <section id="menu" className="py-20 bg-gradient-to-b from-blue-50 to-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-5xl font-bold text-blue-800 mb-6">Our Menu</h2>
+            <h2 className="text-5xl font-bold text-blue-500 mb-6">Our Menu</h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
               Explore our delicious selection of handcrafted milkshakes,
               each made with premium ingredients and lots of love.
@@ -464,7 +464,7 @@ export default function Home() {
                   placeholder="Search for a shake..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3 rounded-full border-2 border-gray-200 focus:border-blue-800 focus:outline-none transition-colors"
+                  className="w-full pl-12 pr-4 py-3 rounded-full border-2 border-gray-200 focus:border-blue-500 focus:outline-none transition-colors"
                 />
               </div>
             </div>
@@ -477,8 +477,8 @@ export default function Home() {
                   onClick={() => setSelectedCategory(category)}
                   className={`px-6 py-2 rounded-full font-semibold transition-all duration-300 ${
                     selectedCategory === category
-                      ? 'bg-blue-800 text-white shadow-lg scale-105'
-                      : 'bg-gray-100 text-gray-700 hover:bg-blue-50 hover:text-blue-800'
+                      ? 'bg-blue-500 text-white shadow-lg scale-105'
+                      : 'bg-gray-100 text-gray-700 hover:bg-blue-50 hover:text-blue-500'
                   }`}
                 >
                   {category}
@@ -503,16 +503,16 @@ export default function Home() {
                   >
                     {/* Icon */}
                     <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
-                      <Icon className="w-10 h-10 text-blue-800" />
+                      <Icon className="w-10 h-10 text-blue-500" />
                     </div>
 
                     {/* Category Badge */}
-                    <span className="inline-block px-3 py-1 bg-blue-100 text-blue-800 text-xs font-semibold rounded-full mb-3">
+                    <span className="inline-block px-3 py-1 bg-blue-100 text-blue-500 text-xs font-semibold rounded-full mb-3">
                       {item.category}
                     </span>
 
                     {/* Name */}
-                    <h3 className="text-xl font-bold text-blue-800 mb-2">
+                    <h3 className="text-xl font-bold text-blue-500 mb-2">
                       {item.name}
                     </h3>
 
@@ -523,10 +523,10 @@ export default function Home() {
 
                     {/* Price */}
                     <div className="flex items-center justify-between">
-                      <span className="text-2xl font-bold text-blue-800">
+                      <span className="text-2xl font-bold text-blue-500">
                         {item.price}
                       </span>
-                      <button className="bg-blue-800 text-white px-4 py-2 rounded-full text-sm font-semibold hover:bg-blue-900 transition-colors">
+                      <button className="bg-blue-500 text-white px-4 py-2 rounded-full text-sm font-semibold hover:bg-blue-600 transition-colors">
                         Order
                       </button>
                     </div>
@@ -542,7 +542,7 @@ export default function Home() {
       <section id="gallery" className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-5xl font-bold text-blue-800 mb-6">Gallery</h2>
+            <h2 className="text-5xl font-bold text-blue-500 mb-6">Gallery</h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
               Explore our delicious creations, happy moments, and vibrant outlets through our visual journey.
             </p>
@@ -556,8 +556,8 @@ export default function Home() {
                 onClick={() => setActiveFilter(category.filter)}
                 className={`px-6 py-2 rounded-full font-semibold transition-all duration-300 ${
                   activeFilter === category.filter
-                    ? 'bg-blue-800 text-white shadow-lg scale-105'
-                    : 'bg-gray-100 text-gray-700 hover:bg-blue-50 hover:text-blue-800'
+                    ? 'bg-blue-500 text-white shadow-lg scale-105'
+                    : 'bg-gray-100 text-gray-700 hover:bg-blue-50 hover:text-blue-500'
                 }`}
               >
                 {category.name}
@@ -598,7 +598,7 @@ export default function Home() {
       <section id="franchise" className="py-20 bg-gradient-to-b from-blue-50 to-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-5xl font-bold text-blue-800 mb-6">Start Your Own Franchise</h2>
+            <h2 className="text-5xl font-bold text-blue-500 mb-6">Start Your Own Franchise</h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
               Join the Makers of Milkshakes family and bring joy to your community.
               Be part of our growing success story!
@@ -614,10 +614,10 @@ export default function Home() {
                   key={idx}
                   className="bg-white rounded-3xl p-8 text-center hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2"
                 >
-                  <div className="w-16 h-16 bg-blue-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
                     <Icon className="w-8 h-8 text-white" />
                   </div>
-                  <h3 className="text-xl font-bold text-blue-800 mb-3">{benefit.title}</h3>
+                  <h3 className="text-xl font-bold text-blue-500 mb-3">{benefit.title}</h3>
                   <p className="text-gray-600">{benefit.description}</p>
                 </div>
               );
@@ -626,7 +626,7 @@ export default function Home() {
 
           {/* Application Form */}
           <div className="max-w-3xl mx-auto bg-white rounded-3xl shadow-xl p-8 md:p-12 mb-16">
-            <h3 className="text-3xl font-bold text-blue-800 text-center mb-8">
+            <h3 className="text-3xl font-bold text-blue-500 text-center mb-8">
               Apply Now
             </h3>
 
@@ -643,7 +643,7 @@ export default function Home() {
                     required
                     value={formData.name}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-blue-800 focus:outline-none transition-colors"
+                    className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:outline-none transition-colors"
                     placeholder="John Doe"
                   />
                 </div>
@@ -659,7 +659,7 @@ export default function Home() {
                     required
                     value={formData.email}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-blue-800 focus:outline-none transition-colors"
+                    className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:outline-none transition-colors"
                     placeholder="john@example.com"
                   />
                 </div>
@@ -677,7 +677,7 @@ export default function Home() {
                     required
                     value={formData.phone}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-blue-800 focus:outline-none transition-colors"
+                    className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:outline-none transition-colors"
                     placeholder="+1 (555) 123-4567"
                   />
                 </div>
@@ -693,7 +693,7 @@ export default function Home() {
                     required
                     value={formData.city}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-blue-800 focus:outline-none transition-colors"
+                    className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:outline-none transition-colors"
                     placeholder="New York"
                   />
                 </div>
@@ -709,7 +709,7 @@ export default function Home() {
                   required
                   value={formData.investment}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-blue-800 focus:outline-none transition-colors"
+                  className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:outline-none transition-colors"
                 >
                   <option value="">Select investment range</option>
                   <option value="150k-200k">$150,000 - $200,000</option>
@@ -729,14 +729,14 @@ export default function Home() {
                   rows={4}
                   value={formData.message}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-blue-800 focus:outline-none transition-colors"
+                  className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:outline-none transition-colors"
                   placeholder="Tell us about your background and why you want to join us..."
                 ></textarea>
               </div>
 
               <button
                 type="submit"
-                className="w-full bg-blue-800 text-white py-4 rounded-full text-lg font-semibold hover:bg-blue-900 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl"
+                className="w-full bg-blue-500 text-white py-4 rounded-full text-lg font-semibold hover:bg-blue-600 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl"
               >
                 Submit Application
               </button>
@@ -745,7 +745,7 @@ export default function Home() {
 
           {/* FAQ Section */}
           <div className="max-w-4xl mx-auto">
-            <h3 className="text-4xl font-bold text-blue-800 text-center mb-12">
+            <h3 className="text-4xl font-bold text-blue-500 text-center mb-12">
               Frequently Asked Questions
             </h3>
 
@@ -759,11 +759,11 @@ export default function Home() {
                     onClick={() => setOpenFaq(openFaq === idx ? null : idx)}
                     className="w-full px-6 py-5 flex items-center justify-between text-left"
                   >
-                    <span className="font-semibold text-blue-800 pr-4">{faq.question}</span>
+                    <span className="font-semibold text-blue-500 pr-4">{faq.question}</span>
                     {openFaq === idx ? (
-                      <ChevronUp className="w-5 h-5 text-blue-800 flex-shrink-0" />
+                      <ChevronUp className="w-5 h-5 text-blue-500 flex-shrink-0" />
                     ) : (
-                      <ChevronDown className="w-5 h-5 text-blue-800 flex-shrink-0" />
+                      <ChevronDown className="w-5 h-5 text-blue-500 flex-shrink-0" />
                     )}
                   </button>
 
