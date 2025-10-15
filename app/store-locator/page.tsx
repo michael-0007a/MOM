@@ -79,14 +79,14 @@ export default function StoreLocator() {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50/30 to-white">
+    <div className="min-h-screen bg-gradient-to-b from-[#2b91cb]/5 to-white">
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-blue-500 to-blue-600 text-white py-20">
+      <section className="bg-gradient-to-r from-[#2b91cb] to-[#1e7bb8] text-white py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-4xl md:text-6xl font-bold mb-6">
             Find Your Nearest Store
           </h1>
-          <p className="text-xl md:text-2xl text-blue-100 max-w-3xl mx-auto">
+          <p className="text-xl md:text-2xl text-white/90 max-w-3xl mx-auto">
             Find your nearest Makers of Milkshakes outlet and visit us today!
             Fresh shakes made with love are just around the corner.
           </p>
@@ -104,7 +104,7 @@ export default function StoreLocator() {
                 placeholder="Search by city, address, or zip code..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-12 pr-4 py-4 rounded-full border-2 border-gray-200 focus:border-blue-500 focus:outline-none transition-colors text-lg"
+                className="w-full pl-12 pr-4 py-4 rounded-full border-2 border-gray-200 focus:border-[#2b91cb] focus:outline-none transition-colors text-lg"
               />
             </div>
           </div>
@@ -117,7 +117,7 @@ export default function StoreLocator() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Store List */}
             <div className="space-y-6">
-              <h2 className="text-3xl font-bold text-blue-500 mb-8">
+              <h2 className="text-3xl font-bold text-[#2b91cb] mb-8">
                 Our Locations ({filteredStores.length})
               </h2>
 
@@ -134,23 +134,23 @@ export default function StoreLocator() {
                       key={store.id}
                       className={`bg-white rounded-2xl p-6 shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer border-2 ${
                         selectedStore === store.id
-                          ? 'border-blue-500 bg-blue-50'
-                          : 'border-transparent hover:border-blue-200'
+                          ? 'border-[#2b91cb] bg-[#2b91cb]/5'
+                          : 'border-transparent hover:border-[#2b91cb]/20'
                       }`}
                       onClick={() => setSelectedStore(selectedStore === store.id ? null : store.id)}
                     >
                       <div className="flex justify-between items-start mb-4">
                         <div>
-                          <h3 className="text-xl font-bold text-blue-500 mb-2">
+                          <h3 className="text-xl font-bold text-[#2b91cb] mb-2">
                             {store.name}
                           </h3>
                           <div className="flex items-start space-x-2 text-gray-600 mb-2">
-                            <MapPin className="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" />
+                            <MapPin className="w-5 h-5 text-[#2b91cb] mt-0.5 flex-shrink-0" />
                             <span>{store.address}</span>
                           </div>
                         </div>
                         <div className="text-right">
-                          <span className="inline-block px-3 py-1 bg-blue-100 text-blue-500 rounded-full text-sm font-semibold">
+                          <span className="inline-block px-3 py-1 bg-[#2b91cb]/10 text-[#2b91cb] rounded-full text-sm font-semibold">
                             {store.distance}
                           </span>
                         </div>
@@ -158,23 +158,23 @@ export default function StoreLocator() {
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
                         <div className="flex items-center space-x-2">
-                          <Phone className="w-4 h-4 text-blue-500" />
+                          <Phone className="w-4 h-4 text-[#2b91cb]" />
                           <span>{store.phone}</span>
                         </div>
                         <div className="flex items-center space-x-2">
-                          <Clock className="w-4 h-4 text-blue-500" />
+                          <Clock className="w-4 h-4 text-[#2b91cb]" />
                           <span>{store.hours}</span>
                         </div>
                       </div>
 
                       {selectedStore === store.id && (
-                        <div className="mt-6 pt-4 border-t border-blue-200">
+                        <div className="mt-6 pt-4 border-t border-[#2b91cb]/20">
                           <div className="flex flex-wrap gap-3">
-                            <button className="flex items-center space-x-2 bg-blue-500 text-white px-4 py-2 rounded-full hover:bg-blue-600 transition-colors text-sm font-semibold">
+                            <button className="flex items-center space-x-2 bg-[#2b91cb] text-white px-4 py-2 rounded-full hover:bg-[#1e7bb8] transition-colors text-sm font-semibold">
                               <Navigation className="w-4 h-4" />
                               <span>Get Directions</span>
                             </button>
-                            <button className="flex items-center space-x-2 bg-white border-2 border-blue-500 text-blue-500 px-4 py-2 rounded-full hover:bg-blue-50 transition-colors text-sm font-semibold">
+                            <button className="flex items-center space-x-2 bg-white border-2 border-[#2b91cb] text-[#2b91cb] px-4 py-2 rounded-full hover:bg-[#2b91cb]/10 transition-colors text-sm font-semibold">
                               <Phone className="w-4 h-4" />
                               <span>Call Store</span>
                             </button>
@@ -205,17 +205,17 @@ export default function StoreLocator() {
       </section>
 
       {/* Contact Section */}
-      <section className="py-20 bg-blue-500 text-white">
+      <section className="py-20 bg-[#2b91cb] text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl md:text-4xl font-bold mb-6">
             Can&apos;t Find Your Location?
           </h2>
-          <p className="text-xl text-blue-100 max-w-2xl mx-auto mb-8">
+          <p className="text-xl text-white/90 max-w-2xl mx-auto mb-8">
             We&apos;re expanding rapidly! If we&apos;re not in your area yet, let us know where you&apos;d like to see us next.
           </p>
           <Link
             href="/contact"
-            className="inline-flex items-center space-x-2 bg-white text-blue-500 px-8 py-4 rounded-full text-lg font-semibold hover:bg-blue-50 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl"
+            className="inline-flex items-center space-x-2 bg-white text-[#2b91cb] px-8 py-4 rounded-full text-lg font-semibold hover:bg-yellow-300 hover:text-[#2b91cb] transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl"
           >
             <span>Request a Location</span>
             <MapPin className="w-5 h-5" />

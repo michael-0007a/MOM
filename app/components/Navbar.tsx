@@ -52,7 +52,7 @@ export default function Navbar() {
               height={48}
               className="transition-transform group-hover:scale-110"
             />
-            <span className="text-xl font-bold text-blue-500 hidden sm:block">
+            <span className="text-xl font-bold text-[#2b91cb] hidden sm:block">
               Makers of Milkshakes
             </span>
           </Link>
@@ -61,22 +61,18 @@ export default function Navbar() {
           <div className="hidden md:flex space-x-1">
             {navLinks.map((link) =>
               link.href.startsWith('/#') ? (
-                <a
+                <button
                   key={link.name}
-                  href={link.href}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handleClick(link.href);
-                  }}
-                  className="px-4 py-2 rounded-full text-gray-700 hover:bg-blue-50 hover:text-blue-500 transition-all duration-300 font-medium cursor-pointer"
+                  onClick={() => handleClick(link.href)}
+                  className="px-4 py-2 rounded-full text-gray-700 hover:bg-blue-50 hover:text-[#2b91cb] transition-all duration-300 font-medium cursor-pointer"
                 >
                   {link.name}
-                </a>
+                </button>
               ) : (
                 <Link
                   key={link.name}
                   href={link.href}
-                  className="px-4 py-2 rounded-full text-gray-700 hover:bg-blue-50 hover:text-blue-500 transition-all duration-300 font-medium"
+                  className="px-4 py-2 rounded-full text-gray-700 hover:bg-blue-50 hover:text-[#2b91cb] transition-all duration-300 font-medium"
                 >
                   {link.name}
                 </Link>
@@ -90,9 +86,9 @@ export default function Navbar() {
             className="md:hidden p-2 rounded-lg hover:bg-blue-50 transition-colors"
           >
             {isOpen ? (
-              <X className="w-6 h-6 text-blue-500" />
+              <X className="w-6 h-6 text-[#2b91cb]" />
             ) : (
-              <Menu className="w-6 h-6 text-blue-500" />
+              <Menu className="w-6 h-6 text-[#2b91cb]" />
             )}
           </button>
         </div>
@@ -104,23 +100,19 @@ export default function Navbar() {
           <div className="px-4 py-4 space-y-2">
             {navLinks.map((link) => (
               link.href.startsWith('/#') ? (
-                <a
+                <button
                   key={link.name}
-                  href={link.href}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handleClick(link.href);
-                  }}
-                  className="block px-4 py-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-500 transition-all duration-300 font-medium cursor-pointer"
+                  onClick={() => handleClick(link.href)}
+                  className="block w-full text-left px-4 py-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-[#2b91cb] transition-all duration-300 font-medium cursor-pointer"
                 >
                   {link.name}
-                </a>
+                </button>
               ) : (
                 <Link
                   key={link.name}
                   href={link.href}
                   onClick={() => setIsOpen(false)}
-                  className="block px-4 py-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-500 transition-all duration-300 font-medium"
+                  className="block px-4 py-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-[#2b91cb] transition-all duration-300 font-medium"
                 >
                   {link.name}
                 </Link>
