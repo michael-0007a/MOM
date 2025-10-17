@@ -52,7 +52,7 @@ export default function Navbar() {
               height={48}
               className="transition-transform group-hover:scale-110"
             />
-            <span className="text-xl font-bold text-[#2b91cb] hidden sm:block">
+            <span className="text-xl syne-bold text-[#2b91cb] hidden sm:block">
               Makers of Milkshakes
             </span>
           </Link>
@@ -64,7 +64,7 @@ export default function Navbar() {
                 <button
                   key={link.name}
                   onClick={() => handleClick(link.href)}
-                  className="px-4 py-2 rounded-full text-gray-700 hover:bg-blue-50 hover:text-[#2b91cb] transition-all duration-300 font-medium cursor-pointer"
+                  className="px-4 py-2 rounded-full text-gray-700 hover:bg-blue-50 hover:text-[#2b91cb] transition-all duration-300 manrope-medium cursor-pointer"
                 >
                   {link.name}
                 </button>
@@ -72,7 +72,7 @@ export default function Navbar() {
                 <Link
                   key={link.name}
                   href={link.href}
-                  className="px-4 py-2 rounded-full text-gray-700 hover:bg-blue-50 hover:text-[#2b91cb] transition-all duration-300 font-medium"
+                  className="px-4 py-2 rounded-full text-gray-700 hover:bg-blue-50 hover:text-[#2b91cb] transition-all duration-300 manrope-medium"
                 >
                   {link.name}
                 </Link>
@@ -103,7 +103,7 @@ export default function Navbar() {
                 <button
                   key={link.name}
                   onClick={() => handleClick(link.href)}
-                  className="block w-full text-left px-4 py-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-[#2b91cb] transition-all duration-300 font-medium cursor-pointer"
+                  className="block w-full text-left px-4 py-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-[#2b91cb] transition-all duration-300 manrope-medium cursor-pointer"
                 >
                   {link.name}
                 </button>
@@ -112,7 +112,7 @@ export default function Navbar() {
                   key={link.name}
                   href={link.href}
                   onClick={() => setIsOpen(false)}
-                  className="block px-4 py-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-[#2b91cb] transition-all duration-300 font-medium"
+                  className="block px-4 py-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-[#2b91cb] transition-all duration-300 manrope-medium"
                 >
                   {link.name}
                 </Link>

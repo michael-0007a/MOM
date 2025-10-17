@@ -1,19 +1,49 @@
+import Image from 'next/image';
+
 export default function LoadingSpinner() {
   return (
     <div className="fixed inset-0 bg-white z-50 flex items-center justify-center">
-      <div className="relative">
-        {/* Milkshake cup */}
-        <div className="w-24 h-32 bg-blue-800 rounded-b-3xl animate-pulse">
-          {/* Straw */}
-          <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-2 w-2 h-16 bg-white rounded-full"></div>
-          {/* Swirl */}
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-            <div className="w-16 h-16 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+      <div className="relative flex flex-col items-center">
+        {/* Simplified spinner with focus on milkshake */}
+        <div className="relative w-28 h-28">
+          {/* Single clean spinning ring */}
+          <div className="absolute inset-0 border-4 border-gray-100 rounded-full"></div>
+          <div
+            className="absolute inset-0 border-4 border-transparent rounded-full animate-spin"
+            style={{
+              borderTopColor: '#2b91cb',
+              borderRightColor: '#2b91cb',
+            }}
+          ></div>
+
+          {/* Enhanced milkshake gif in center */}
+          <div className="absolute inset-3 flex items-center justify-center">
+            <div className="relative">
+              {/* Subtle glow behind GIF */}
+              <div
+                className="absolute inset-0 rounded-full blur-sm opacity-30"
+                style={{ backgroundColor: '#2b91cb' }}
+              ></div>
+              <Image
+                src="/spinner-milkshake.gif"
+                alt="Loading milkshake"
+                width={72}
+                height={72}
+                className="relative z-10 rounded-full shadow-lg"
+                unoptimized
+                priority
+              />
+            </div>
           </div>
         </div>
-        <p className="text-center mt-4 text-blue-800 font-semibold">Loading...</p>
+
+        {/* Clean loading text */}
+        <div className="mt-6 text-center">
+          <p className="text-xl font-semibold text-[#2b91cb]">
+            Preparing Your Milkshake...
+          </p>
+        </div>
       </div>
     </div>
   );
 }
-

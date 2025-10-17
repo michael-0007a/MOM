@@ -7,6 +7,9 @@ const config: Config = {
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
+    extend: {
+
+    },
     colors: {
       // Keep essential colors
       transparent: 'transparent',
@@ -28,7 +31,7 @@ const config: Config = {
         900: '#111827',
       },
 
-      // Custom blue palette based on #2b91cb
+      // Custom blue palette based on #2b91cb - MAIN BRAND COLOR
       blue: {
         50: '#eff9ff',
         100: '#dff2ff',
@@ -42,7 +45,7 @@ const config: Config = {
         900: '#1e435c',
       },
 
-      // Keep other essential colors
+      // Keep other essential colors (removed purple, pink, violet, indigo)
       red: {
         400: '#f87171',
         500: '#ef4444',
@@ -50,44 +53,32 @@ const config: Config = {
         700: '#b91c1c',
       },
       green: {
+        100: '#d1fae5',
         400: '#4ade80',
         500: '#22c55e',
         600: '#16a34a',
+        700: '#15803d',
       },
       yellow: {
+        100: '#fef3c7',
         400: '#facc15',
         500: '#eab308',
         600: '#ca8a04',
-      },
-      purple: {
-        400: '#c084fc',
-        500: '#a855f7',
-        600: '#9333ea',
-      },
-      pink: {
-        400: '#f472b6',
-        500: '#ec4899',
-        600: '#db2777',
+        700: '#a16207',
       },
       orange: {
+        100: '#ffedd5',
         400: '#fb923c',
         500: '#f97316',
         600: '#ea580c',
+        700: '#c2410c',
       },
       cyan: {
+        50: '#ecfeff',
+        100: '#cffafe',
         400: '#22d3ee',
         500: '#06b6d4',
         600: '#0891b2',
-      },
-      indigo: {
-        400: '#818cf8',
-        500: '#6366f1',
-        600: '#4f46e5',
-      },
-      violet: {
-        400: '#a78bfa',
-        500: '#8b5cf6',
-        600: '#7c3aed',
       },
       amber: {
         600: '#d97706',

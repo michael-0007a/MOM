@@ -7,8 +7,17 @@
     <list default="true" id="e99e33dc-5643-411c-a0a0-e428ed9afd90" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/components/Footer.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/components/Footer.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/components/LoadingSpinner.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/components/LoadingSpinner.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/components/Navbar.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/components/Navbar.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/contact/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/contact/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/franchise/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/franchise/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/gallery/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/gallery/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/globals.css" beforeDir="false" afterPath="$PROJECT_DIR$/app/globals.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/layout.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/menu/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/menu/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/our-story/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/our-story/page.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tailwind.config.ts" beforeDir="false" afterPath="$PROJECT_DIR$/tailwind.config.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -35,16 +44,18 @@
     "ModuleVcsDetector.initialDetectionPerformed": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
     "git-widget-placeholder": "main",
     "js.debugger.nextJs.config.created.client": "true",
     "js.debugger.nextJs.config.created.server": "true",
     "junie.onboarding.icon.badge.shown": "true",
-    "last_opened_file_path": "C:/Users/micha/Desktop/Projects/mom/app",
+    "last_opened_file_path": "C:/Users/micha/Desktop/Projects/mom/public",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
+    "npm.Next.js: server-side.executor": "Run",
     "to.speed.mode.migration.done": "true",
     "ts.external.directory.path": "C:\\Users\\micha\\Desktop\\Projects\\mom\\node_modules\\typescript\\lib",
     "vue.rearranger.settings.migration": "true"
@@ -52,9 +63,12 @@
 }]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\micha\Desktop\Projects\mom\public" />
+      <recent name="C:\Users\micha\Desktop\Projects\mom\old code" />
       <recent name="C:\Users\micha\Desktop\Projects\mom\app" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\micha\Desktop\Projects\mom\public\menu" />
       <recent name="C:\Users\micha\Desktop\Projects\mom\public" />
     </key>
   </component>
@@ -88,7 +102,12 @@
       <option name="presentableId" value="Default" />
       <updated>1760453798481</updated>
       <workItem from="1760453800343" duration="8086000" />
-      <workItem from="1760516466759" duration="696000" />
+      <workItem from="1760516466759" duration="1494000" />
+      <workItem from="1760524072728" duration="664000" />
+      <workItem from="1760547197221" duration="2554000" />
+      <workItem from="1760585658109" duration="485000" />
+      <workItem from="1760588495919" duration="9765000" />
+      <workItem from="1760677826738" duration="21997000" />
     </task>
     <servers />
   </component>

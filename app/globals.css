@@ -1,4 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,100..900;1,100..900&family=Notable&display=swap');
 @import "tailwindcss";
 @import "./custom-colors.css";
 
@@ -19,14 +18,14 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: 'Exo 2', system-ui, -apple-system, sans-serif;
-  --font-heading: 'Notable', sans-serif;
+  --font-sans: 'Manrope', system-ui, -apple-system, sans-serif;
+  --font-heading: 'Syne', sans-serif;
 }
 
 body {
   background: var(--background);
   color: #1f2937;
-  font-family: 'Exo 2', sans-serif;
+  font-family: 'Manrope', sans-serif;
 }
 
 /* Notable font class */
@@ -36,67 +35,89 @@ body {
   font-style: normal;
 }
 
-/* Exo 2 font utility classes */
-.exo-2-thin {
-  font-family: "Exo 2", sans-serif;
-  font-optical-sizing: auto;
-  font-weight: 100;
-  font-style: normal;
-}
-
-.exo-2-extralight {
-  font-family: "Exo 2", sans-serif;
-  font-optical-sizing: auto;
-  font-weight: 200;
-  font-style: normal;
-}
-
-.exo-2-light {
-  font-family: "Exo 2", sans-serif;
-  font-optical-sizing: auto;
-  font-weight: 300;
-  font-style: normal;
-}
-
-.exo-2-regular {
-  font-family: "Exo 2", sans-serif;
+/* Syne font utility classes */
+.syne-regular {
+  font-family: "Syne", sans-serif;
   font-optical-sizing: auto;
   font-weight: 400;
   font-style: normal;
 }
 
-.exo-2-medium {
-  font-family: "Exo 2", sans-serif;
+.syne-medium {
+  font-family: "Syne", sans-serif;
   font-optical-sizing: auto;
   font-weight: 500;
   font-style: normal;
 }
 
-.exo-2-semibold {
-  font-family: "Exo 2", sans-serif;
+.syne-semibold {
+  font-family: "Syne", sans-serif;
   font-optical-sizing: auto;
   font-weight: 600;
   font-style: normal;
 }
 
-.exo-2-bold {
-  font-family: "Exo 2", sans-serif;
+.syne-bold {
+  font-family: "Syne", sans-serif;
   font-optical-sizing: auto;
   font-weight: 700;
   font-style: normal;
 }
 
-.exo-2-extrabold {
-  font-family: "Exo 2", sans-serif;
+.syne-extrabold {
+  font-family: "Syne", sans-serif;
   font-optical-sizing: auto;
   font-weight: 800;
   font-style: normal;
 }
 
-.exo-2-black {
-  font-family: "Exo 2", sans-serif;
+/* Manrope font utility classes */
+.manrope-light {
+  font-family: "Manrope", sans-serif;
   font-optical-sizing: auto;
-  font-weight: 900;
+  font-weight: 200;
+  font-style: normal;
+}
+
+.manrope-extralight {
+  font-family: "Manrope", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 300;
+  font-style: normal;
+}
+
+.manrope-regular {
+  font-family: "Manrope", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.manrope-medium {
+  font-family: "Manrope", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 500;
+  font-style: normal;
+}
+
+.manrope-semibold {
+  font-family: "Manrope", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 600;
+  font-style: normal;
+}
+
+.manrope-bold {
+  font-family: "Manrope", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 700;
+  font-style: normal;
+}
+
+.manrope-extrabold {
+  font-family: "Manrope", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 800;
   font-style: normal;
 }
 
@@ -167,4 +188,262 @@ body {
 .cloud {
   background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(147, 197, 253, 0.1) 100%);
   border-radius: 50%;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  /* Blob Animation */
+  @keyframes blob {
+    0%, 100% {
+      transform: translate(0, 0) scale(1);
+    }
+    33% {
+      transform: translate(30px, -50px) scale(1.1);
+    }
+    66% {
+      transform: translate(-20px, 20px) scale(0.9);
+    }
+  }
+
+  .animate-blob {
+    animation: blob 7s infinite;
+  }
+
+  .animation-delay-2000 {
+    animation-delay: 2s;
+  }
+
+  .animation-delay-4000 {
+    animation-delay: 4s;
+  }
+
+  /* Float Animation */
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0px) rotate(0deg);
+    }
+    50% {
+      transform: translateY(-20px) rotate(5deg);
+    }
+  }
+
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  .animation-delay-1000 {
+    animation-delay: 1s;
+  }
+
+  .animation-delay-3000 {
+    animation-delay: 3s;
+  }
+
+  .animation-delay-5000 {
+    animation-delay: 5s;
+  }
+
+  /* Gradient Animation */
+  @keyframes gradient {
+    0%, 100% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+  }
+
+  .animate-gradient {
+    background-size: 200% 200%;
+    animation: gradient 3s ease infinite;
+  }
+
+  /* 3D Card Styles */
+  .card-3d {
+    transform-style: preserve-3d;
+    transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+    backface-visibility: hidden;
+  }
+
+  .card-3d:hover {
+    transform: translateY(-12px) rotateX(5deg) rotateY(5deg) scale(1.05);
+  }
+
+  .card-3d::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0) 50%);
+    opacity: 0;
+    transition: opacity 0.6s;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .card-3d:hover::before {
+    opacity: 1;
+  }
+
+  .card-3d-shadow {
+    box-shadow:
+      0 4px 6px -1px rgba(0, 0, 0, 0.1),
+      0 2px 4px -1px rgba(0, 0, 0, 0.06),
+      0 20px 25px -5px rgba(43, 145, 203, 0.1);
+    transition: box-shadow 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+
+  .card-3d-shadow:hover {
+    box-shadow:
+      0 20px 25px -5px rgba(43, 145, 203, 0.2),
+      0 10px 10px -5px rgba(43, 145, 203, 0.15),
+      0 30px 40px -10px rgba(0, 0, 0, 0.2);
+  }
+
+  /* THICK 3D Dashboard Cards with Visible Depth */
+  .dashboard-card-3d {
+    position: relative;
+    transform-style: preserve-3d;
+    transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+
+  /* Create the 3D thickness/depth effect */
+  .dashboard-card-3d::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(147, 51, 234, 0.15));
+    border-radius: inherit;
+    transform: translateZ(-12px);
+    filter: blur(2px);
+    opacity: 0.8;
+  }
+
+  /* Side/edge panels for thickness */
+  .dashboard-card-3d::after {
+    content: '';
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    right: -4px;
+    bottom: -4px;
+    background: linear-gradient(145deg, rgba(43, 145, 203, 0.25), rgba(147, 51, 234, 0.25));
+    border-radius: inherit;
+    transform: translateZ(-8px);
+    opacity: 0.6;
+    transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+
+  .dashboard-card-3d:hover {
+    transform: translateY(-16px) rotateX(8deg) rotateY(-4deg) scale(1.03);
+  }
+
+  .dashboard-card-3d:hover::after {
+    transform: translateZ(-16px) translateX(6px) translateY(6px);
+    opacity: 0.8;
+  }
+
+  /* Enhanced shadow for lifted cards */
+  .dashboard-card-3d {
+    filter: drop-shadow(0 10px 15px rgba(0, 0, 0, 0.1))
+            drop-shadow(0 4px 6px rgba(43, 145, 203, 0.1));
+  }
+
+  .dashboard-card-3d:hover {
+    filter: drop-shadow(0 25px 35px rgba(0, 0, 0, 0.2))
+            drop-shadow(0 10px 20px rgba(43, 145, 203, 0.2));
+  }
+
+  /* Badge 3D Effect */
+  .badge-3d {
+    transform-style: preserve-3d;
+    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+
+  .badge-3d:hover {
+    transform: translateZ(20px) scale(1.05);
+    box-shadow:
+      0 15px 30px rgba(43, 145, 203, 0.3),
+      0 5px 15px rgba(0, 0, 0, 0.2);
+  }
+
+  /* Glassmorphism 3D */
+  .glass-3d {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow:
+      0 8px 32px 0 rgba(31, 38, 135, 0.15),
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.5);
+  }
+
+  /* Perspective container */
+  .perspective-1000 {
+    perspective: 1000px;
+  }
+
+  .perspective-1500 {
+    perspective: 1500px;
+  }
+
+  /* Custom animations for the menu */
+  @keyframes blob {
+    0% {
+      transform: translate(0px, 0px) scale(1);
+    }
+    33% {
+      transform: translate(30px, -50px) scale(1.1);
+    }
+    66% {
+      transform: translate(-20px, 20px) scale(0.9);
+    }
+    100% {
+      transform: translate(0px, 0px) scale(1);
+    }
+  }
+
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-20px);
+    }
+  }
+
+  @keyframes glow {
+    0%, 100% {
+      box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+    }
+    50% {
+      box-shadow: 0 0 40px rgba(59, 130, 246, 0.6);
+    }
+  }
+
+  .animate-blob {
+    animation: blob 7s infinite;
+  }
+
+  .animation-delay-2000 {
+    animation-delay: 2s;
+  }
+
+  .animation-delay-4000 {
+    animation-delay: 4s;
+  }
+
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  .animate-glow {
+    animation: glow 2s ease-in-out infinite alternate;
+  }
 }

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { Camera } from 'lucide-react';
 
 export default function Gallery() {
   const [selectedImage, setSelectedImage] = useState<number | null>(null);
@@ -36,26 +37,36 @@ export default function Gallery() {
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
-      <section className="bg-gradient-to-b from-blue-50 to-white py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-5xl sm:text-6xl font-bold text-blue-800 mb-6">
+      <section className="relative bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 py-20 overflow-hidden">
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-20 left-10 w-72 h-72 bg-blue-500 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-20 right-10 w-96 h-96 bg-pink-500 rounded-full blur-3xl"></div>
+        </div>
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          {/* Badge with 3D Effect */}
+          <div className="inline-flex items-center space-x-2 glass-3d badge-3d px-6 py-3 rounded-full shadow-lg mb-6 border-2 border-blue-200">
+            <Camera className="w-5 h-5 text-blue-500" />
+            <span className="text-blue-800 font-semibold">Moments Worth Sharing</span>
+          </div>
+
+          <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold text-blue-800 mb-6">
             Gallery
           </h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+          <p className="text-xl md:text-2xl text-gray-700 max-w-3xl mx-auto font-medium">
             Explore our delicious creations, happy moments, and vibrant outlets through our visual journey.
           </p>
         </div>
       </section>
 
       {/* Filter Buttons */}
-      <section className="py-8 bg-white sticky top-20 z-40 shadow-sm">
+      <section className="py-8 bg-white sticky top-20 z-40 shadow-md border-b-2 border-blue-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-wrap justify-center gap-3">
             {categories.map((category) => (
               <button
                 key={category.filter}
                 onClick={() => setActiveFilter(category.filter)}
-                className={`px-6 py-2 rounded-full font-semibold transition-all duration-300 ${
+                className={`px-6 py-3 rounded-full font-semibold transition-all duration-300 text-base ${
                   activeFilter === category.filter
                     ? 'bg-blue-800 text-white shadow-lg scale-105'
                     : 'bg-gray-100 text-gray-700 hover:bg-blue-50 hover:text-blue-800'
@@ -69,13 +80,13 @@ export default function Gallery() {
       </section>
 
       {/* Gallery Grid */}
-      <section className="py-12 bg-gradient-to-b from-white to-blue-50">
+      <section className="py-16 bg-gradient-to-b from-white via-blue-50 to-purple-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
             {filteredItems.map((item, index) => (
               <div
                 key={item.id}
-                className="group relative aspect-square rounded-3xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 cursor-pointer"
+                className="group relative aspect-square rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer transform hover:-translate-y-2"
                 onClick={() => setSelectedImage(item.id)}
                 style={{ animationDelay: `${index * 50}ms` }}
               >
@@ -84,10 +95,10 @@ export default function Gallery() {
 
                 {/* Content */}
                 <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-white">
-                  <div className="text-8xl mb-4 transform group-hover:scale-125 group-hover:rotate-12 transition-all duration-500">
+                  <div className="text-7xl md:text-8xl mb-4 transform group-hover:scale-125 group-hover:rotate-12 transition-all duration-500">
                     {item.emoji}
                   </div>
-                  <h3 className="text-xl font-bold text-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <h3 className="text-xl md:text-2xl font-bold text-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/30 px-4 py-2 rounded-full">
                     {item.title}
                   </h3>
                 </div>
@@ -100,23 +111,18 @@ export default function Gallery() {
         </div>
       </section>
 
-      {/* Instagram Section */}
-      <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-4xl font-bold text-blue-800 mb-4">
-            Share Your Shake Moments!
+      {/* CTA Section */}
+      <section className="py-20 bg-gradient-to-r from-blue-800 to-purple-800 text-white">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-3xl md:text-5xl font-bold mb-6">
+            Want to Be Featured?
           </h2>
-          <p className="text-xl text-gray-600 mb-8">
-            Tag us @makersofmilkshakes to be featured in our gallery
+          <p className="text-lg md:text-xl mb-8 opacity-90">
+            Tag us on social media with #MakersOfMilkshakes
           </p>
-          <a
-            href="https://instagram.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-block bg-gradient-to-r from-purple-500 to-pink-500 text-white px-8 py-4 rounded-full font-semibold hover:shadow-xl transform hover:scale-105 transition-all duration-300"
-          >
-            Follow Us on Instagram
-          </a>
+          <button className="px-8 py-4 bg-white text-blue-800 rounded-full font-bold text-lg hover:bg-gray-100 transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:scale-105">
+            Follow Us
+          </button>
         </div>
       </section>
 
@@ -149,4 +155,3 @@ export default function Gallery() {
     </div>
   );
 }
-

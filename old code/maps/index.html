@@ -1,0 +1,1942 @@
+<!DOCTYPE html>
+<html>
+ 
+<head><meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+      
+      <title>Store Locator</title>
+      <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+      <link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700' rel='stylesheet'>
+      <!-- Mapbox GL JS -->
+      <script src='mapbox-gl.js'></script>
+      <link href='mapbox-gl.css' rel='stylesheet' />
+      <!-- Geocoder plugin -->
+      <script src='mapbox-gl-geocoder.js'></script>
+      <link rel='stylesheet' href='mapbox-gl-geocoder.css' type='text/css' />
+      <!-- Turf.js plugin -->
+      <script src='turf.min.js'></script>
+      <style>
+
+        body {
+          color:#404040;
+          font:400 15px/22px 'Source Sans Pro', 'Helvetica Neue', Sans-serif;
+          margin:0;
+          padding:0;
+          -webkit-font-smoothing:antialiased;
+        }
+
+        * {
+          -webkit-box-sizing:border-box;
+          -moz-box-sizing:border-box;
+          box-sizing:border-box;
+        }
+
+        .sidebar {
+          position:absolute;
+          width:33.3333%;
+          height:100%;
+          top:0;left:0;
+          overflow:hidden;
+          border-right:1px solid rgba(0,0,0,0.25);
+        }
+        .pad2 {
+          padding:20px;
+        }
+
+        .map {
+          position:absolute;
+          left:33.3333%;
+          width:66.6666%;
+          top:0;bottom:0;
+        }
+
+        h1 {
+          font-size:22px;
+          margin:0;
+          font-weight:400;
+          line-height: 20px;
+          padding: 20px 2px;
+        }
+
+        a {
+          color:#404040;
+          text-decoration:none;
+        }
+
+        a:hover {
+          color:#101010;
+        }
+
+        .heading {
+          background:#fff;
+          border-bottom:1px solid #eee;
+          min-height:60px;
+          line-height:60px;
+          padding:0 10px;
+          background-color: #1690fc;
+          color: #fff;
+        }
+
+        .listings {
+          height:100%;
+          overflow:auto;
+          padding-bottom:60px;
+        }
+
+        .listings .item {
+          display:block;
+          border-bottom:1px solid #eee;
+          padding:10px;
+          text-decoration:none;
+        }
+
+        .listings .item:last-child { border-bottom:none; }
+        .listings .item .title {
+          display:block;
+          color:#1690fc;
+          font-weight:700;
+        }
+
+        .listings .item .title small { font-weight:400; }
+        .listings .item.active .title,
+        .listings .item .title:hover { color:#8cc63f; }
+        .listings .item.active {
+          background-color:#f8f8f8;
+        }
+        ::-webkit-scrollbar {
+          width:3px;
+          height:3px;
+          border-left:0;
+          background:rgba(0,0,0,0.1);
+        }
+        ::-webkit-scrollbar-track {
+          background:none;
+        }
+        ::-webkit-scrollbar-thumb {
+          background:#1690fc;
+          border-radius:0;
+        }
+
+        .marker {
+          border: none;
+          cursor: pointer;
+          height: 56px;
+          width: 56px;
+          background-image: url(marker.png);
+          background-color: rgba(0, 0, 0, 0);
+        }
+
+        .clearfix { display:block; }
+        .clearfix:after {
+          content:'.';
+          display:block;
+          height:0;
+          clear:both;
+          visibility:hidden;
+        }
+
+        /* Marker tweaks */
+        .mapboxgl-popup {
+          padding-bottom: 50px;
+        }
+
+        .mapboxgl-popup-close-button {
+          display:none;
+        }
+        .mapboxgl-popup-content {
+          font:400 15px/22px 'Source Sans Pro', 'Helvetica Neue', Sans-serif;
+          padding:0;
+          width:180px;
+        }
+        .mapboxgl-popup-content-wrapper {
+          padding:1%;
+        }
+        .mapboxgl-popup-content h3 {
+          background:#2772ff;
+          color:#fff;
+          margin:0;
+          display:block;
+          padding:10px;
+          border-radius:3px 3px 0 0;
+          font-weight:700;
+          margin-top:-15px;
+        }
+
+        .mapboxgl-popup-content h4 {
+          margin:0;
+          display:block;
+          padding: 10px 10px 10px 10px;
+          font-weight:400;
+        }
+
+        .mapboxgl-popup-content div {
+          padding:10px;
+        }
+
+        .mapboxgl-container .leaflet-marker-icon {
+          cursor:pointer;
+        }
+
+        .mapboxgl-popup-anchor-top > .mapboxgl-popup-content {
+          margin-top: 15px;
+        }
+
+        .mapboxgl-popup-anchor-top > .mapboxgl-popup-tip {
+          border-bottom-color: #2772ff;
+        }
+
+        .mapboxgl-ctrl-geocoder {
+          border: 2px solid #1690fc;
+          border-radius: 0;
+          position: relative;
+          top: 0;
+          width: 800px;
+          margin-top: 0;
+          border: 0;
+        }
+
+        .mapboxgl-ctrl-geocoder > div {
+          min-width:100%;
+          margin-left:0;
+        }
+      </style>
+  </head>
+
+  <body>
+    <div class='sidebar'>
+      <div class='heading'>
+        <h1>Our locations</h1>
+      </div>
+    <div id='listings' class='listings'></div>
+    </div>
+    <div id='map' class='map'> </div>
+
+  <script>
+  // This will let you use the .remove() function later on
+  if (!('remove' in Element.prototype)) {
+    Element.prototype.remove = function() {
+      if (this.parentNode) {
+          this.parentNode.removeChild(this);
+      }
+    };
+  }
+
+  mapboxgl.accessToken = 'pk.eyJ1IjoiZ3V0dGFtYW5pc2giLCJhIjoiY2p2MnJ5MW0xMDdudTQ0bm1xb3cwem5qdiJ9.Ln422s_gkHRuM48W9eTs4A';
+
+  // This adds the map
+  var map = new mapboxgl.Map({
+    // container id specified in the HTML
+    container: 'map',
+    // style URL
+    style: 'mapbox://styles/mapbox/light-v10',
+    // initial position in [long, lat] format
+    center: [78.393869, 17.434634],
+    // initial zoom
+    zoom: 11
+  });
+
+  var stores = {
+    "type": "FeatureCollection",
+    "features": [
+      {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            78.185409,
+            16.95185
+          ]
+        },
+        "properties": {
+          "phoneFormatted": "8139999752",
+          "phone": "8139999752",
+		  "location": "Hillpark",
+          "address": "Bangalore Highway, Hill Park Restaurant, Balanagar",
+          "city": "Shadnagar",
+          "country": "India",
+          "crossStreet": "",
+          "postalCode": "509202",
+          "state": "Telangana"
+        }
+      },
+      {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            78.393869,
+            17.434634
+          ]
+        },
+        "properties": {
+          "phoneFormatted": "9885237744",
+          "phone": "9885237744",
+		  "location": "Madhapur",
+          "address": "107, Kavuri Hills Rd, Masthan Nagar, CBI Colony, HITEC City",
+          "city": "Hyderabad",
+          "country": "India",
+          "crossStreet": "",
+          "postalCode": "500033",
+          "state": "Telangana"
+        }
+      },
+      {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            78.485632,
+            17.440983
+          ]
+        },
+        "properties": {
+          "phoneFormatted": "8019771219",
+          "phone": "8019771219",
+		  "location": "Sindhi Colony",
+          "address": "160, Jogani, Ramgopalpet",
+          "city": "Hyderabad",
+          "country": "India",
+          "crossStreet": "",
+          "postalCode": "500003",
+          "state": "Telangana"
+        }
+      },
+      {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            78.479250,
+            17.393959
+          ]
+        },
+        "properties": {
+          "phoneFormatted": "8019771219",
+          "phone": "8019771219",
+		  "location": "King Koti",
+          "address": "33, King Koti Rd, King Koti, Abids",
+          "city": "Hyderabad",
+          "country": "India",
+          "crossStreet": "",
+          "postalCode": "500029",
+          "state": "Telangana"
+        }
+      },
+	  
+      {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            78.367961,
+            17.466116
+          ]
+        },
+        "properties": {
+          "phoneFormatted": "8019771219",
+          "phone": "8019771219",
+		  "location": "Kondhapur",
+          "address": "H.No; 1-112/86, Opp: KIMS Hospital",
+          "city": "Hyderabad",
+          "country": "India",
+          "crossStreet": "",
+          "postalCode": "500084",
+          "state": "Telangana"
+        }
+      },
+	  
+	  {
+   "type": "Feature",
+   "geometry": {
+      "type": "Point",
+        "coordinates": [
+            78.486546,
+            17.401800
+          ]
+    },
+  "properties": {
+    "phoneFormatted": "8019771219",
+    "phone": "8019771219",
+    "location": "Himayath Nagar",
+    "address": "Aaltos A&M Trade Center, Himayatnagar, Street Number 15, Himayatnagar",
+    "city": "Hyderabad",
+    "country": "India",
+    "crossStreet": "",
+    "postalCode": "500029",
+    "state": "Telangana"
+	}
+  },
+  
+  {
+   "type": "Feature",
+   "geometry": {
+      "type": "Point",
+        "coordinates": [
+            78.425141,
+            17.414203
+          ]
+    },
+  "properties": {
+    "phoneFormatted": "9700123404",
+    "phone": "9700123404",
+    "location": "Banjara Hills - Kabara Drive in",
+    "address": "Opposite Jagannath Temple, Agarsan Chowk Road No, 12, Bhoiguda, Venkateswara Colony",
+    "city": "Hyderabad",
+    "country": "India",
+    "crossStreet": "",
+    "postalCode": "500034",
+    "state": "Telangana"
+	}
+  },
+  
+  {
+   "type": "Feature",
+   "geometry": {
+      "type": "Point",
+        "coordinates": [
+            78.539679,
+            17.489388
+          ]
+    },
+  "properties": {
+    "phoneFormatted": "9848203484",
+    "phone": "9848203484",
+    "location": "Sainikpuri",
+    "address": "834, Sai Nagar Rd, Hill Top Colony",
+    "city": "Hyderabad",
+    "country": "India",
+    "crossStreet": "",
+    "postalCode": "500056",
+    "state": "Telangana"
+	}
+  },
+  
+  {
+   "type": "Feature",
+   "geometry": {
+      "type": "Point",
+        "coordinates": [
+            78.503099,
+            17.464587
+          ]
+    },
+  "properties": {
+    "phoneFormatted": "9704359597",
+    "phone": "9704359597",
+    "location": "Karkhana",
+    "address": "134, Rajiv Gandhi Rahadari, Kousalya Enclave, Karkhana",
+    "city": "Hyderabad",
+    "country": "India",
+    "crossStreet": "",
+    "postalCode": "500009",
+    "state": "Telangana"
+	}
+  },
+  
+  {
+   "type": "Feature",
+   "geometry": {
+      "type": "Point",
+        "coordinates": [
+            78.385298,
+            17.453402
+          ]
+    },
+  "properties": {
+    "phoneFormatted": "9700123404",
+    "phone": "9700123404",
+    "location": "Ayyappa Society - Street Drive in",
+    "address": "100 Feet Road, Ayyappa Society, Madhapur",
+    "city": "Hyderabad",
+    "country": "India",
+    "crossStreet": "",
+    "postalCode": "500081",
+    "state": "Telangana"
+	}
+  },
+  
+  {
+   "type": "Feature",
+   "geometry": {
+      "type": "Point",
+        "coordinates": [
+            78.422397,
+            17.425075
+          ]
+    },
+  "properties": {
+    "phoneFormatted": "9000160004",
+    "phone": "9000160004",
+    "location": "Banjara Hills - Carkhana Drive in",
+    "address": "8-2-120/76/Z, Venkat Nagar, Banjara Hills",
+    "city": "Hyderabad",
+    "country": "India",
+    "crossStreet": "",
+    "postalCode": "500033",
+    "state": "Telangana"
+	}
+  },
+  
+  {
+   "type": "Feature",
+   "geometry": {
+      "type": "Point",
+        "coordinates": [
+            78.391337,
+            17.487068
+          ]
+    },
+  "properties": {
+    "phoneFormatted": "6309338220",
+    "phone": "6309338220",
+    "location": "KPHB (Opp KS Bakers)",
+    "address": "OPP KS Bakers, Near MIG Bus Stop, JNTU Road, KPHB Phase-3, Kukatpally",
+    "city": "Hyderabad",
+    "country": "India",
+    "crossStreet": "",
+    "postalCode": "500072",
+    "state": "Telangana"
+	}
+  },
+  
+  {
+   "type": "Feature",
+   "geometry": {
+      "type": "Point",
+        "coordinates": [
+            78.416140,
+            17.481793
+          ]
+    },
+  "properties": {
+    "phoneFormatted": "8686321848",
+    "phone": "8686321848",
+    "location": "Kukataplly (BJP Office)",
+    "address": "5/1/5/2, NH65, Shanthi Nagar, Kukatpally",
+    "city": "Hyderabad",
+    "country": "India",
+    "crossStreet": "",
+    "postalCode": "500072",
+    "state": "Telangana"
+	}
+  },
+  
+  {
+   "type": "Feature",
+   "geometry": {
+      "type": "Point",
+        "coordinates": [
+            77.939312,
+            16.426356
+          ]
+    },
+  "properties": {
+    "phoneFormatted": "9000211225",
+    "phone": "9000211225",
+    "location": "Food Pyramid",
+    "address": "Near Kanimetta on NH 7, Kothakota",
+    "city": "Kothakota",
+    "country": "India",
+    "crossStreet": "",
+    "postalCode": "509381",
+    "state": "Telangana"
+	}
+  },
+  
+  {
+   "type": "Feature",
+   "geometry": {
+      "type": "Point",
+        "coordinates": [
+            78.459678,
+            17.398689
+          ]
+    },
+  "properties": {
+    "phoneFormatted": "9620349900",
+    "phone": "9620349900",
+    "location": "MasabTank",
+    "address": "11-4-626/1, Prerana Kids Care, AC Guards",
+    "city": "Hyderabad",
+    "country": "India",
+    "crossStreet": "",
+    "postalCode": "500034",
+    "state": "Telangana"
+	}
+  },
+  
+  {
+   "type": "Feature",
+   "geometry": {
+      "type": "Point",
+        "coordinates": [
+            78.545474,
+            17.413768
+          ]
+    },
+  "properties": {
+    "phoneFormatted": "9704359597",
+    "phone": "9704359597",
+    "location": "Habsiguda - Urban Eatery",
+    "address": "1-4-45/1, Street Number 8, Uppal, Street Number 8, Vijayanagar Colony, Vikrampuri, Habsiguda",
+    "city": "Hyderabad",
+    "country": "India",
+    "crossStreet": "",
+    "postalCode": "500007",
+    "state": "Telangana"
+	}
+  },
+  
+  {
+   "type": "Feature",
+   "geometry": {
+      "type": "Point",
+        "coordinates": [
+            78.336773,
+            17.495962
+          ]
+    },
+  "properties": {
+    "phoneFormatted": "9030044404",
+    "phone": "9030044404",
+    "location": "Madina Guda",
+    "address": "6-74/A, Beside MAX Showroom, NH-65, Madinaguda, Hafeezpet",
+    "city": "Hyderabad",
+    "country": "India",
+    "crossStreet": "",
+    "postalCode": "500133",
+    "state": "Telangana"
+	}
+  },
+  
+  {
+   "type": "Feature",
+   "geometry": {
+      "type": "Point",
+        "coordinates": [
+            78.423264,
+            17.396406
+          ]
+    },
+  "properties": {
+    "phoneFormatted": "8139999752",
+    "phone": "8139999752",
+    "location": "Tolichowki",
+    "address": "OPP Mandar Food Court,Tolichowki Rd, Kakatiya Nagar, Toli Chowki",
+    "city": "Hyderabad",
+    "country": "India",
+    "crossStreet": "",
+    "postalCode": "500008",
+    "state": "Telangana"
+	}
+  },
+  
+  {
+   "type": "Feature",
+   "geometry": {
+      "type": "Point",
+        "coordinates": [
+            78.529630,
+            17.368309
+          ]
+    },
+  "properties": {
+    "phoneFormatted": "9000160004",
+    "phone": "9000160004",
+    "location": "Dilsukhnagar",
+    "address": "17-108, Beside Roman Island, NH-65, Vijaya Residency, Kamala Nagar, Dilsukhnagar",
+    "city": "Hyderabad",
+    "country": "India",
+    "crossStreet": "",
+    "postalCode": "500060",
+    "state": "Telangana"
+	}
+  },
+  
+  {
+   "type": "Feature",
+   "geometry": {
+      "type": "Point",
+        "coordinates": [
+            78.438915,
+            17.430305
+          ]
+    },
+  "properties": {
+    "phoneFormatted": "8019117899",
+    "phone": "8019117899",
+    "location": "Sri Nagar Colony",
+    "address": "8-3-1003, Sri Nagar Colony main Road, Sagar Society, Sri Nagar Colony, Aurora Colony, Banjara Hills",
+    "city": "Hyderabad",
+    "country": "India",
+    "crossStreet": "",
+    "postalCode": "500073",
+    "state": "Telangana"
+	}
+  },
+  
+  {
+   "type": "Feature",
+   "geometry": {
+      "type": "Point",
+        "coordinates": [
+            78.299729,
+            17.357511
+          ]
+    },
+  "properties": {
+    "phoneFormatted": "9000211225",
+    "phone": "9000211225",
+    "location": "Chilukur Balaji Temple",
+    "address": "near Chilkur Balaji Temple, Chilukur Bus Stop, Ranga Reddy",
+    "city": "Hyderabad",
+    "country": "India",
+    "crossStreet": "",
+    "postalCode": "500075",
+    "state": "Telangana"
+	}
+  },
+  
+  {
+   "type": "Feature",
+   "geometry": {
+      "type": "Point",
+        "coordinates": [
+            78.476620,
+            17.347383
+          ]
+    },
+  "properties": {
+    "phoneFormatted": "9010050530",
+    "phone": "9010050530",
+    "location": "Charminar",
+    "address": "23-6-918/5/A/1, Anu Sri Complex, Opp. Indian Oil petrol bunk, Shalibanda",
+    "city": "Hyderabad",
+    "country": "India",
+    "crossStreet": "",
+    "postalCode": "500053",
+    "state": "Telangana"
+	}
+  },
+  
+  {
+   "type": "Feature",
+   "geometry": {
+      "type": "Point",
+        "coordinates": [
+            78.420748,
+            17.353518
+          ]
+    },
+  "properties": {
+    "phoneFormatted": "7093333853",
+    "phone": "7093333853",
+    "location": "Attapur - Mantra Mall",
+    "address": "2-4-127, Inner Ring Road, pillar.185, Upparpally, Royal Colony, Rambagh Colony",
+    "city": "Hyderabad",
+    "country": "India",
+    "crossStreet": "",
+    "postalCode": "500048",
+    "state": "Telangana"
+	}
+  },
+  
+  {
+   "type": "Feature",
+   "geometry": {
+      "type": "Point",
+        "coordinates": [
+            78.316095,
+            17.479580
+          ]
+    },
+  "properties": {
+    "phoneFormatted": "9885833962",
+    "phone": "9885833962",
+    "location": "Nallagandla",
+    "address": "Plot no.115, Near Tharunu Supermarket, Nalagandla, Tara Nagar",
+    "city": "Hyderabad",
+    "country": "India",
+    "crossStreet": "",
+    "postalCode": "500019",
+    "state": "Telangana"
+	}
+  },
+  
+  {
+   "type": "Feature",
+   "geometry": {
+      "type": "Point",
+        "coordinates": [
+            78.457400,
+            17.425951
+          ]
+    },
+  "properties": {
+    "phoneFormatted": "8801009999",
+    "phone": "8801009999",
+    "location": "Somajiguda",
+    "address": "6-3-109/G/7, Shop No.7, Shanthi Shilkara App, Raj Bhavan Road, Somajiguda",
+    "city": "Hyderabad",
+    "country": "India",
+    "crossStreet": "",
+    "postalCode": "500082",
+    "state": "Telangana"
+	}
+  },
+  
+  {
+   "type": "Feature",
+   "geometry": {
+      "type": "Point",
+        "coordinates": [
+            78.547922,
+            17.343098
+          ]
+    },
+  "properties": {
+    "phoneFormatted": "9010103600",
+    "phone": "9010103600",
+    "location": "LB Nagar - Junction 9 Drive in",
+    "address": "Junction 9, Sy. No.47, 49 � 51, Karmanghat",
+    "city": "Hyderabad",
+    "country": "India",
+    "crossStreet": "",
+    "postalCode": "500079",
+    "state": "Telangana"
+	}
+  },
+  
+  {
+   "type": "Feature",
+   "geometry": {
+      "type": "Point",
+        "coordinates": [
+            78.446861,
+            17.441551
+          ]
+    },
+  "properties": {
+    "phoneFormatted": "9966684337",
+    "phone": "9966684337",
+    "location": "SR Nagar",
+    "address": "7-1-621/263/G02, SR Nagar Main Road, Near SR Nagar Police Station",
+    "city": "Hyderabad",
+    "country": "India",
+    "crossStreet": "",
+    "postalCode": "500038",
+    "state": "Telangana"
+	}
+  },
+  
+  {
+   "type": "Feature",
+   "geometry": {
+      "type": "Point",
+        "coordinates": [
+            78.555784,
+            17.354187
+          ]
+    },
+  "properties": {
+    "phoneFormatted": "9908292148",
+    "phone": "9908292148",
+    "location": "LB Nagar",
+    "address": "H.No.3-11-463, Opp. Big Bazar Shopping Mall, Shiva Ganga Colony",
+    "city": "Hyderabad",
+    "country": "India",
+    "crossStreet": "",
+    "postalCode": "500074",
+    "state": "Telangana"
+	}
+  },
+  
+  {
+   "type": "Feature",
+   "geometry": {
+      "type": "Point",
+        "coordinates": [
+            78.509451,
+            17.313950
+          ]
+    },
+  "properties": {
+    "phoneFormatted": "9912463928",
+    "phone": "9912463928",
+    "location": "Balapur - 4 Shadows Drive In",
+    "address": "4 Shadows Drive In, #sy. No. 31,32,Beside Om Sai Hospital, Sai Nagar,RCI Road",
+    "city": "Hyderabad",
+    "country": "India",
+    "crossStreet": "",
+    "postalCode": "500005",
+    "state": "Telangana"
+	}
+  },
+  
+  {
+   "type": "Feature",
+   "geometry": {
+      "type": "Point",
+        "coordinates": [
+            78.492816,
+            17.554115
+          ]
+    },
+  "properties": {
+    "phoneFormatted": "9550889076",
+    "phone": "9550889076",
+    "location": "Kompally - Being Social Drive In",
+    "address": "Village Rd, Laxmi Nagar Colony, Gundlapochampalli",
+    "city": "Hyderabad",
+    "country": "India",
+    "crossStreet": "",
+    "postalCode": "500100",
+    "state": "Telangana"
+	}
+  },
+  
+  {
+   "type": "Feature",
+   "geometry": {
+      "type": "Point",
+        "coordinates": [
+            78.534499,
+            17.430288
+          ]
+    },
+  "properties": {
+    "phoneFormatted": "9885904132",
+    "phone": "9885904132",
+    "location": "Tarnaka",
+    "address": "12-5-3/10/1, Opp. St. Anns High School, Tarnaka",
+    "city": "Hyderabad",
+    "country": "India",
+    "crossStreet": "",
+    "postalCode": "500017",
+    "state": "Telangana"
+	}
+  },
+  
+  {
+   "type": "Feature",
+   "geometry": {
+      "type": "Point",
+        "coordinates": [
+            78.583321,
+            17.403180
+          ]
+    },
+  "properties": {
+    "phoneFormatted": "7386875069",
+    "phone": "7386875069",
+    "location": "Boduppal - VB Food Court",
+    "address": "Raghavendra Nagar Colony, Sri Sai Nagar, Sai Nagar, Peerzadiguda",
+    "city": "Hyderabad",
+    "country": "India",
+    "crossStreet": "",
+    "postalCode": "500092",
+    "state": "Telangana"
+	}
+  },
+  
+  {
+   "type": "Feature",
+   "geometry": {
+      "type": "Point",
+        "coordinates": [
+            78.563058,
+            17.234200
+          ]
+    },
+  "properties": {
+    "phoneFormatted": "9985658448",
+    "phone": "9985658448",
+    "location": "Adibatla",
+    "address": "Beside TCS Gate, Adibatla, Ibrahimpatnam Rd",
+    "city": "Hyderabad",
+    "country": "India",
+    "crossStreet": "",
+    "postalCode": "501510",
+    "state": "Telangana"
+	}
+  },
+  
+  {
+   "type": "Feature",
+   "geometry": {
+      "type": "Point",
+        "coordinates": [
+            78.393979,
+            17.444653
+          ]
+    },
+  "properties": {
+    "phoneFormatted": "9849834562",
+    "phone": "9849834562",
+    "location": "Madhapur - Retro Drive In",
+    "address": "Municial No. 8-2-120/7/B, Ayyappa Society",
+    "city": "Hyderabad",
+    "country": "India",
+    "crossStreet": "",
+    "postalCode": "500081",
+    "state": "Telangana"
+	}
+  },
+  
+  {
+   "type": "Feature",
+   "geometry": {
+      "type": "Point",
+        "coordinates": [
+            78.405363,
+            17.415625
+          ]
+    },
+  "properties": {
+    "phoneFormatted": "9849015679",
+    "phone": "9849015679",
+    "location": "Film Nagar",
+    "address": "Plot No 440, Road No 80, Film Nagar, Banjara Hills",
+    "city": "Hyderabad",
+    "country": "India",
+    "crossStreet": "",
+    "postalCode": "500096",
+    "state": "Telangana"
+	}
+  },
+  
+  {
+   "type": "Feature",
+   "geometry": {
+      "type": "Point",
+        "coordinates": [
+            78.514863,
+            17.404174
+          ]
+    },
+  "properties": {
+    "phoneFormatted": "8686323000",
+    "phone": "8686323000",
+    "location": "DD Colony",
+    "address": "2-2-3/3/11/a/2, Prashanth Nagar, Shivam Road",
+    "city": "Hyderabad",
+    "country": "India",
+    "crossStreet": "",
+    "postalCode": "500044",
+    "state": "Telangana"
+	}
+  },
+  
+  {
+   "type": "Feature",
+   "geometry": {
+      "type": "Point",
+        "coordinates": [
+            78.640316,
+            17.423193
+          ]
+    },
+  "properties": {
+    "phoneFormatted": "9032859133",
+    "phone": "9032859133",
+    "location": "Narapally - Food Republic Drive In",
+    "address": "2-73, NH 163, Vijayapuri Colony, Narapally",
+    "city": "Hyderabad",
+    "country": "India",
+    "crossStreet": "",
+    "postalCode": "501301",
+    "state": "Telangana"
+	}
+  },
+  
+  {
+   "type": "Feature",
+   "geometry": {
+      "type": "Point",
+        "coordinates": [
+            83.341132,
+            17.731459
+          ]
+    },
+  "properties": {
+    "phoneFormatted": "7207281000",
+    "phone": "7207281000",
+    "location": "Vizag - Vizag Drive in",
+    "address": "Vizag Drive in, Beach Rd, Jalari Peta",
+    "city": "Vizag",
+    "country": "India",
+    "crossStreet": "",
+    "postalCode": "530017",
+    "state": "Andhra Pradesh"
+	}
+  },
+  
+  {
+   "type": "Feature",
+   "geometry": {
+      "type": "Point",
+        "coordinates": [
+            80.648444,
+            16.498785
+          ]
+    },
+  "properties": {
+    "phoneFormatted": "9358799999",
+    "phone": "9358799999",
+    "location": "Vijayawada",
+    "address": "Sri Natrajan Guljar Road, Chandra Mouli Puram, Sriram Nagar, Benz Circle",
+    "city": "Vijayawada",
+    "country": "India",
+    "crossStreet": "",
+    "postalCode": "520010",
+    "state": "Andhra Pradesh"
+	}
+  },
+  
+  {
+   "type": "Feature",
+   "geometry": {
+      "type": "Point",
+        "coordinates": [
+            77.696763,
+            12.941440
+          ]
+    },
+  "properties": {
+    "phoneFormatted": "9900178139",
+    "phone": "9900178139",
+    "location": "Kadubasenhalli",
+    "address": "Outer ring road, Opposite to JP Morgan, Beside Just Bake",
+    "city": "Bangalore",
+    "country": "India",
+    "crossStreet": "",
+    "postalCode": "560087",
+    "state": "Karnataka"
+	}
+  },
+  
+  {
+   "type": "Feature",
+   "geometry": {
+      "type": "Point",
+        "coordinates": [
+            77.651426,
+            12.912584
+          ]
+    },
+  "properties": {
+    "phoneFormatted": "9900178139",
+    "phone": "9900178139",
+    "location": "HSR Layout",
+    "address": "The Ambience Building, 2606, Ground Floor, 16th Cross, 27th Main, Sector -1",
+    "city": "Bangalore",
+    "country": "India",
+    "crossStreet": "",
+    "postalCode": "560102",
+    "state": "Karnataka"
+	}
+  },
+  
+  {
+   "type": "Feature",
+   "geometry": {
+      "type": "Point",
+        "coordinates": [
+            77.621430,
+            12.935972
+          ]
+    },
+  "properties": {
+    "phoneFormatted": "7411568300",
+    "phone": "7411568300",
+    "location": "Koramangla",
+    "address": "Next to Chaska Bun, Opp. To China Pearl, 17th B Main road, 5th Cross, 5th Block",
+    "city": "Bangalore",
+    "country": "India",
+    "crossStreet": "",
+    "postalCode": "560034",
+    "state": "Karnataka"
+	}
+  },
+  
+  {
+   "type": "Feature",
+   "geometry": {
+      "type": "Point",
+        "coordinates": [
+            82.417583,
+            17.295407
+          ]
+    },
+  "properties": {
+    "phoneFormatted": "9000211225",
+    "phone": "9000211225",
+    "location": "Annavaram",
+    "address": "One Food Court, Towards vishkapatnam before RTA check post",
+    "city": "Annavaram",
+    "country": "India",
+    "crossStreet": "",
+    "postalCode": "533406",
+    "state": "Andhra Pradesh"
+	}
+  },
+  
+  {
+   "type": "Feature",
+   "geometry": {
+      "type": "Point",
+        "coordinates": [
+            81.791126,
+            17.002536
+          ]
+    },
+  "properties": {
+    "phoneFormatted": "9032266222",
+    "phone": "9032266222",
+    "location": "Old Samalamma Temple",
+    "address": "78-2-6/3, Shamala Nagar, Old Somalamma Temple",
+    "city": "Rajhamundry",
+    "country": "India",
+    "crossStreet": "",
+    "postalCode": "533103",
+    "state": "Andhra Pradesh"
+	}
+  },
+  
+  {
+   "type": "Feature",
+   "geometry": {
+      "type": "Point",
+        "coordinates": [
+            81.781819,
+            17.011726
+          ]
+    },
+  "properties": {
+    "phoneFormatted": "8140630175",
+    "phone": "8140630175",
+    "location": "Eat N Play Drive In",
+    "address": "26-2-3, Kambalapeta, Near Y Junction",
+    "city": "Rajhamundry",
+    "country": "India",
+    "crossStreet": "",
+    "postalCode": "533101",
+    "state": "Andhra Pradesh"
+	}
+  },
+  
+  {
+   "type": "Feature",
+   "geometry": {
+      "type": "Point",
+        "coordinates": [
+            80.251246,
+            13.005705
+          ]
+    },
+  "properties": {
+    "phoneFormatted": "7200669566",
+    "phone": "7200669566",
+    "location": "Aadyar",
+    "address": "Opp. That Madras Cafe, 3A, 2nd Main Road, Kasturba Nagar, Adyar",
+    "city": "Chennai",
+    "country": "India",
+    "crossStreet": "",
+    "postalCode": "600020",
+    "state": "Tamil Nadu"
+	}
+  },
+  
+  {
+   "type": "Feature",
+   "geometry": {
+      "type": "Point",
+        "coordinates": [
+            80.036924,
+            15.504066
+          ]
+    },
+  "properties": {
+    "phoneFormatted": "7702770610",
+    "phone": "7702770610",
+    "location": "Ongole",
+    "address": "D.No:7-7-1/2, Kurapati plaza, VIP Road, Lawyerpet",
+    "city": "Ongole",
+    "country": "India",
+    "crossStreet": "",
+    "postalCode": "523001",
+    "state": "Andhra Pradesh"
+	}
+  },
+  
+  {
+   "type": "Feature",
+   "geometry": {
+      "type": "Point",
+        "coordinates": [
+            80.415695,
+            16.315557
+          ]
+    },
+  "properties": {
+    "phoneFormatted": "9030913191",
+    "phone": "9030913191",
+    "location": "Guntur",
+    "address": "3-28-18/115/a, 2nd line, Rajendra Nagar",
+    "city": "Guntur",
+    "country": "India",
+    "crossStreet": "",
+    "postalCode": "522006",
+    "state": "Andhra Pradesh"
+	}
+  },
+  
+  {
+   "type": "Feature",
+   "geometry": {
+      "type": "Point",
+        "coordinates": [
+            79.970221,
+            14.413856
+          ]
+    },
+  "properties": {
+    "phoneFormatted": "7032532112",
+    "phone": "7032532112",
+    "location": "Nellore",
+    "address": "Ground Floor, SM Towers, Opp: Dena Bank, Near KVR Petrol Bunk",
+    "city": "Nellore",
+    "country": "India",
+    "crossStreet": "",
+    "postalCode": "524003",
+    "state": "Andhra Pradesh"
+	}
+  },
+  
+  {
+   "type": "Feature",
+   "geometry": {
+      "type": "Point",
+        "coordinates": [
+            78.308691,
+            17.397578
+          ]
+    },
+  "properties": {
+    "phoneFormatted": "9966684337",
+    "phone": "9966684337",
+    "location": "Gandipet - Skyzone Trampoline Park",
+    "address": "H.no, 8-78, Shankarpalli - Hyderabad Road, Kokapet",
+    "city": "Hyderabad",
+    "country": "India",
+    "crossStreet": "",
+    "postalCode": "500075",
+    "state": "Telangana"
+	}
+  },
+  
+  {
+   "type": "Feature",
+   "geometry": {
+      "type": "Point",
+        "coordinates": [
+            78.316663,
+            17.437220
+          ]
+    },
+  "properties": {
+    "phoneFormatted": "9704675175",
+    "phone": "9704675175",
+    "location": "Stringz Drive In",
+    "address": "Survey 78, Gopan Pally, Journalists Colony Phase 3, Phase 3, Gachibowli",
+    "city": "Hyderabad",
+    "country": "India",
+    "crossStreet": "",
+    "postalCode": "500075",
+    "state": "Telangana"
+	}
+  },
+  
+  {
+   "type": "Feature",
+   "geometry": {
+      "type": "Point",
+        "coordinates": [
+            80.162447,
+            13.101079
+          ]
+    },
+  "properties": {
+    "phoneFormatted": "9841133399",
+    "phone": "9841133399",
+    "location": "OMR Food Street - Ambattur",
+    "address": "Plot 90 A, 90 B, OMR Food Street, Ambattur Industrial Estate",
+    "city": "Chennai",
+    "country": "India",
+    "crossStreet": "",
+    "postalCode": "600058",
+    "state": "Tamil Nadu"
+	}
+  },
+  
+  {
+   "type": "Feature",
+   "geometry": {
+      "type": "Point",
+        "coordinates": [
+            78.383986,
+            17.512016
+          ]
+    },
+  "properties": {
+    "phoneFormatted": "9100318681",
+    "phone": "9100318681",
+    "location": "Rang Food Court - Nizampet",
+    "address": "Nizampet, Hyderabad, Telangana",
+    "city": "Hyderabad",
+    "country": "India",
+    "crossStreet": "",
+    "postalCode": "500090",
+    "state": "Telangana"
+	}
+  },
+  
+  {
+   "type": "Feature",
+   "geometry": {
+      "type": "Point",
+        "coordinates": [
+            78.405423,
+            17.405016
+          ]
+    },
+  "properties": {
+    "phoneFormatted": "9849834562",
+    "phone": "9849834562",
+    "location": "Shaikpet",
+    "address": "Anand Vihar Apartment Shop No 6",
+    "city": "Hyderabad",
+    "country": "India",
+    "crossStreet": "",
+    "postalCode": "500008",
+    "state": "Telangana"
+	}
+  },
+  
+  {
+   "type": "Feature",
+   "geometry": {
+      "type": "Point",
+        "coordinates": [
+            79.412414,
+            13.630538
+          ]
+    },
+  "properties": {
+    "phoneFormatted": "9866835636",
+    "phone": "9866835636",
+    "location": "Tirupathi",
+    "address": "1-2-220, Prakasham road",
+    "city": "Tirupathi",
+    "country": "India",
+    "crossStreet": "",
+    "postalCode": "517501",
+    "state": "Andhra Pradesh"
+	}
+  },
+  
+  {
+   "type": "Feature",
+   "geometry": {
+      "type": "Point",
+        "coordinates": [
+            78.372069,
+            17.442725
+          ]
+    },
+  "properties": {
+    "phoneFormatted": "",
+    "phone": "",
+    "location": "Springs Drive In",
+    "address": "Phase 2, HITEC City",
+    "city": "Hyderabad",
+    "country": "India",
+    "crossStreet": "",
+    "postalCode": "500081",
+    "state": "Telangana"
+	}
+  },
+  
+  {
+   "type": "Feature",
+   "geometry": {
+      "type": "Point",
+        "coordinates": [
+            80.204054,
+            13.085037
+          ]
+    },
+  "properties": {
+    "phoneFormatted": "8019117899",
+    "phone": "8019117899",
+    "location": "Anna Nagar",
+    "address": "Ground, no. C-40, Shop no. 4, Second Avenue, 12th Main Road",
+    "city": "Chennai",
+    "country": "India",
+    "crossStreet": "",
+    "postalCode": "600040",
+    "state": "Tamil Nadu"
+	}
+  },
+  
+  {
+   "type": "Feature",
+   "geometry": {
+      "type": "Point",
+        "coordinates": [
+            83.314579,
+            17.725107
+          ]
+    },
+  "properties": {
+    "phoneFormatted": "9703303390",
+    "phone": "9703303390",
+    "location": "Sampata Vinayaka Temple Road",
+    "address": "10-1-38/B, Ground floor, Vinayagar Paradise, Below Levis, Opp. Dominos Pizza",
+    "city": "Vizag",
+    "country": "India",
+    "crossStreet": "",
+    "postalCode": "530003",
+    "state": "Andhra Pradesh"
+	}
+  },
+  
+  {
+   "type": "Feature",
+   "geometry": {
+      "type": "Point",
+        "coordinates": [
+            78.514551,
+            17.375047
+          ]
+    },
+  "properties": {
+    "phoneFormatted": "8801510370",
+    "phone": "8801510370",
+    "location": "Moosarambagh",
+    "address": "D.No.16-11-20/93/C , Beside Labelle skin and Hair clinic, Sreepuram colony",
+    "city": "Hyderabad",
+    "country": "India",
+    "crossStreet": "",
+    "postalCode": "500036",
+    "state": "Telangana"
+	}
+  },
+  
+  {
+   "type": "Feature",
+   "geometry": {
+      "type": "Point",
+        "coordinates": [
+            80.269904,
+            13.000865
+          ]
+    },
+  "properties": {
+    "phoneFormatted": "7207281000",
+    "phone": "7207281000",
+    "location": "Besant Nagar Beach",
+    "address": "Ground Floor, M4/1, Main Road, Besant Nagar",
+    "city": "Chennai",
+    "country": "India",
+    "crossStreet": "",
+    "postalCode": "600090",
+    "state": "Tamil Nadu"
+	}
+  },
+  
+  {
+   "type": "Feature",
+   "geometry": {
+      "type": "Point",
+        "coordinates": [
+            78.495533,
+            17.389625
+          ]
+    },
+  "properties": {
+    "phoneFormatted": "9700123404",
+    "phone": "9700123404",
+    "location": "Kachiguda",
+    "address": "Kachiguda Station Rd, Beside Hotel Vaishnaoi, Mahalaxmi Nilayam",
+    "city": "Hyderabad",
+    "country": "India",
+    "crossStreet": "",
+    "postalCode": "500027",
+    "state": "Telangana"
+	}
+  },
+  
+  {
+   "type": "Feature",
+   "geometry": {
+      "type": "Point",
+        "coordinates": [
+            78.370026,
+            17.496094
+          ]
+    },
+  "properties": {
+    "phoneFormatted": "9985225493",
+    "phone": "9985225493",
+    "location": "Havana Drive in - Miyapur",
+    "address": "Mathrusree Nagar, Miyapur",
+    "city": "Hyderabad",
+    "country": "India",
+    "crossStreet": "",
+    "postalCode": "500049",
+    "state": "Telangana"
+	}
+  },
+  
+  {
+   "type": "Feature",
+   "geometry": {
+      "type": "Point",
+        "coordinates": [
+            80.218399,
+            13.045740
+          ]
+    },
+  "properties": {
+    "phoneFormatted": "9789788681",
+    "phone": "9789788681",
+    "location": "Ashok Nagar",
+    "address": "D.No. 103/9, David Towers, 4th Avenue",
+    "city": "Chennai",
+    "country": "India",
+    "crossStreet": "",
+    "postalCode": "500024",
+    "state": "Tamil Nadu"
+	}
+  },
+  
+  {
+   "type": "Feature",
+   "geometry": {
+      "type": "Point",
+        "coordinates": [
+            80.235459,
+            13.083544
+          ]
+    },
+  "properties": {
+    "phoneFormatted": "9533224270",
+    "phone": "9533224270",
+    "location": "Kilpauk",
+    "address": "Kilpauk, Kilpauk Garden Road",
+    "city": "Chennai",
+    "country": "India",
+    "crossStreet": "",
+    "postalCode": "600010",
+    "state": "Tamil Nadu"
+	}
+  },
+  
+  {
+   "type": "Feature",
+   "geometry": {
+      "type": "Point",
+        "coordinates": [
+            78.050349,
+            15.799673
+          ]
+    },
+  "properties": {
+    "phoneFormatted": "9963280194",
+    "phone": "9963280194",
+    "location": "Kurnool",
+    "address": "Plot No 65, Engineers Colony, Nandyal Check Post",
+    "city": "Kurnool",
+    "country": "India",
+    "crossStreet": "",
+    "postalCode": "518002",
+    "state": "Andhra Pradesh"
+	}
+  },
+  
+  {
+   "type": "Feature",
+   "geometry": {
+      "type": "Point",
+        "coordinates": [
+            78.483942,
+            17.515418
+          ]
+    },
+  "properties": {
+    "phoneFormatted": "9000066548",
+    "phone": "9000066548",
+    "location": "Dejavu Drive in Kompally",
+    "address": "Plot No:228/P, Opp Srini Avenue, Petbasheerabad",
+    "city": "Hyderabad",
+    "country": "India",
+    "crossStreet": "",
+    "postalCode": "500055",
+    "state": "Telangana"
+	}
+  },
+  
+  {
+   "type": "Feature",
+   "geometry": {
+      "type": "Point",
+        "coordinates": [
+            80.227387,
+            13.114234
+          ]
+    },
+  "properties": {
+    "phoneFormatted": "8019117899",
+    "phone": "8019117899",
+    "location": "Perambbur",
+    "address": "Plot No: B-57, Siva Elango Salai, 70 feet Road, Periyar Nagar",
+    "city": "Chennai",
+    "country": "India",
+    "crossStreet": "",
+    "postalCode": "600082",
+    "state": "Tamil Nadu"
+	}
+  },
+  
+      {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            77.661574,
+            12.992948
+          ]
+        },
+        "properties": {
+			"phoneFormatted": "",
+			"phone": "",
+			"location": "Gopalan Signature Mall",
+			"address": "Swamy Vivekananda Rd, Rahat Bagh, Nagavarapalya, Bennigana Halli",
+			"city": "Bangalore",
+			"country": "India",
+			"crossStreet": "",
+			"postalCode": "560093",
+			"state": "Karnataka"
+        }
+      }
+	  
+	  
+	  ]
+    };
+  // This adds the data to the map
+  map.on('load', function (e) {
+    // This is where your '.addLayer()' used to be, instead add only the source without styling a layer
+    map.addSource("places", {
+      "type": "geojson",
+      "data": stores
+    });
+    // Initialize the list
+    buildLocationList(stores);
+
+    geocoder = new MapboxGeocoder({
+        accessToken: mapboxgl.accessToken
+    });
+
+    map.addControl(geocoder, 'top-left');
+
+    map.addSource('single-point', {
+      "type": "geojson",
+      "data": {
+        "type": "FeatureCollection",
+        "features": [] // Notice that initially there are no features
+      }
+    });
+
+    map.addLayer({
+      "id": "point",
+      "source": "single-point",
+      "type": "circle",
+      "paint": {
+        "circle-radius": 10,
+        "circle-color": "#007cbf",
+        "circle-stroke-width": 3,
+        "circle-stroke-color": "#fff"
+      }
+    });
+
+    geocoder.on('result', function(ev) {
+      var searchResult = ev.result.geometry;
+      map.getSource('single-point').setData(searchResult);
+
+      var options = {units: 'miles'};
+      stores.features.forEach(function(store){
+        Object.defineProperty(store.properties, 'distance', {
+          value: turf.distance(searchResult, store.geometry, options),
+          writable: true,
+          enumerable: true,
+          configurable: true
+        });
+      });
+
+      stores.features.sort(function(a,b){
+        if (a.properties.distance > b.properties.distance) {
+          return 1;
+        }
+        if (a.properties.distance < b.properties.distance) {
+          return -1;
+        }
+        // a must be equal to b
+        return 0;
+      });
+
+      var listings = document.getElementById('listings');
+      while (listings.firstChild) {
+        listings.removeChild(listings.firstChild);
+      }
+
+      buildLocationList(stores);
+
+      function sortLonLat(storeIdentifier) {
+        var lats = [stores.features[storeIdentifier].geometry.coordinates[1], searchResult.coordinates[1]]
+        var lons = [stores.features[storeIdentifier].geometry.coordinates[0], searchResult.coordinates[0]]
+
+        var sortedLons = lons.sort(function(a,b){
+            if (a > b) { return 1; }
+            if (a.distance < b.distance) { return -1; }
+            return 0;
+          });
+        var sortedLats = lats.sort(function(a,b){
+            if (a > b) { return 1; }
+            if (a.distance < b.distance) { return -1; }
+            return 0;
+          });
+
+        map.fitBounds([
+          [sortedLons[0], sortedLats[0]],
+          [sortedLons[1], sortedLats[1]]
+        ], {
+          padding: 100
+        });
+      };
+
+      sortLonLat(0);
+      createPopUp(stores.features[0]);
+
+    });
+  });
+
+  // This is where your interactions with the symbol layer used to be
+  // Now you have interactions with DOM markers instead
+  stores.features.forEach(function(marker, i) {
+    // Create an img element for the marker
+    var el = document.createElement('div');
+    el.id = "marker-" + i;
+    el.className = 'marker';
+    // Add markers to the map at all points
+    new mapboxgl.Marker(el, {offset: [0, -23]})
+        .setLngLat(marker.geometry.coordinates)
+        .addTo(map);
+
+    el.addEventListener('click', function(e){
+        // 1. Fly to the point
+        flyToStore(marker);
+
+        // 2. Close all other popups and display popup for clicked store
+        createPopUp(marker);
+
+        // 3. Highlight listing in sidebar (and remove highlight for all other listings)
+        var activeItem = document.getElementsByClassName('active');
+
+        e.stopPropagation();
+        if (activeItem[0]) {
+           activeItem[0].classList.remove('active');
+        }
+
+        var listing = document.getElementById('listing-' + i);
+        listing.classList.add('active');
+
+    });
+  });
+
+
+  function flyToStore(currentFeature) {
+    map.flyTo({
+        center: currentFeature.geometry.coordinates,
+        zoom: 15
+      });
+  }
+
+  function createPopUp(currentFeature) {
+    var popUps = document.getElementsByClassName('mapboxgl-popup');
+    if (popUps[0]) popUps[0].remove();
+
+
+    var popup = new mapboxgl.Popup({closeOnClick: false})
+          .setLngLat(currentFeature.geometry.coordinates)
+          .setHTML('<h3>Makers Of Milkshakes</h3>' +
+            '<h4>' + currentFeature.properties.address + '</h4>')
+          .addTo(map);
+  }
+
+
+  function buildLocationList(data) {
+    for (i = 0; i < data.features.length; i++) {
+      var currentFeature = data.features[i];
+      var prop = currentFeature.properties;
+
+      var listings = document.getElementById('listings');
+      var listing = listings.appendChild(document.createElement('div'));
+      listing.className = 'item';
+      listing.id = "listing-" + i;
+
+      var link = listing.appendChild(document.createElement('a'));
+      link.href = '#';
+      link.className = 'title';
+      link.dataPosition = i;
+      link.innerHTML = prop.location;
+	  //link.innerHTML = prop.address;
+
+      var details = listing.appendChild(document.createElement('div'));
+      details.innerHTML = prop.city;
+      if (prop.phone) {
+        details.innerHTML += ' &middot; ' + prop.phoneFormatted;
+      }
+
+      if (prop.distance) {
+        var roundedDistance = Math.round(prop.distance*100*1.6)/100;
+		//roundedDistance = roundedDistance*1.6;
+        details.innerHTML += '<p><strong>' + roundedDistance + ' KM away</strong></p>';
+      }
+
+
+      link.addEventListener('click', function(e){
+        // Update the currentFeature to the store associated with the clicked link
+        var clickedListing = data.features[this.dataPosition];
+
+        // 1. Fly to the point
+        flyToStore(clickedListing);
+
+        // 2. Close all other popups and display popup for clicked store
+        createPopUp(clickedListing);
+
+        // 3. Highlight listing in sidebar (and remove highlight for all other listings)
+        var activeItem = document.getElementsByClassName('active');
+
+        if (activeItem[0]) {
+           activeItem[0].classList.remove('active');
+        }
+        this.parentNode.classList.add('active');
+
+      });
+    }
+  }
+
+
+    </script>
+  </body>
+</html>
