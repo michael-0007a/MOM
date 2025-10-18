@@ -3,9 +3,9 @@ import Image from 'next/image';
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex flex-col items-center justify-center px-4 py-6">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex flex-col items-center justify-center px-4 py-6 relative overflow-hidden" data-404-page="true">
       {/* Main Container */}
-      <div className="max-w-4xl mx-auto text-center space-y-4 md:space-y-6">
+      <div className="max-w-4xl mx-auto text-center space-y-4 md:space-y-6 relative z-10">
 
         {/* 404 Large Text */}
         <div className="space-y-1 md:space-y-2">
@@ -61,7 +61,7 @@ export default function NotFound() {
       </div>
 
       {/* Decorative Elements */}
-      <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-10 left-10 w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 bg-blue-200 rounded-full opacity-20 animate-bounce"></div>
         <div className="absolute top-1/4 right-10 w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 bg-purple-200 rounded-full opacity-20 animate-pulse"></div>
         <div className="absolute bottom-20 left-1/4 w-10 h-10 sm:w-12 sm:h-12 md:w-16 md:h-16 bg-pink-200 rounded-full opacity-20 animate-bounce animation-delay-1000"></div>
