@@ -7,6 +7,8 @@ export default function Home() {
     const [loaded, setLoaded] = useState(false);
     const [activeFilter, setActiveFilter] = useState('all');
     const [openFaq, setOpenFaq] = useState<number | null>(null);
+    const [activeTimelineIndex, setActiveTimelineIndex] = useState(0);
+    const [timelineProgress, setTimelineProgress] = useState(0);
     const [formData, setFormData] = useState({
         name: '',
         email: '',
@@ -18,6 +20,61 @@ export default function Home() {
 
     useEffect(() => {
         setLoaded(true);
+
+        // Timeline scroll handler with improved center tracking
+        const handleTimelineScroll = () => {
+            const timelineSection = document.getElementById('our-story');
+            const timelineItems = document.querySelectorAll('.timeline-milestone');
+
+            if (!timelineSection || timelineItems.length === 0) return;
+
+            const sectionRect = timelineSection.getBoundingClientRect();
+            const sectionTop = sectionRect.top;
+            const sectionHeight = sectionRect.height;
+            const viewportHeight = window.innerHeight;
+            const viewportCenter = viewportHeight / 2;
+
+            // Calculate section progress based on viewport center position
+            const sectionStart = sectionTop;
+            const sectionEnd = sectionTop + sectionHeight;
+
+            // Progress calculation: 0 when center is at section top, 1 when center is at section bottom
+            let sectionProgress = 0;
+            if (viewportCenter >= sectionStart && viewportCenter <= sectionEnd) {
+                sectionProgress = (viewportCenter - sectionStart) / sectionHeight;
+            } else if (viewportCenter > sectionEnd) {
+                sectionProgress = 1;
+            }
+
+            sectionProgress = Math.max(0, Math.min(1, sectionProgress));
+            setTimelineProgress(sectionProgress);
+
+            // Find active milestone based on viewport center
+            let activeIndex = 0;
+            let minDistance = Infinity;
+
+            timelineItems.forEach((item, index) => {
+                const itemRect = item.getBoundingClientRect();
+                const itemCenter = itemRect.top + itemRect.height / 2;
+                const distance = Math.abs(itemCenter - viewportCenter);
+
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    activeIndex = index;
+                }
+            });
+
+            setActiveTimelineIndex(activeIndex);
+        };
+
+        window.addEventListener('scroll', handleTimelineScroll);
+        window.addEventListener('resize', handleTimelineScroll);
+        handleTimelineScroll(); // Initial call
+
+        return () => {
+            window.removeEventListener('scroll', handleTimelineScroll);
+            window.removeEventListener('resize', handleTimelineScroll);
+        };
     }, []);
 
     // Timeline data
@@ -616,7 +673,8 @@ export default function Home() {
                             </div>
                         </div>
 
-                        <div className={`bg-white/80 backdrop-blur-sm rounded-xl p-4 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`} style={{ animationDelay: '0.3s' }}>
+                        {/* Hidden on mobile, visible on md and larger screens */}
+                        <div className={`hidden md:block bg-white/80 backdrop-blur-sm rounded-xl p-4 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`} style={{ animationDelay: '0.3s' }}>
                             <div className="flex justify-start items-start mb-3">
                                 <span className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-2 py-1 rounded-full text-xs font-bold shadow-md">
                                     Must Try
@@ -636,7 +694,7 @@ export default function Home() {
                             </div>
                         </div>
 
-                        <div className={`bg-white/80 backdrop-blur-sm rounded-xl p-4 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`} style={{ animationDelay: '0.4s' }}>
+                        <div className={`hidden md:block bg-white/80 backdrop-blur-sm rounded-xl p-4 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`} style={{ animationDelay: '0.4s' }}>
                             <div className="flex justify-start items-start mb-3">
                                 <span className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-2 py-1 rounded-full text-xs font-bold shadow-md">
                                     Must Try
@@ -659,7 +717,7 @@ export default function Home() {
                             </div>
                         </div>
 
-                        <div className={`bg-white/80 backdrop-blur-sm rounded-xl p-4 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`} style={{ animationDelay: '0.5s' }}>
+                        <div className={`hidden md:block bg-white/80 backdrop-blur-sm rounded-xl p-4 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`} style={{ animationDelay: '0.5s' }}>
                             <div className="flex justify-start items-start mb-3">
                                 <span className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-2 py-1 rounded-full text-xs font-bold shadow-md">
                                     Must Try
@@ -679,7 +737,7 @@ export default function Home() {
                             </div>
                         </div>
 
-                        <div className={`bg-white/80 backdrop-blur-sm rounded-xl p-4 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`} style={{ animationDelay: '0.6s' }}>
+                        <div className={`hidden md:block bg-white/80 backdrop-blur-sm rounded-xl p-4 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`} style={{ animationDelay: '0.6s' }}>
                             <div className="flex justify-start items-start mb-3">
                                 <span className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-2 py-1 rounded-full text-xs font-bold shadow-md">
                                     Must Try
@@ -699,7 +757,7 @@ export default function Home() {
                             </div>
                         </div>
 
-                        <div className={`bg-white/80 backdrop-blur-sm rounded-xl p-4 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`} style={{ animationDelay: '0.7s' }}>
+                        <div className={`hidden md:block bg-white/80 backdrop-blur-sm rounded-xl p-4 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`} style={{ animationDelay: '0.7s' }}>
                             <div className="flex justify-start items-start mb-3">
                                 <span className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-2 py-1 rounded-full text-xs font-bold shadow-md">
                                     Must Try
@@ -752,37 +810,122 @@ export default function Home() {
                         </p>
                     </div>
 
-                    {/* Timeline */}
+                    {/* Enhanced Mobile-Optimized Timeline */}
                     <div className="relative">
-                        {/* Timeline Line */}
-                        <div className="absolute left-1/2 transform -translate-x-1/2 w-1 h-full bg-gradient-to-b from-blue-200 via-purple-200 to-indigo-200"></div>
+                        {/* Animated Timeline Line with Progress - Blue Theme */}
+                        <div className="absolute left-1/2 transform -translate-x-1/2 w-1 h-full bg-gradient-to-b from-blue-200 via-blue-300 to-blue-400 rounded-full">
+                            {/* Progress overlay - Blue Theme */}
+                            <div
+                                className="absolute top-0 left-0 w-full bg-gradient-to-b from-blue-500 via-blue-600 to-blue-700 rounded-full transition-all duration-300 ease-out shadow-lg"
+                                style={{
+                                    height: `${timelineProgress * 100}%`,
+                                    boxShadow: '0 0 20px rgba(59, 130, 246, 0.5)'
+                                }}
+                            ></div>
+                        </div>
 
                         {milestones.map((milestone, index) => (
                             <div
                                 key={milestone.year}
-                                className={`relative flex items-center mb-16 ${
-                                    index % 2 === 0 ? 'flex-row' : 'flex-row-reverse'
-                                } ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
-                                style={{ animationDelay: `${index * 0.2}s` }}
+                                className={`timeline-milestone relative flex items-center mb-8 sm:mb-16 transition-all duration-700 ease-out ${
+                                    // Mobile: center everything, Desktop: alternating sides
+                                    'flex-col sm:flex-row' + (index % 2 === 0 ? ' sm:flex-row' : ' sm:flex-row-reverse')
+                                } ${
+                                    activeTimelineIndex >= index 
+                                        ? 'opacity-100 translate-y-0 scale-100' 
+                                        : 'opacity-70 translate-y-4 scale-95'
+                                }`}
                             >
-                                {/* Content */}
-                                <div className={`w-5/12 ${index % 2 === 0 ? 'pr-8 text-right' : 'pl-8 text-left'}`}>
-                                    <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
-                                        <div className="text-3xl font-bold text-blue-600 mb-2">{milestone.year}</div>
-                                        <h3 className="text-xl font-bold text-gray-900 mb-3">{milestone.title}</h3>
-                                        <p className="text-gray-600">{milestone.description}</p>
+                                {/* Mobile: Icon above card, Desktop: Icon in center */}
+                                <div className="flex flex-col items-center sm:contents">
+                                    {/* Enhanced Timeline Node - Mobile Optimized */}
+                                    <div className={`w-16 h-16 sm:w-16 sm:h-16 rounded-full flex items-center justify-center transition-all duration-500 z-10 mb-4 sm:mb-0 ${
+                                        // Mobile: relative positioning, Desktop: absolute center
+                                        'relative sm:absolute sm:left-1/2 sm:transform sm:-translate-x-1/2'
+                                    } ${
+                                        activeTimelineIndex >= index 
+                                            ? 'bg-gradient-to-br from-blue-500 to-blue-600 shadow-xl scale-110' 
+                                            : 'bg-gradient-to-br from-gray-400 to-gray-500 shadow-lg scale-100'
+                                    }`}>
+                                        {/* Pulsing ring for active node - Blue Theme */}
+                                        {activeTimelineIndex === index && (
+                                            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 animate-ping opacity-30"></div>
+                                        )}
+
+                                        {/* Completed nodes glow - Blue Theme */}
+                                        {activeTimelineIndex > index && (
+                                            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-blue-400 to-blue-500 opacity-20 animate-pulse"></div>
+                                        )}
+
+                                        <milestone.icon className={`w-8 h-8 text-white transition-all duration-300 relative z-10 ${
+                                            activeTimelineIndex >= index ? 'drop-shadow-sm' : ''
+                                        }`} />
+                                    </div>
+
+                                    {/* Enhanced Content Card - Mobile Optimized */}
+                                    <div className={`w-full sm:w-5/12 ${
+                                        // Mobile: always centered, Desktop: alternating alignment
+                                        'text-center sm:text-left' + (index % 2 === 0 ? ' sm:pr-8 sm:text-right' : ' sm:pl-8 sm:text-left')
+                                    }`}>
+                                        <div className={`relative bg-white p-6 rounded-2xl border transition-all duration-500 transform ${
+                                            activeTimelineIndex === index 
+                                                ? 'shadow-2xl border-blue-300 scale-105 bg-gradient-to-br from-white to-blue-50/30' 
+                                                : 'shadow-lg border-gray-200 hover:shadow-xl hover:border-blue-200'
+                                        }`}>
+                                            {/* Active card glow effect - Blue Theme */}
+                                            {activeTimelineIndex === index && (
+                                                <div className="absolute inset-0 bg-gradient-to-br from-blue-400/10 via-blue-500/10 to-blue-600/10 rounded-2xl animate-pulse"></div>
+                                            )}
+
+                                            <div className="relative z-10">
+                                                <div className={`text-3xl font-bold mb-3 transition-colors duration-300 ${
+                                                    activeTimelineIndex === index 
+                                                        ? 'text-blue-600 drop-shadow-sm' 
+                                                        : 'text-blue-500'
+                                                }`}>
+                                                    {milestone.year}
+                                                </div>
+                                                <h3 className={`text-xl font-bold mb-3 transition-colors duration-300 ${
+                                                    activeTimelineIndex === index 
+                                                        ? 'text-gray-900' 
+                                                        : 'text-gray-800'
+                                                }`}>
+                                                    {milestone.title}
+                                                </h3>
+                                                <p className={`text-base transition-colors duration-300 ${
+                                                    activeTimelineIndex === index 
+                                                        ? 'text-gray-700' 
+                                                        : 'text-gray-600'
+                                                }`}>
+                                                    {milestone.description}
+                                                </p>
+                                            </div>
+
+                                            {/* Animated progress indicator - Blue Theme */}
+                                            {activeTimelineIndex === index && (
+                                                <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2">
+                                                    <div className="w-12 h-1 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full animate-pulse shadow-lg"></div>
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
 
-                                {/* Timeline Node */}
-                                <div className="absolute left-1/2 transform -translate-x-1/2 w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg">
-                                    <milestone.icon className="w-8 h-8 text-white" />
-                                </div>
-
-                                {/* Empty space for other side */}
-                                <div className="w-5/12"></div>
+                                {/* Empty space for desktop layout */}
+                                <div className="hidden sm:block sm:w-5/12"></div>
                             </div>
                         ))}
+
+                        {/* Timeline completion indicator - Blue Theme */}
+                        {timelineProgress >= 0.95 && (
+                            <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-8">
+                                <div className="flex flex-col items-center space-y-2 animate-bounce">
+                                    <div className="w-4 h-4 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full shadow-lg"></div>
+                                    <div className="w-3 h-3 bg-gradient-to-br from-blue-400 to-blue-500 rounded-full shadow-md"></div>
+                                    <div className="w-2 h-2 bg-gradient-to-br from-blue-300 to-blue-400 rounded-full shadow-sm"></div>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             </section>

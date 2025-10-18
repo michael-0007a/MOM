@@ -244,7 +244,7 @@ const MakersMenu = () => {
 
                 {/* Enhanced Category Navigation */}
                 <div className="max-w-7xl mx-auto mb-6 md:mb-12 perspective-1000">
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 md:gap-4">
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
                         {categories.map((cat) => {
                             const Icon = cat.icon;
                             const isActive = activeCategory === cat.id;
@@ -252,23 +252,23 @@ const MakersMenu = () => {
                                 <button
                                     key={cat.id}
                                     onClick={() => setActiveCategory(cat.id)}
-                                    className={`group relative dashboard-card-3d p-2 md:p-4 rounded-xl md:rounded-2xl transition-all duration-500 transform hover:scale-105 ${
+                                    className={`group relative dashboard-card-3d p-3 md:p-4 rounded-xl md:rounded-2xl transition-all duration-500 transform hover:scale-105 ${
                                         isActive
                                             ? `bg-gradient-to-br ${cat.color} text-white shadow-xl`
                                             : 'glass-3d text-gray-700 hover:shadow-xl'
                                     }`}
                                 >
-                                    <div className="relative z-10 flex flex-col items-center space-y-1 md:space-y-2">
-                                        <div className={`p-1 md:p-2 rounded-lg md:rounded-xl transition-all duration-300 ${
+                                    <div className="relative z-10 flex flex-col items-center space-y-2 md:space-y-2">
+                                        <div className={`p-2 md:p-2 rounded-lg md:rounded-xl transition-all duration-300 ${
                                             isActive 
                                                 ? 'bg-white/20 backdrop-blur-sm' 
                                                 : 'bg-gradient-to-br from-gray-100 to-gray-200 group-hover:from-blue-100 group-hover:to-blue-200'
                                         }`}>
-                                            <Icon className={`w-4 h-4 md:w-6 md:h-6 transition-colors duration-300 ${
+                                            <Icon className={`w-6 h-6 md:w-6 md:h-6 transition-colors duration-300 ${
                                                 isActive ? 'text-white' : 'text-gray-600 group-hover:text-blue-600'
                                             }`} />
                                         </div>
-                                        <div className="font-semibold text-[10px] md:text-xs text-center leading-tight">
+                                        <div className="font-semibold text-xs md:text-xs text-center leading-tight">
                                             {cat.name}
                                         </div>
                                     </div>

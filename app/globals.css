@@ -28,6 +28,29 @@ body {
   font-family: 'Manrope', sans-serif;
 }
 
+/* Performance optimizations for animations */
+* {
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  -webkit-perspective: 1000px;
+  perspective: 1000px;
+}
+
+/* Hardware acceleration for smooth animations */
+.will-change-transform {
+  will-change: transform;
+}
+
+.will-change-shadow {
+  will-change: box-shadow;
+}
+
+/* Optimized transition for better performance */
+.transition-optimized {
+  transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1),
+              box-shadow 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
 /* Notable font class */
 .notable-regular {
   font-family: "Notable", sans-serif;
