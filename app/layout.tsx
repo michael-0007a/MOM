@@ -1,8 +1,16 @@
 import type { Metadata } from "next";
 import "./globals.css";
+// Mapbox CSS (global)
+import 'mapbox-gl/dist/mapbox-gl.css';
+import '@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css';
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import ClientLayout from "./components/ClientLayout";
+import { Manrope, Syne, Notable } from "next/font/google";
+
+const manrope = Manrope({ subsets: ["latin"], variable: "--font-manrope", display: "swap", weight: ["200","300","400","500","600","700","800"] });
+const syne = Syne({ subsets: ["latin"], variable: "--font-syne", display: "swap", weight: ["400","500","600","700","800"] });
+const notable = Notable({ subsets: ["latin"], variable: "--font-notable", display: "swap", weight: "400" });
 
 export const metadata: Metadata = {
   title: "Makers of Milkshakes - Sip the Joy. Taste the Magic.",
@@ -15,16 +23,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,100..900;1,100..900&family=Manrope:wght@200..800&family=Notable&family=Syne:wght@400..800&display=swap" rel="stylesheet" />
-      </head>
+    <html lang="en" className={`${manrope.variable} ${syne.variable} ${notable.variable}`}>
       <body className="antialiased">
         <ClientLayout>
           <Navbar />
-          <main className="pt-20">
+          <main>
             {children}
           </main>
           <Footer />

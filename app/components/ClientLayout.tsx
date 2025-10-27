@@ -22,7 +22,6 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
       "/our-story",
       "/gallery",
       "/contact",
-      "/franchise",
       "/store-locator",
       "/admin",
     ];

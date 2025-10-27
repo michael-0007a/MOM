@@ -16,6 +16,7 @@ export default function Footer() {
                 width={40}
                 height={40}
                 className="rounded-lg"
+                style={{ height: 'auto' }}
               />
               <span className="text-lg syne-bold">Makers of Milkshakes</span>
             </Link>
@@ -31,7 +32,7 @@ export default function Footer() {
               <li><Link href="/our-story" className="text-white/80 hover:text-white transition-colors manrope-regular">Our Story</Link></li>
               <li><Link href="/menu" className="text-white/80 hover:text-white transition-colors manrope-regular">Menu</Link></li>
               <li><Link href="/gallery" className="text-white/80 hover:text-white transition-colors manrope-regular">Gallery</Link></li>
-              <li><Link href="/franchise" className="text-white/80 hover:text-white transition-colors manrope-regular">Franchise</Link></li>
+              <li><Link href="/#franchise" className="text-white/80 hover:text-white transition-colors manrope-regular">Franchise</Link></li>
             </ul>
           </div>
 

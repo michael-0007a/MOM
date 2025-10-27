@@ -4,7 +4,23 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="e99e33dc-5643-411c-a0a0-e428ed9afd90" name="Changes" comment="" />
+    <list default="true" id="e99e33dc-5643-411c-a0a0-e428ed9afd90" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/components/ClientLayout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/components/ClientLayout.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/components/Footer.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/components/Footer.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/components/InteractiveMap.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/components/InteractiveMap.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/components/Navbar.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/components/Navbar.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/franchise/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/franchise/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/globals.css" beforeDir="false" afterPath="$PROJECT_DIR$/app/globals.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/layout.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/our-story/page.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/store-locator/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/store-locator/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/eslint.config.mjs" beforeDir="false" afterPath="$PROJECT_DIR$/eslint.config.mjs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/next.config.ts" beforeDir="false" afterPath="$PROJECT_DIR$/next.config.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -35,7 +51,7 @@
     &quot;js.debugger.nextJs.config.created.client&quot;: &quot;true&quot;,
     &quot;js.debugger.nextJs.config.created.server&quot;: &quot;true&quot;,
     &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/micha/Desktop/Projects/mom/public&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/micha/Desktop/Projects/mom&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
@@ -49,6 +65,7 @@
 }</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\micha\Desktop\Projects\mom" />
       <recent name="C:\Users\micha\Desktop\Projects\mom\public" />
       <recent name="C:\Users\micha\Desktop\Projects\mom\old code" />
       <recent name="C:\Users\micha\Desktop\Projects\mom\app" />
@@ -95,6 +112,13 @@
       <workItem from="1760588495919" duration="9765000" />
       <workItem from="1760677826738" duration="24174000" />
       <workItem from="1760767184374" duration="4884000" />
+      <workItem from="1760880124514" duration="1562000" />
+      <workItem from="1761459339375" duration="13798000" />
+      <workItem from="1761485248450" duration="7447000" />
+      <workItem from="1761541284816" duration="8608000" />
+      <workItem from="1761555505131" duration="123000" />
+      <workItem from="1761555648106" duration="64000" />
+      <workItem from="1761555741962" duration="12027000" />
     </task>
     <servers />
   </component>

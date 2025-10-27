@@ -1,7 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { ArrowRight, Sparkles, Heart, Blend, Users, Award, TrendingUp, Globe, ChevronDown, ChevronUp, DollarSign, Milk, Cookie, IceCream, Cherry, Coffee } from 'lucide-react';
+import { ArrowRight, Sparkles, Heart, Blend, Users, Award, TrendingUp, Globe, ChevronDown, ChevronUp, DollarSign, Milk, Cookie, IceCream, Cherry, Coffee, CheckCircle } from 'lucide-react';
+import Image from 'next/image';
+import FranchiseCharacterPng from '@/public/franchise_section_character.png';
 
 export default function Home() {
     const [loaded, setLoaded] = useState(false);
@@ -9,17 +11,35 @@ export default function Home() {
     const [openFaq, setOpenFaq] = useState<number | null>(null);
     const [activeTimelineIndex, setActiveTimelineIndex] = useState(0);
     const [timelineProgress, setTimelineProgress] = useState(0);
-    const [formData, setFormData] = useState({
-        name: '',
+    // Updated form to support detailed franchise fields
+    const initialForm = {
+        fullName: '',
         email: '',
         phone: '',
-        city: '',
-        investment: '',
-        message: '',
-    });
+        cityState: '',
+        ownBusiness: '', // 'yes' | 'no'
+        businessName: '',
+        businessIndustry: '',
+        interestReason: '',
+        estimatedBudget: '',
+        hasSpace: '', // 'yes' | 'no'
+        spaceLocation: '',
+        spaceSize: '',
+        startTimeline: '',
+        hearAboutUs: '',
+        confirm: false,
+    };
+    const [formData, setFormData] = useState(initialForm);
+    // Only render random decorative elements on the client to avoid hydration mismatch
+    const [mounted, setMounted] = useState(false);
+    const [showAllPerks, setShowAllPerks] = useState(false);
+    // Multi-step form state
+    const [currentStep, setCurrentStep] = useState(1);
+    const totalSteps = 4;
 
     useEffect(() => {
         setLoaded(true);
+        setMounted(true);
 
         // Timeline scroll handler with improved center tracking
         const handleTimelineScroll = () => {
@@ -197,18 +217,64 @@ export default function Home() {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        // Require confirmation checkbox
+        if (!formData.confirm) return;
         alert('Thank you for your interest! We will contact you within 24 hours.');
-        setFormData({ name: '', email: '', phone: '', city: '', investment: '', message: '' });
+        setFormData(initialForm);
     };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
+        const target = e.target as HTMLInputElement;
+        const { name, value, type, checked } = target;
+        if (type === 'checkbox') {
+            setFormData(prev => ({ ...prev, [name]: checked }));
+        } else {
+            setFormData(prev => ({ ...prev, [name]: value }));
+        }
+    };
+
+    const handleRadioChange = (name: 'ownBusiness' | 'hasSpace', value: 'yes' | 'no') => {
+        setFormData(prev => ({
+            ...prev,
+            [name]: value,
+            ...(name === 'ownBusiness' && value === 'no' ? { businessName: '', businessIndustry: '' } : {}),
+            ...(name === 'hasSpace' && value === 'no' ? { spaceLocation: '', spaceSize: '' } : {}),
+        }));
+    };
+
+    const nextStep = () => {
+        if (currentStep < totalSteps) {
+            setCurrentStep(prev => prev + 1);
+        }
+    };
+
+    const prevStep = () => {
+        if (currentStep > 1) {
+            setCurrentStep(prev => prev - 1);
+        }
+    };
+
+    const isStepValid = () => {
+        switch (currentStep) {
+            case 1:
+                return formData.fullName && formData.email && formData.phone && formData.cityState;
+            case 2:
+                return formData.ownBusiness &&
+                       (formData.ownBusiness === 'no' || (formData.businessName && formData.businessIndustry));
+            case 3:
+                return formData.interestReason && formData.estimatedBudget && formData.hasSpace &&
+                       (formData.hasSpace === 'no' || (formData.spaceLocation && formData.spaceSize));
+            case 4:
+                return formData.startTimeline && formData.hearAboutUs && formData.confirm;
+            default:
+                return false;
+        }
     };
 
     return (
         <div className="min-h-screen bg-white">
             {/* Milkshake Shop Hero Section - Optimized */}
-            <section id="home" className="relative min-h-screen flex items-center justify-center overflow-hidden py-12">
+            <section id="home" className="relative min-h-screen flex items-center justify-center overflow-hidden py-12 scroll-mt-20">
                 {/* Light Background with Enhanced Grid */}
                 <div className="absolute inset-0 bg-gradient-to-br from-gray-50 via-blue-50/40 to-blue-50/60">
                     {/* Enhanced Grid Overlay - More Visible */}
@@ -224,36 +290,40 @@ export default function Home() {
                     ></div>
 
                     {/* Floating Light Particles */}
-                    <div className="absolute inset-0">
-                        {[...Array(20)].map((_, i) => (
-                            <div
-                                key={i}
-                                className="absolute w-1.5 h-1.5 bg-blue-400/50 rounded-full"
-                                style={{
-                                    left: `${Math.random() * 100}%`,
-                                    top: `${Math.random() * 100}%`,
-                                    animation: `float ${4 + Math.random() * 3}s ease-in-out infinite`,
-                                    animationDelay: `${Math.random() * 2}s`
-                                }}
-                            ></div>
-                        ))}
-                    </div>
+                    {mounted && (
+                        <div className="absolute inset-0" aria-hidden="true">
+                            {[...Array(20)].map((_, i) => (
+                                <div
+                                    key={i}
+                                    className="absolute w-1.5 h-1.5 bg-blue-400/50 rounded-full"
+                                    style={{
+                                        left: `${Math.random() * 100}%`,
+                                        top: `${Math.random() * 100}%`,
+                                        animation: `float ${4 + Math.random() * 3}s ease-in-out infinite`,
+                                        animationDelay: `${Math.random() * 2}s`
+                                    }}
+                                ></div>
+                            ))}
+                        </div>
+                    )}
 
                     {/* Additional sparkle particles */}
-                    <div className="absolute inset-0">
-                        {[...Array(12)].map((_, i) => (
-                            <div
-                                key={i}
-                                className="absolute w-0.5 h-0.5 bg-blue-500/60 rounded-full"
-                                style={{
-                                    left: `${Math.random() * 100}%`,
-                                    top: `${Math.random() * 100}%`,
-                                    animation: `sparkle ${3 + Math.random() * 2}s ease-in-out infinite`,
-                                    animationDelay: `${Math.random() * 3}s`
-                                }}
-                            ></div>
-                        ))}
-                    </div>
+                    {mounted && (
+                        <div className="absolute inset-0" aria-hidden="true">
+                            {[...Array(12)].map((_, i) => (
+                                <div
+                                    key={i}
+                                    className="absolute w-0.5 h-0.5 bg-blue-500/60 rounded-full"
+                                    style={{
+                                        left: `${Math.random() * 100}%`,
+                                        top: `${Math.random() * 100}%`,
+                                        animation: `sparkle ${3 + Math.random() * 2}s ease-in-out infinite`,
+                                        animationDelay: `${Math.random() * 3}s`
+                                    }}
+                                ></div>
+                            ))}
+                        </div>
+                    )}
 
                     {/* Soft Gradient Overlays */}
                     <div className="absolute inset-0 bg-gradient-to-t from-white/30 to-transparent"></div>
@@ -266,10 +336,10 @@ export default function Home() {
                         {/* Left Side - Text Content */}
                         <div className={`lg:col-span-1 col-span-1 mx-auto max-w-2xl lg:max-w-none space-y-6 transition-all duration-1000 ${loaded ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-10'}`}>
                             {/* Shop Badge */}
-                            <div className="inline-flex items-center space-x-2 glass-3d badge-3d px-6 py-3 rounded-full shadow-lg mb-8 border-2 border-blue-200 hover:scale-105 transition-transform duration-300 cursor-pointer">
-                                <Sparkles className="w-5 h-5 text-blue-500" />
-                                <span className="text-blue-800 font-semibold">Premium Handcrafted Milkshakes</span>
-                                <Sparkles className="w-5 h-5 text-pink-500" />
+                            <div className="flex items-center justify-center md:justify-start space-x-1 md:space-x-2 glass-3d badge-3d w-max mx-auto md:mx-0 px-2.5 py-1.5 md:px-6 md:py-3 rounded-full shadow-md md:shadow-lg mt-6 md:mt-0 mb-1 md:mb-8 border border-blue-200 md:border-2 hover:scale-105 transition-transform duration-300 cursor-pointer">
+                                <Sparkles className="w-3.5 h-3.5 md:w-5 md:h-5 text-blue-500" />
+                                <span className="text-blue-800 font-semibold text-xs md:text-base">Premium Handcrafted Milkshakes</span>
+                                <Sparkles className="w-3.5 h-3.5 md:w-5 md:h-5 text-pink-500" />
                             </div>
 
                             {/* Main Heading */}
@@ -277,7 +347,7 @@ export default function Home() {
                                 <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-gray-900 mb-4 leading-tight">
                                     <span className="notable-regular text-gray-900 font-normal italic">THE #1</span>
                                     <span className="block bg-gradient-to-r from-blue-600 via-blue-500 to-blue-400 bg-clip-text text-transparent text-4xl sm:text-5xl lg:text-6xl mt-2">
-                    MILKSHAKE SHOP
+                    MILKSHAKE STORE
                   </span>
                                 </h1>
                                 <p className="text-2xl sm:text-3xl lg:text-4xl font-medium text-gray-700 mt-3">
@@ -516,7 +586,7 @@ export default function Home() {
                                             <span className="text-[9px] md:text-xs text-gray-800 font-medium group-hover:item:text-gray-900 transition-colors">Choco Chips</span>
                                         </div>
                                         <div className="flex items-center space-x-1 md:space-x-2 group/item">
-                                            <div className="w-2.5 h-2.5 md:w-3.5 md:h-3.5 lg:w-4 lg:h-4 border-2 border-gray-400 rounded group-hover/item:border-gray-600 transition-colors shadow-sm"></div>
+                                            <div className="w-2.5 h-2.5 md:w-3.5 md:h-3.5 lg:w-4 lg:h-4 border-2 border-gray-400 rounded group-hover:item:border-gray-600 transition-colors shadow-sm"></div>
                                             <span className="text-[9px] md:text-xs text-gray-500 font-medium group-hover:item:text-gray-700 transition-colors">Marshmallows</span>
                                         </div>
                                         <div className="flex items-center space-x-1 md:space-x-2 group/item">
@@ -799,7 +869,7 @@ export default function Home() {
             </section>
 
             {/* Our Story Section */}
-            <section id="our-story" className="py-20 bg-white">
+            <section id="our-story" className="py-10 sm:py-20 bg-white scroll-mt-20">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className={`text-center mb-16 transition-all duration-1000 ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
                         <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
@@ -827,26 +897,26 @@ export default function Home() {
                         {milestones.map((milestone, index) => (
                             <div
                                 key={milestone.year}
-                                className={`timeline-milestone relative flex items-center mb-8 sm:mb-16 transition-all duration-700 ease-out ${
-                                    // Mobile: center everything, Desktop: alternating sides
-                                    'flex-col sm:flex-row' + (index % 2 === 0 ? ' sm:flex-row' : ' sm:flex-row-reverse')
-                                } ${
-                                    activeTimelineIndex >= index 
-                                        ? 'opacity-100 translate-y-0 scale-100' 
-                                        : 'opacity-70 translate-y-4 scale-95'
-                                }`}
+                                className={`timeline-milestone relative flex items-center transition-all duration-700 ease-out mb-5 sm:mb-2 md:mb-0 lg:mb-2 ${
+                                     // Mobile: center everything, Desktop: alternating sides
+                                     'flex-col sm:flex-row' + (index % 2 === 0 ? ' sm:flex-row' : ' sm:flex-row-reverse')
+                                 } ${
+                                     activeTimelineIndex >= index 
+                                         ? 'opacity-100 translate-y-0 scale-100' 
+                                         : 'opacity-70 translate-y-4 scale-95'
+                                 }`}
                             >
                                 {/* Mobile: Icon above card, Desktop: Icon in center */}
                                 <div className="flex flex-col items-center sm:contents">
                                     {/* Enhanced Timeline Node - Mobile Optimized */}
-                                    <div className={`w-16 h-16 sm:w-16 sm:h-16 rounded-full flex items-center justify-center transition-all duration-500 z-10 mb-4 sm:mb-0 ${
-                                        // Mobile: relative positioning, Desktop: absolute center
-                                        'relative sm:absolute sm:left-1/2 sm:transform sm:-translate-x-1/2'
-                                    } ${
-                                        activeTimelineIndex >= index 
-                                            ? 'bg-gradient-to-br from-blue-500 to-blue-600 shadow-xl scale-110' 
-                                            : 'bg-gradient-to-br from-gray-400 to-gray-500 shadow-lg scale-100'
-                                    }`}>
+                                    <div className={`w-8 h-8 sm:w-14 sm:h-14 md:w-12 md:h-12 lg:w-14 lg:h-14 rounded-full flex items-center justify-center transition-all duration-500 z-10 mb-2 sm:mb-0 ${
+                                         // Mobile: relative positioning, Desktop: absolute center
+                                         'relative sm:absolute sm:left-1/2 sm:transform sm:-translate-x-1/2'
+                                     } ${
+                                         activeTimelineIndex >= index 
+                                             ? 'bg-gradient-to-br from-blue-500 to-blue-600 shadow-xl scale-110' 
+                                             : 'bg-gradient-to-br from-gray-400 to-gray-500 shadow-lg scale-100'
+                                     }`}>
                                         {/* Pulsing ring for active node - Blue Theme */}
                                         {activeTimelineIndex === index && (
                                             <div className="absolute inset-0 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 animate-ping opacity-30"></div>
@@ -857,42 +927,42 @@ export default function Home() {
                                             <div className="absolute inset-0 rounded-full bg-gradient-to-br from-blue-400 to-blue-500 opacity-20 animate-pulse"></div>
                                         )}
 
-                                        <milestone.icon className={`w-8 h-8 text-white transition-all duration-300 relative z-10 ${
+                                        <milestone.icon className={`w-3.5 h-3.5 sm:w-7 sm:h-7 md:w-6 md:h-6 lg:w-7 lg:h-7 text-white transition-all duration-300 relative z-10 ${
                                             activeTimelineIndex >= index ? 'drop-shadow-sm' : ''
                                         }`} />
                                     </div>
 
                                     {/* Enhanced Content Card - Mobile Optimized */}
-                                    <div className={`w-full sm:w-5/12 ${
-                                        // Mobile: always centered, Desktop: alternating alignment
-                                        'text-center sm:text-left' + (index % 2 === 0 ? ' sm:pr-8 sm:text-right' : ' sm:pl-8 sm:text-left')
-                                    }`}>
-                                        <div className={`relative bg-white p-6 rounded-2xl border transition-all duration-500 transform ${
-                                            activeTimelineIndex === index 
-                                                ? 'shadow-2xl border-blue-300 scale-105 bg-gradient-to-br from-white to-blue-50/30' 
-                                                : 'shadow-lg border-gray-200 hover:shadow-xl hover:border-blue-200'
-                                        }`}>
+                                     <div className={`w-full max-w-[84%] mx-auto sm:w-5/12 sm:max-w-none sm:mx-0 ${
+                                         // Mobile: always centered, Desktop: alternating alignment
+                                         'text-center sm:text-left' + (index % 2 === 0 ? ' sm:pr-8 md:pr-2 lg:pr-8 sm:text-right' : ' sm:pl-8 md:pl-2 lg:pl-8 sm:text-left')
+                                     }`}>
+                                        <div className={`relative bg-white p-3 sm:p-5 md:p-4 lg:p-5 rounded-2xl border transition-all duration-500 transform ${
+                                             activeTimelineIndex === index 
+                                                 ? 'shadow-2xl border-blue-300 scale-105 bg-gradient-to-br from-white to-blue-50/30' 
+                                                 : 'shadow-lg border-gray-200 hover:shadow-xl hover:border-blue-200'
+                                         }`}>
                                             {/* Active card glow effect - Blue Theme */}
                                             {activeTimelineIndex === index && (
                                                 <div className="absolute inset-0 bg-gradient-to-br from-blue-400/10 via-blue-500/10 to-blue-600/10 rounded-2xl animate-pulse"></div>
                                             )}
 
                                             <div className="relative z-10">
-                                                <div className={`text-3xl font-bold mb-3 transition-colors duration-300 ${
+                                                <div className={`text-xl sm:text-3xl md:text-2xl lg:text-3xl font-bold mb-2 sm:mb-2 md:mb-0 transition-colors duration-300 ${
                                                     activeTimelineIndex === index 
                                                         ? 'text-blue-600 drop-shadow-sm' 
                                                         : 'text-blue-500'
                                                 }`}>
                                                     {milestone.year}
                                                 </div>
-                                                <h3 className={`text-xl font-bold mb-3 transition-colors duration-300 ${
+                                                <h3 className={`text-sm sm:text-xl md:text-lg lg:text-xl font-bold mb-2 sm:mb-2 md:mb-0 transition-colors duration-300 ${
                                                     activeTimelineIndex === index 
                                                         ? 'text-gray-900' 
                                                         : 'text-gray-800'
                                                 }`}>
                                                     {milestone.title}
                                                 </h3>
-                                                <p className={`text-base transition-colors duration-300 ${
+                                                <p className={`text-xs sm:text-base md:text-sm lg:text-base transition-colors duration-300 ${
                                                     activeTimelineIndex === index 
                                                         ? 'text-gray-700' 
                                                         : 'text-gray-600'
@@ -903,8 +973,8 @@ export default function Home() {
 
                                             {/* Animated progress indicator - Blue Theme */}
                                             {activeTimelineIndex === index && (
-                                                <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2">
-                                                    <div className="w-12 h-1 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full animate-pulse shadow-lg"></div>
+                                                <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2">
+                                                    <div className="w-10 h-[3px] bg-gradient-to-r from-blue-500 to-blue-600 rounded-full animate-pulse shadow"></div>
                                                 </div>
                                             )}
                                         </div>
@@ -915,23 +985,12 @@ export default function Home() {
                                 <div className="hidden sm:block sm:w-5/12"></div>
                             </div>
                         ))}
-
-                        {/* Timeline completion indicator - Blue Theme */}
-                        {timelineProgress >= 0.95 && (
-                            <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-8">
-                                <div className="flex flex-col items-center space-y-2 animate-bounce">
-                                    <div className="w-4 h-4 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full shadow-lg"></div>
-                                    <div className="w-3 h-3 bg-gradient-to-br from-blue-400 to-blue-500 rounded-full shadow-md"></div>
-                                    <div className="w-2 h-2 bg-gradient-to-br from-blue-300 to-blue-400 rounded-full shadow-sm"></div>
-                                </div>
-                            </div>
-                        )}
                     </div>
                 </div>
             </section>
 
             {/* Gallery Section */}
-            <section id="gallery" className="py-20 bg-gradient-to-br from-gray-50 to-blue-50">
+            <section id="gallery" className="py-20 bg-gradient-to-br from-gray-50 to-blue-50 scroll-mt-20">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className={`text-center mb-16 transition-all duration-1000 ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
                         <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
@@ -978,116 +1037,473 @@ export default function Home() {
                 </div>
             </section>
 
-            {/* Franchise Section */}
-            <section id="franchise" className="py-20 bg-white">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className={`text-center mb-16 transition-all duration-1000 ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+            {/* Franchise Section - Restructured */}
+            <section id="franchise" className="py-20 bg-gradient-to-br from-blue-50/30 via-white to-purple-50/20 scroll-mt-20 relative overflow-hidden">
+                {/* Background decorative elements */}
+                <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                    {mounted && (
+                        <>
+                            {/* Floating particles */}
+                            {[...Array(15)].map((_, i) => (
+                                <div
+                                    key={i}
+                                    className="absolute w-2 h-2 bg-blue-400/20 rounded-full animate-float"
+                                    style={{
+                                        left: `${Math.random() * 100}%`,
+                                        top: `${Math.random() * 100}%`,
+                                        animation: `float ${4 + Math.random() * 3}s ease-in-out infinite`,
+                                        animationDelay: `${Math.random() * 2}s`
+                                    }}
+                                />
+                            ))}
+                            {/* Gradient blobs */}
+                            <div className="absolute top-20 -right-20 w-64 h-64 bg-gradient-to-br from-blue-200/30 to-purple-200/30 rounded-full blur-3xl animate-blob" />
+                            <div className="absolute -bottom-20 -left-20 w-80 h-80 bg-gradient-to-tr from-pink-200/20 to-blue-200/20 rounded-full blur-3xl animate-blob animation-delay-2000" />
+                        </>
+                    )}
+                </div>
+
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                    <div className={`text-center mb-8 transition-all duration-1000 ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
                         <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
                             Join Our <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Franchise</span>
                         </h2>
                         <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-                            Be part of the milkshake revolution and bring joy to your community
+                            Partner with us and become part of India&apos;s fastest-growing milkshake franchise
                         </p>
                     </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
-                        {/* Benefits */}
-                        <div>
-                            <h3 className="text-2xl font-bold text-gray-900 mb-8">Why Choose Our Franchise?</h3>
-                            <div className="space-y-6">
-                                {benefits.map((benefit, index) => (
-                                    <div
-                                        key={benefit.title}
-                                        className={`flex items-start space-x-4 transition-all duration-1000 ${
-                                            loaded ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-10'
-                                        }`}
-                                        style={{ animationDelay: `${index * 0.2}s` }}
-                                    >
-                                        <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center flex-shrink-0">
-                                            <benefit.icon className="w-6 h-6 text-white" />
-                                        </div>
-                                        <div>
-                                            <h4 className="text-xl font-bold text-gray-900 mb-2">{benefit.title}</h4>
-                                            <p className="text-gray-600">{benefit.description}</p>
-                                        </div>
-                                    </div>
-                                ))}
+                    {/* Main Content - Image Left, Details Right */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-stretch">
+                        {/* Left Column - Character Image */}
+                        <div className="relative flex items-center justify-center">
+                            <div className="relative w-full max-w-2xl">
+                                {/* Enhanced background effects */}
+                                <div className="absolute inset-0 -inset-16">
+                                    <div className="absolute inset-0 bg-gradient-to-br from-orange-100/40 via-yellow-100/30 to-amber-100/50 rounded-3xl blur-3xl opacity-50" />
+                                    <div className="absolute top-6 right-8 w-24 h-24 bg-gradient-to-br from-orange-300/20 to-yellow-300/20 rounded-full blur-2xl" />
+                                    <div className="absolute bottom-8 left-6 w-20 h-20 bg-gradient-to-br from-amber-300/20 to-orange-300/20 rounded-full blur-2xl" />
+                                </div>
+
+                                {/* Character image - Made much larger */}
+                                <div className="relative z-10 flex justify-center">
+                                    <Image
+                                        src={FranchiseCharacterPng}
+                                        alt="Successful franchise partner showcasing business growth"
+                                        className="w-full h-auto max-w-lg lg:max-w-xl xl:max-w-2xl"
+                                        sizes="(max-width: 640px) 320px, (max-width: 768px) 512px, (max-width: 1024px) 576px, 768px"
+                                        quality={95}
+                                        priority={false}
+                                        style={{
+                                            filter: 'drop-shadow(0 25px 50px rgba(251, 146, 60, 0.2)) drop-shadow(0 15px 30px rgba(245, 158, 11, 0.15))'
+                                        }}
+                                    />
+                                </div>
                             </div>
                         </div>
 
-                        {/* Contact Form */}
-                        <div className={`bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-8 transition-all duration-1000 ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-                            <h3 className="text-2xl font-bold text-gray-900 mb-6">Get Started Today</h3>
-                            <form onSubmit={handleSubmit} className="space-y-6">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <input
-                                        type="text"
-                                        name="name"
-                                        placeholder="Full Name"
-                                        value={formData.name}
-                                        onChange={handleChange}
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                        required
-                                    />
-                                    <input
-                                        type="email"
-                                        name="email"
-                                        placeholder="Email Address"
-                                        value={formData.email}
-                                        onChange={handleChange}
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                        required
-                                    />
+                        {/* Right Column - Franchise Details */}
+                        <div className="flex flex-col justify-center space-y-8">
+                            <div className="bg-white/80 backdrop-blur-sm border border-blue-100 rounded-2xl p-8 shadow-lg">
+                                <h3 className="text-2xl font-bold text-gray-900 mb-6">Why Choose Our Franchise?</h3>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
+                                    <div className="flex items-start space-x-4">
+                                        <div className="w-12 h-12 flex items-center justify-center">
+                                            <DollarSign className="w-6 h-6 text-blue-600" />
+                                        </div>
+                                        <div>
+                                            <h4 className="font-semibold text-gray-900 text-lg">High ROI</h4>
+                                            <p className="text-gray-600">18-24 month returns guaranteed</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-start space-x-4">
+                                        <div className="w-12 h-12 flex items-center justify-center">
+                                            <Users className="w-6 h-6 text-blue-600" />
+                                        </div>
+                                        <div>
+                                            <h4 className="font-semibold text-gray-900 text-lg">Full Support</h4>
+                                            <p className="text-gray-600">Complete training & ongoing assistance</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-start space-x-4">
+                                        <div className="w-12 h-12 flex items-center justify-center">
+                                            <TrendingUp className="w-6 h-6 text-blue-600" />
+                                        </div>
+                                        <div>
+                                            <h4 className="font-semibold text-gray-900 text-lg">Proven Model</h4>
+                                            <p className="text-gray-600">50+ successful locations nationwide</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-start space-x-4">
+                                        <div className="w-12 h-12 flex items-center justify-center">
+                                            <Award className="w-6 h-6 text-blue-600" />
+                                        </div>
+                                        <div>
+                                            <h4 className="font-semibold text-gray-900 text-lg">Strong Brand</h4>
+                                            <p className="text-gray-600">Award-winning reputation & recognition</p>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <input
-                                        type="tel"
-                                        name="phone"
-                                        placeholder="Phone Number"
-                                        value={formData.phone}
-                                        onChange={handleChange}
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                        required
-                                    />
-                                    <input
-                                        type="text"
-                                        name="city"
-                                        placeholder="Preferred City"
-                                        value={formData.city}
-                                        onChange={handleChange}
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                        required
-                                    />
+
+                                <div className="border-t border-gray-200 pt-6">
+                                    <h4 className="font-semibold text-gray-900 text-lg mb-4">What You&apos;ll Get</h4>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-gray-600">
+                                        <div className="flex items-start gap-3">
+                                            <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                                            <span>Site selection & lease assistance</span>
+                                        </div>
+                                        <div className="flex items-start gap-3">
+                                            <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                                            <span>Store design & branding guidelines</span>
+                                        </div>
+                                        <div className="flex items-start gap-3">
+                                            <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                                            <span>Staff training & operational SOPs</span>
+                                        </div>
+                                        <div className="flex items-start gap-3">
+                                            <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                                            <span>Supply chain & quality assurance</span>
+                                        </div>
+                                        <div className="flex items-start gap-3">
+                                            <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                                            <span>Marketing kit & promotional materials</span>
+                                        </div>
+                                        <div className="flex items-start gap-3">
+                                            <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                                            <span>Technology suite (POS, analytics, CRM)</span>
+                                        </div>
+                                    </div>
                                 </div>
-                                <select
-                                    name="investment"
-                                    value={formData.investment}
-                                    onChange={handleChange}
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                    required
-                                >
-                                    <option value="">Investment Range</option>
-                                    <option value="150k-200k">$150k - $200k</option>
-                                    <option value="200k-250k">$200k - $250k</option>
-                                    <option value="250k-300k">$250k - $300k</option>
-                                    <option value="300k+">$300k+</option>
-                                </select>
-                                <textarea
-                                    name="message"
-                                    placeholder="Tell us about your background and goals..."
-                                    value={formData.message}
-                                    onChange={handleChange}
-                                    rows={4}
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                ></textarea>
-                                <button
-                                    type="submit"
-                                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-lg font-bold hover:from-blue-500 hover:to-purple-500 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl"
-                                >
-                                    Send Application
-                                </button>
-                            </form>
+                            </div>
                         </div>
+                    </div>
+
+                    {/* Multi-Step Form - Full Width at Bottom */}
+                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-8 shadow-xl">
+                        <div className="flex items-center justify-between mb-8">
+                            <h3 className="text-2xl font-bold text-gray-900">Start Your Franchise Journey</h3>
+                            <div className="flex items-center space-x-2">
+                                <span className="text-sm text-gray-600">Step {currentStep} of {totalSteps}</span>
+                                <div className="w-24 h-2 bg-gray-200 rounded-full overflow-hidden">
+                                    <div
+                                        className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full transition-all duration-300"
+                                        style={{ width: `${(currentStep / totalSteps) * 100}%` }}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        <form onSubmit={handleSubmit} className="space-y-6">
+                            {/* Step 1: Basic Information */}
+                            {currentStep === 1 && (
+                                <div className="space-y-6">
+                                    <h4 className="text-lg font-semibold text-gray-900 mb-4">Basic Information</h4>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div>
+                                            <label className="block text-gray-700 font-semibold mb-2">Full Name *</label>
+                                            <input
+                                                type="text"
+                                                name="fullName"
+                                                value={formData.fullName}
+                                                onChange={handleChange}
+                                                required
+                                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                placeholder="Enter your full name"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-gray-700 font-semibold mb-2">Email Address *</label>
+                                            <input
+                                                type="email"
+                                                name="email"
+                                                value={formData.email}
+                                                onChange={handleChange}
+                                                required
+                                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                placeholder="your.email@example.com"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-gray-700 font-semibold mb-2">Phone Number *</label>
+                                            <input
+                                                type="tel"
+                                                name="phone"
+                                                value={formData.phone}
+                                                onChange={handleChange}
+                                                required
+                                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                placeholder="+1 (555) 123-4567"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-gray-700 font-semibold mb-2">City/State *</label>
+                                            <input
+                                                type="text"
+                                                name="cityState"
+                                                value={formData.cityState}
+                                                onChange={handleChange}
+                                                required
+                                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                placeholder="City, State"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Step 2: Business Experience */}
+                            {currentStep === 2 && (
+                                <div className="space-y-6">
+                                    <h4 className="text-lg font-semibold text-gray-900 mb-4">Business Experience</h4>
+                                    <div>
+                                        <label className="block text-gray-700 font-semibold mb-3">Do you currently own a business? *</label>
+                                        <div className="flex items-center gap-6">
+                                            <label className="inline-flex items-center gap-2 cursor-pointer">
+                                                <input
+                                                    type="radio"
+                                                    name="ownBusiness"
+                                                    value="yes"
+                                                    checked={formData.ownBusiness === 'yes'}
+                                                    onChange={() => handleRadioChange('ownBusiness', 'yes')}
+                                                    required
+                                                    className="w-4 h-4 text-blue-600"
+                                                />
+                                                <span className="text-gray-700">Yes</span>
+                                            </label>
+                                            <label className="inline-flex items-center gap-2 cursor-pointer">
+                                                <input
+                                                    type="radio"
+                                                    name="ownBusiness"
+                                                    value="no"
+                                                    checked={formData.ownBusiness === 'no'}
+                                                    onChange={() => handleRadioChange('ownBusiness', 'no')}
+                                                    required
+                                                    className="w-4 h-4 text-blue-600"
+                                                />
+                                                <span className="text-gray-700">No</span>
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    {formData.ownBusiness === 'yes' && (
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <div>
+                                                <label className="block text-gray-700 font-semibold mb-2">Business Name *</label>
+                                                <input
+                                                    type="text"
+                                                    name="businessName"
+                                                    value={formData.businessName}
+                                                    onChange={handleChange}
+                                                    required={formData.ownBusiness === 'yes'}
+                                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                    placeholder="Your business name"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-gray-700 font-semibold mb-2">Industry *</label>
+                                                <input
+                                                    type="text"
+                                                    name="businessIndustry"
+                                                    value={formData.businessIndustry}
+                                                    onChange={handleChange}
+                                                    required={formData.ownBusiness === 'yes'}
+                                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                    placeholder="e.g., Retail, Food & Beverage"
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <div>
+                                        <label className="block text-gray-700 font-semibold mb-2">Why are you interested in a Makers of Milkshakes franchise? *</label>
+                                        <textarea
+                                            name="interestReason"
+                                            value={formData.interestReason}
+                                            onChange={handleChange}
+                                            rows={4}
+                                            required
+                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            placeholder="Tell us about your motivation, experience, and what attracts you to our brand..."
+                                        />
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Step 3: Investment & Location */}
+                            {currentStep === 3 && (
+                                <div className="space-y-6">
+                                    <h4 className="text-lg font-semibold text-gray-900 mb-4">Investment & Location Details</h4>
+                                    <div>
+                                        <label className="block text-gray-700 font-semibold mb-2">Estimated budget for investment *</label>
+                                        <select
+                                            name="estimatedBudget"
+                                            value={formData.estimatedBudget}
+                                            onChange={handleChange}
+                                            required
+                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        >
+                                            <option value="">Select investment range</option>
+                                            <option value="150k-200k">$150,000 - $200,000</option>
+                                            <option value="200k-250k">$200,000 - $250,000</option>
+                                            <option value="250k-300k">$250,000 - $300,000</option>
+                                            <option value="300k+">$300,000+</option>
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-gray-700 font-semibold mb-3">Do you already have a space for the outlet? *</label>
+                                        <div className="flex items-center gap-6">
+                                            <label className="inline-flex items-center gap-2 cursor-pointer">
+                                                <input
+                                                    type="radio"
+                                                    name="hasSpace"
+                                                    value="yes"
+                                                    checked={formData.hasSpace === 'yes'}
+                                                    onChange={() => handleRadioChange('hasSpace', 'yes')}
+                                                    required
+                                                    className="w-4 h-4 text-blue-600"
+                                                />
+                                                <span className="text-gray-700">Yes, I have a space</span>
+                                            </label>
+                                            <label className="inline-flex items-center gap-2 cursor-pointer">
+                                                <input
+                                                    type="radio"
+                                                    name="hasSpace"
+                                                    value="no"
+                                                    checked={formData.hasSpace === 'no'}
+                                                    onChange={() => handleRadioChange('hasSpace', 'no')}
+                                                    required
+                                                    className="w-4 h-4 text-blue-600"
+                                                />
+                                                <span className="text-gray-700">No, I need assistance</span>
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    {formData.hasSpace === 'yes' && (
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <div>
+                                                <label className="block text-gray-700 font-semibold mb-2">Space Location *</label>
+                                                <input
+                                                    type="text"
+                                                    name="spaceLocation"
+                                                    value={formData.spaceLocation}
+                                                    onChange={handleChange}
+                                                    required={formData.hasSpace === 'yes'}
+                                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                    placeholder="Street address or general area"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-gray-700 font-semibold mb-2">Space Size (sq ft) *</label>
+                                                <input
+                                                    type="text"
+                                                    name="spaceSize"
+                                                    value={formData.spaceSize}
+                                                    onChange={handleChange}
+                                                    required={formData.hasSpace === 'yes'}
+                                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                    placeholder="e.g., 800-1200 sq ft"
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Step 4: Timeline & Confirmation */}
+                            {currentStep === 4 && (
+                                <div className="space-y-6">
+                                    <h4 className="text-lg font-semibold text-gray-900 mb-4">Timeline & Final Details</h4>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div>
+                                            <label className="block text-gray-700 font-semibold mb-2">When would you like to start your franchise journey? *</label>
+                                            <input
+                                                type="text"
+                                                name="startTimeline"
+                                                value={formData.startTimeline}
+                                                onChange={handleChange}
+                                                required
+                                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                placeholder="e.g., Within 3-6 months, As soon as possible"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-gray-700 font-semibold mb-2">How did you hear about us? *</label>
+                                            <input
+                                                type="text"
+                                                name="hearAboutUs"
+                                                value={formData.hearAboutUs}
+                                                onChange={handleChange}
+                                                required
+                                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                placeholder="e.g., Social media, Friend referral, Google search"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+                                        <label className="flex items-start gap-3 cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                name="confirm"
+                                                checked={formData.confirm}
+                                                onChange={handleChange}
+                                                className="mt-1 w-4 h-4 text-blue-600"
+                                                required
+                                            />
+                                            <span className="text-sm text-gray-700 leading-relaxed">
+                                                <strong>I confirm that:</strong> All information provided is accurate and complete. I understand this form is an expression of interest and does not constitute a binding agreement. I consent to being contacted by Makers of Milkshakes representatives regarding franchise opportunities.
+                                            </span>
+                                        </label>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Navigation Buttons */}
+                            <div className="flex justify-between pt-6 border-t border-gray-200">
+                                <button
+                                    type="button"
+                                    onClick={prevStep}
+                                    className={`px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-semibold transition-all duration-300 ${
+                                        currentStep === 1 
+                                            ? 'opacity-50 cursor-not-allowed' 
+                                            : 'hover:bg-gray-50 hover:border-gray-400'
+                                    }`}
+                                    disabled={currentStep === 1}
+                                >
+                                    Previous Step
+                                </button>
+
+                                {currentStep < totalSteps ? (
+                                    <button
+                                        type="button"
+                                        onClick={nextStep}
+                                        disabled={!isStepValid()}
+                                        className={`px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg font-semibold transition-all duration-300 shadow-lg ${
+                                            isStepValid()
+                                                ? 'hover:from-blue-500 hover:to-blue-600 hover:shadow-xl transform hover:scale-105'
+                                                : 'opacity-50 cursor-not-allowed'
+                                        }`}
+                                    >
+                                        Next Step
+                                    </button>
+                                ) : (
+                                    <button
+                                        type="submit"
+                                        disabled={!isStepValid()}
+                                        className={`px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg font-semibold transition-all duration-300 shadow-lg ${
+                                            isStepValid()
+                                                ? 'hover:from-blue-500 hover:to-blue-600 hover:shadow-xl transform hover:scale-105'
+                                                : 'opacity-50 cursor-not-allowed'
+                                        }`}
+                                    >
+                                        Submit Application
+                                    </button>
+                                )}
+                            </div>
+                        </form>
                     </div>
 
                     {/* FAQ Section */}
@@ -1127,3 +1543,4 @@ export default function Home() {
         </div>
     );
 }
+

@@ -1,91 +1,104 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { MapPin, Clock, Phone, Search, Navigation } from 'lucide-react';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
+import storesGeo from './stores.json';
+import * as turf from '@turf/turf';
+
+// Define raw types matching the JSON (coordinates are number[])
+type RawFeature = {
+  type: 'Feature';
+  geometry: { type: 'Point'; coordinates: number[] };
+  properties: {
+    location?: string;
+    address?: string;
+    city?: string;
+    postalCode?: string;
+    state?: string;
+    phoneFormatted?: string;
+    phone?: string;
+  };
+};
+
+type RawFeatureCollection = {
+  type: 'FeatureCollection';
+  features: RawFeature[];
+};
+
+const InteractiveMap = dynamic(() => import('@/app/components/InteractiveMap'), { ssr: false });
 
 export default function StoreLocator() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStore, setSelectedStore] = useState<number | null>(null);
+  const [searchPoint, setSearchPoint] = useState<[number, number] | null>(null);
 
-  const stores = [
-    {
-      id: 1,
-      name: 'Downtown Manhattan',
-      address: '123 Broadway, New York, NY 10012',
-      phone: '+1 (555) 123-4567',
-      hours: 'Mon-Sun: 9:00 AM - 10:00 PM',
-      city: 'New York',
-      zipcode: '10012',
-      distance: '2.3 miles',
-    },
-    {
-      id: 2,
-      name: 'Brooklyn Heights',
-      address: '456 Montague Street, Brooklyn, NY 11201',
-      phone: '+1 (555) 234-5678',
-      hours: 'Mon-Sun: 8:00 AM - 11:00 PM',
-      city: 'Brooklyn',
-      zipcode: '11201',
-      distance: '4.7 miles',
-    },
-    {
-      id: 3,
-      name: 'Central Park West',
-      address: '789 Columbus Avenue, New York, NY 10024',
-      phone: '+1 (555) 345-6789',
-      hours: 'Mon-Sun: 10:00 AM - 9:00 PM',
-      city: 'New York',
-      zipcode: '10024',
-      distance: '1.8 miles',
-    },
-    {
-      id: 4,
-      name: 'Queens Plaza',
-      address: '321 Northern Blvd, Long Island City, NY 11101',
-      phone: '+1 (555) 456-7890',
-      hours: 'Mon-Sun: 9:00 AM - 10:00 PM',
-      city: 'Queens',
-      zipcode: '11101',
-      distance: '6.2 miles',
-    },
-    {
-      id: 5,
-      name: 'Staten Island Mall',
-      address: '2655 Richmond Avenue, Staten Island, NY 10314',
-      phone: '+1 (555) 567-8901',
-      hours: 'Mon-Sat: 10:00 AM - 9:00 PM, Sun: 11:00 AM - 7:00 PM',
-      city: 'Staten Island',
-      zipcode: '10314',
-      distance: '12.4 miles',
-    },
-    {
-      id: 6,
-      name: 'Bronx Concourse',
-      address: '1234 Grand Concourse, Bronx, NY 10456',
-      phone: '+1 (555) 678-9012',
-      hours: 'Mon-Sun: 9:00 AM - 10:00 PM',
-      city: 'Bronx',
-      zipcode: '10456',
-      distance: '8.9 miles',
-    }
-  ];
+  // Basic helper to build directions link and tel URI
+  const telHref = (phone: string) => `tel:${phone.replace(/[^\d+]/g, '')}`;
+  const directionsHref = (address: string) =>
+    `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(address)}`;
 
-  const filteredStores = stores.filter(store =>
-    store.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    store.address.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    store.city.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    store.zipcode.includes(searchQuery)
+  // Map legacy GeoJSON stores to UI model
+  const stores = useMemo(() => {
+    const features = (storesGeo as unknown as RawFeatureCollection).features;
+
+    return features.map((f, idx) => {
+      // Normalize coordinates into a strict tuple [lng, lat]
+      const coordsArray = Array.isArray(f.geometry.coordinates) ? f.geometry.coordinates : [];
+      const lng = typeof coordsArray[0] === 'number' ? coordsArray[0] : 0;
+      const lat = typeof coordsArray[1] === 'number' ? coordsArray[1] : 0;
+      const coords: [number, number] = [lng, lat];
+
+      return {
+        id: idx + 1,
+        name: f.properties.location || f.properties.address || 'Store',
+        address: f.properties.address || '',
+        phone: f.properties.phoneFormatted || f.properties.phone || '',
+        hours: 'Mon-Sun: 10:00 AM - 10:00 PM',
+        city: f.properties.city || f.properties.state || '',
+        zipcode: f.properties.postalCode || '',
+        distance: '',
+        coordinates: coords,
+      };
+    });
+  }, []);
+
+  // If we have a search point, compute distance for each store (km) and sort by nearest
+  const storesWithDistance = useMemo(() => {
+    if (!searchPoint) return stores;
+    const from = turf.point(searchPoint);
+    const enriched = stores.map((s) => {
+      const dKm = turf.distance(from, turf.point(s.coordinates), { units: 'kilometers' });
+      const rounded = Math.round(dKm * 100) / 100; // 2 decimals
+      return { ...s, distance: `${rounded} KM away`, _distanceValue: dKm };
+    });
+    return enriched
+      .sort((a, b) => a._distanceValue - b._distanceValue)
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      .map(({ _distanceValue, ...rest }) => rest);
+  }, [stores, searchPoint]);
+
+  const filteredStores = useMemo(
+    () =>
+      storesWithDistance.filter((store) =>
+        store.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        store.address.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (store.city || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (store.zipcode || '').includes(searchQuery)
+      ),
+    [storesWithDistance, searchQuery]
   );
+
+  // Ensure selectedStore is valid when filtering
+  const selectedIsFiltered = selectedStore != null && filteredStores.some((s) => s.id === selectedStore);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#2b91cb]/5 to-white">
       {/* Hero Section */}
       <section className="bg-gradient-to-r from-[#2b91cb] to-[#1e7bb8] text-white py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl md:text-6xl font-bold mb-6">
-            Find Your Nearest Store
-          </h1>
+          <h1 className="text-4xl md:text-6xl font-bold mb-6">Find Your Nearest Store</h1>
           <p className="text-xl md:text-2xl text-white/90 max-w-3xl mx-auto">
             Find your nearest Makers of Milkshakes outlet and visit us today!
             Fresh shakes made with love are just around the corner.
@@ -117,9 +130,7 @@ export default function StoreLocator() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Store List */}
             <div className="space-y-6">
-              <h2 className="text-3xl font-bold text-[#2b91cb] mb-8">
-                Our Locations ({filteredStores.length})
-              </h2>
+              <h2 className="text-3xl font-bold text-[#2b91cb] mb-8">Our Locations ({filteredStores.length})</h2>
 
               {filteredStores.length === 0 ? (
                 <div className="text-center py-12">
@@ -141,18 +152,18 @@ export default function StoreLocator() {
                     >
                       <div className="flex justify-between items-start mb-4">
                         <div>
-                          <h3 className="text-xl font-bold text-[#2b91cb] mb-2">
-                            {store.name}
-                          </h3>
+                          <h3 className="text-xl font-bold text-[#2b91cb] mb-2">{store.name}</h3>
                           <div className="flex items-start space-x-2 text-gray-600 mb-2">
                             <MapPin className="w-5 h-5 text-[#2b91cb] mt-0.5 flex-shrink-0" />
                             <span>{store.address}</span>
                           </div>
                         </div>
                         <div className="text-right">
-                          <span className="inline-block px-3 py-1 bg-[#2b91cb]/10 text-[#2b91cb] rounded-full text-sm font-semibold">
-                            {store.distance}
-                          </span>
+                          {store.distance && (
+                            <span className="inline-block px-3 py-1 bg-[#2b91cb]/10 text-[#2b91cb] rounded-full text-sm font-semibold">
+                              {store.distance}
+                            </span>
+                          )}
                         </div>
                       </div>
 
@@ -170,14 +181,24 @@ export default function StoreLocator() {
                       {selectedStore === store.id && (
                         <div className="mt-6 pt-4 border-t border-[#2b91cb]/20">
                           <div className="flex flex-wrap gap-3">
-                            <button className="flex items-center space-x-2 bg-[#2b91cb] text-white px-4 py-2 rounded-full hover:bg-[#1e7bb8] transition-colors text-sm font-semibold">
+                            <a
+                              href={directionsHref(store.address)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center space-x-2 bg-[#2b91cb] text-white px-4 py-2 rounded-full hover:bg-[#1e7bb8] transition-colors text-sm font-semibold"
+                              onClick={(e) => e.stopPropagation()}
+                            >
                               <Navigation className="w-4 h-4" />
                               <span>Get Directions</span>
-                            </button>
-                            <button className="flex items-center space-x-2 bg-white border-2 border-[#2b91cb] text-[#2b91cb] px-4 py-2 rounded-full hover:bg-[#2b91cb]/10 transition-colors text-sm font-semibold">
+                            </a>
+                            <a
+                              href={telHref(store.phone)}
+                              className="flex items-center space-x-2 bg-white border-2 border-[#2b91cb] text-[#2b91cb] px-4 py-2 rounded-full hover:bg-[#2b91cb]/10 transition-colors text-sm font-semibold"
+                              onClick={(e) => e.stopPropagation()}
+                            >
                               <Phone className="w-4 h-4" />
                               <span>Call Store</span>
-                            </button>
+                            </a>
                           </div>
                         </div>
                       )}
@@ -187,18 +208,23 @@ export default function StoreLocator() {
               )}
             </div>
 
-            {/* Map Placeholder */}
+            {/* Interactive Map */}
             <div className="lg:sticky lg:top-8">
-              <div className="bg-gray-100 rounded-2xl h-96 lg:h-[600px] flex items-center justify-center">
-                <div className="text-center">
-                  <MapPin className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-xl font-bold text-gray-600 mb-2">Interactive Map</h3>
-                  <p className="text-gray-500">
-                    Map integration coming soon!<br />
-                    Click on any store to see more details.
-                  </p>
-                </div>
-              </div>
+              <InteractiveMap
+                stores={filteredStores.map((s) => ({
+                  id: s.id,
+                  name: s.name,
+                  address: s.address,
+                  phone: s.phone,
+                  hours: s.hours,
+                  city: s.city,
+                  zipcode: s.zipcode,
+                  coordinates: s.coordinates,
+                }))}
+                selectedStoreId={selectedIsFiltered ? selectedStore : null}
+                onSelectStore={(id) => setSelectedStore(id)}
+                onSearchResult={(lngLat) => setSearchPoint(lngLat)}
+              />
             </div>
           </div>
         </div>
@@ -207,9 +233,7 @@ export default function StoreLocator() {
       {/* Contact Section */}
       <section className="py-20 bg-[#2b91cb] text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-6">
-            Can&apos;t Find Your Location?
-          </h2>
+          <h2 className="text-3xl md:text-4xl font-bold mb-6">Can&apos;t Find Your Location?</h2>
           <p className="text-xl text-white/90 max-w-2xl mx-auto mb-8">
             We&apos;re expanding rapidly! If we&apos;re not in your area yet, let us know where you&apos;d like to see us next.
           </p>
