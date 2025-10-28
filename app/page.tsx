@@ -410,7 +410,7 @@ export default function Home() {
                         </div>
 
                         {/* Right Side - Dashboard Cards (Desktop Only) */}
-                        <div className="hidden lg:block relative h-[600px]">
+                        <div className="hidden lg:block relative h-[600px] hero-no-purple">
 
                             {/* Recipe Analysis Panel - Top Left */}
                             <div
@@ -423,7 +423,7 @@ export default function Home() {
                                         transformStyle: 'preserve-3d',
                                         filter: 'drop-shadow(5px 5px 15px rgba(59, 130, 246, 0.25))'
                                      }}>
-                                    <div className="absolute inset-0 bg-gradient-to-br from-blue-400/5 via-purple-400/5 to-pink-400/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-lg pointer-events-none"></div>
+                                    <div className="absolute inset-0 bg-gradient-to-br from-blue-400/5 via-cyan-400/5 to-pink-400/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-lg pointer-events-none"></div>
 
                                     <div className="flex items-center space-x-1 md:space-x-2 mb-1.5 md:mb-3 relative z-10">
                                         <div className="w-1.5 h-1.5 md:w-2 md:h-2 bg-green-500 rounded-full animate-pulse shadow-lg shadow-green-500/50"></div>
@@ -464,31 +464,31 @@ export default function Home() {
                                 className={`absolute top-0 right-0 w-36 md:w-40 lg:w-52 transition-all duration-1000 delay-400 group cursor-pointer perspective-1000 ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-10'}`}
                                 style={{ transform: 'rotateY(18deg) rotateX(10deg) translateZ(35px)' }}
                             >
-                                <div className="dashboard-card-3d bg-white/95 backdrop-blur-lg rounded-lg md:rounded-xl p-2.5 md:p-3.5 lg:p-4 border-2 border-purple-200/80 hover:border-purple-400 transition-all duration-500 relative overflow-visible shadow-2xl group-hover:shadow-3xl"
+                                <div className="dashboard-card-3d bg-white/95 backdrop-blur-lg rounded-lg md:rounded-xl p-2.5 md:p-3.5 lg:p-4 border-2 border-blue-200/80 hover:border-blue-400 transition-all duration-500 relative overflow-visible shadow-2xl group-hover:shadow-3xl"
                                      style={{
                                         transform: 'translateZ(0) rotateY(-3deg) rotateX(-3deg)',
                                         transformStyle: 'preserve-3d',
-                                        filter: 'drop-shadow(-5px 5px 15px rgba(147, 51, 234, 0.25))'
+                                        filter: 'drop-shadow(-5px 5px 15px rgba(59, 130, 246, 0.25))'
                                      }}>
-                                    <div className="absolute inset-0 bg-gradient-to-br from-purple-400/5 via-pink-400/5 to-blue-400/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-lg pointer-events-none"></div>
+                                    <div className="absolute inset-0 bg-gradient-to-br from-blue-400/5 via-cyan-400/5 to-blue-400/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-lg pointer-events-none"></div>
 
                                     <div className="flex items-center space-x-1 md:space-x-2 mb-1.5 md:mb-3 relative z-10">
-                                        <div className="w-1.5 h-1.5 md:w-2 md:h-2 bg-purple-500 rounded-full group-hover:animate-pulse shadow-lg shadow-purple-500/50"></div>
-                                        <h3 className="text-[10px] md:text-sm font-bold text-purple-700 group-hover:text-purple-800 transition-colors">Control Panel</h3>
+                                        <div className="w-1.5 h-1.5 md:w-2 md:h-2 bg-blue-500 rounded-full group-hover:animate-pulse shadow-lg shadow-blue-500/50"></div>
+                                        <h3 className="text-[10px] md:text-sm font-bold text-blue-700 group-hover:text-blue-800 transition-colors">Control Panel</h3>
                                     </div>
                                     <div className="space-y-1.5 md:space-y-3 relative z-10">
                                         <div className="w-full">
                                             <div className="w-full h-2 md:h-3 bg-gray-200 rounded-full overflow-hidden shadow-inner">
-                                                <div className="w-4/5 h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full relative group-hover:from-purple-600 group-hover:to-pink-600 transition-all duration-300 shadow-md">
-                                                    <div className="absolute right-0 top-0 w-3 h-3 md:w-4 md:h-4 bg-white rounded-full -mt-0.5 border-2 border-purple-400 shadow-lg group-hover:border-purple-600 group-hover:shadow-xl transition-all"></div>
+                                                <div className="w-4/5 h-full bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full relative group-hover:from-blue-600 group-hover:to-cyan-600 transition-all duration-300 shadow-md">
+                                                    <div className="absolute right-0 top-0 w-3 h-3 md:w-4 md:h-4 bg-white rounded-full -mt-0.5 border-2 border-blue-400 shadow-lg group-hover:border-blue-600 group-hover:shadow-xl transition-all"></div>
                                                 </div>
                                             </div>
                                             <div className="text-right mt-0.5 md:mt-1">
-                                                <span className="text-base md:text-xl font-bold text-purple-600 group-hover:text-purple-700 transition-colors drop-shadow-sm">80%</span>
+                                                <span className="text-base md:text-xl font-bold text-blue-600 group-hover:text-blue-700 transition-colors drop-shadow-sm">80%</span>
                                             </div>
                                         </div>
                                         <div className="text-center">
-                                            <span className="text-[9px] md:text-xs text-white bg-purple-600 px-1.5 md:px-2.5 py-0.5 md:py-1 rounded-full group-hover:bg-purple-700 transition-colors shadow-md font-medium">Level: Optimal</span>
+                                            <span className="text-[9px] md:text-xs text-white bg-blue-600 px-1.5 md:px-2.5 py-0.5 md:py-1 rounded-full group-hover:bg-blue-700 transition-colors shadow-md font-medium">Level: Optimal</span>
                                         </div>
                                     </div>
                                 </div>
@@ -505,7 +505,7 @@ export default function Home() {
                                         transformStyle: 'preserve-3d',
                                         filter: 'drop-shadow(4px -4px 12px rgba(6, 182, 212, 0.25))'
                                      }}>
-                                    <div className="absolute inset-0 bg-gradient-to-br from-cyan-400/5 via-blue-400/5 to-purple-400/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-lg pointer-events-none"></div>
+                                    <div className="absolute inset-0 bg-gradient-to-br from-cyan-400/5 via-blue-400/5 to-blue-400/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-lg pointer-events-none"></div>
 
                                     <div className="flex items-center space-x-1 md:space-x-2 mb-1 md:mb-2 relative z-10">
                                         <div className="w-1.5 h-1.5 md:w-2 md:h-2 bg-cyan-500 rounded-full animate-pulse shadow-lg shadow-cyan-500/50"></div>
@@ -532,7 +532,7 @@ export default function Home() {
                                         transformStyle: 'preserve-3d',
                                         filter: 'drop-shadow(-4px -4px 12px rgba(34, 197, 94, 0.25))'
                                      }}>
-                                    <div className="absolute inset-0 bg-gradient-to-br from-green-400/5 via-cyan-400/5 to-blue-400/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-lg pointer-events-none"></div>
+                                    <div className="absolute inset-0 bg-gradient-to-br from-green-400/5 via-blue-400/5 to-blue-400/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-lg pointer-events-none"></div>
 
                                     <div className="flex items-center space-x-1 md:space-x-2 mb-1 md:mb-2 relative z-10">
                                         <div className="w-1.5 h-1.5 md:w-2 md:h-2 bg-green-500 rounded-full group-hover:animate-pulse shadow-lg shadow-green-500/50"></div>
@@ -566,7 +566,7 @@ export default function Home() {
                                         transformStyle: 'preserve-3d',
                                         filter: 'drop-shadow(6px -6px 16px rgba(34, 197, 94, 0.25))'
                                      }}>
-                                    <div className="absolute inset-0 bg-gradient-to-br from-green-400/5 via-blue-400/5 to-purple-400/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-lg pointer-events-none"></div>
+                                    <div className="absolute inset-0 bg-gradient-to-br from-green-400/5 via-blue-400/5 to-blue-400/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-lg pointer-events-none"></div>
 
                                     <div className="flex items-center space-x-1 md:space-x-2 mb-1.5 md:mb-3 relative z-10">
                                         <div className="w-1.5 h-1.5 md:w-2 md:h-2 bg-green-500 rounded-full group-hover:animate-pulse shadow-lg shadow-green-500/50"></div>

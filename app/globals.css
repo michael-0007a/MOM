@@ -447,4 +447,23 @@ body {
   .animate-pulse-glow {
     animation: pulse-glow 2s ease-in-out infinite alternate;
   }
+
+  /* Scoped overrides to remove purple shades on Menu page cards */
+  .menu-page .dashboard-card-3d::before {
+    /* Use blue-only subtle glow */
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.12), rgba(43, 145, 203, 0.08));
+  }
+
+  .menu-page .dashboard-card-3d::after {
+    /* Edge panel without purple */
+    background: linear-gradient(145deg, rgba(43, 145, 203, 0.22), rgba(31, 41, 55, 0.08));
+  }
+
+  /* Hero section overrides - remove purple from 3D card depth on right-side cards */
+  .hero-no-purple .dashboard-card-3d::before {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.12), rgba(43, 145, 203, 0.08));
+  }
+  .hero-no-purple .dashboard-card-3d::after {
+    background: linear-gradient(145deg, rgba(43, 145, 203, 0.22), rgba(31, 41, 55, 0.08));
+  }
 }

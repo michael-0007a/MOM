@@ -1,0 +1,137 @@
+EXTERNAL SETUP ONLY — Firebase + Brevo for Franchise Form and Admin
+
+What you’re preparing
+- Goal: When a user submits the Franchise form, data goes to Firebase Firestore; 2 emails go via Brevo (user confirmation + admin notification). Admin dashboard later reads/updates leads and interest status (High/Medium/Low/Unassigned).
+- This document only covers what you must do outside the codebase (Firebase + Brevo + environment variables). You’ll hand the rest to your developer/agent.
+
+====================================
+A) Firebase setup (Project + Firestore)
+====================================
+1) Create a Firebase project
+- Go to https://console.firebase.google.com
+- Add project → Choose a name (e.g., makers-of-milkshakes)
+- Disable Google Analytics for now (optional), then create the project
+
+2) Enable Firestore (Native mode)
+- In your Firebase project → Build → Firestore Database → Create database
+- Mode: Start in Production
+- Choose a location (pick a region close to your hosting platform, e.g., us-central1)
+- Click Create
+
+3) (Optional) Create the collection placeholder
+- In Firestore, click Start collection
+- Collection ID: franchiseLeads
+- Add a dummy doc if you want (you can delete it later). This isn’t required but helps you confirm access.
+
+4) Keep Firestore rules locked
+- Since your app will use the Admin SDK on the server, do NOT open client-side rules.
+- Default Firestore rules in Production are fine. No public reads/writes are needed from the browser.
+
+5) Create a Service Account key
+- Project settings (gear icon) → Service accounts
+- Click “Generate new private key” → Confirm → This downloads a JSON file
+- Keep this file secure. You will copy 3 values into environment variables:
+  - FIREBASE_PROJECT_ID → from the JSON (project_id)
+  - FIREBASE_CLIENT_EMAIL → from the JSON (client_email)
+  - FIREBASE_PRIVATE_KEY → from the JSON (private_key)
+
+6) Prepare environment variable values (important formatting)
+- FIREBASE_PROJECT_ID: your-project-id (e.g., makers-of-milkshakes)
+- FIREBASE_CLIENT_EMAIL: firebase-adminsdk-xxxxx@your-project-id.iam.gserviceaccount.com
+- FIREBASE_PRIVATE_KEY: copy the full private_key from the JSON, but store with escaped newlines. Example:
+  "-----BEGIN PRIVATE KEY-----\nMIIEv...\n...\n-----END PRIVATE KEY-----\n"
+  Notes:
+  - Keep the quotes
+  - Every newline becomes \n
+7) (Optional) Restrict/rotate keys
+- Treat the key as a secret. If leaked, immediately rotate (generate a new one) and revoke the old key in Google Cloud Console → IAM & Admin → Service Accounts.
+
+==============================
+B) Brevo setup (Transactional)
+==============================
+1) Create a Brevo account (or log in)
+- https://www.brevo.com/
+
+2) Verify a sender
+- Go to Senders & IP → Senders & Domains
+- Option A (recommended): Add & verify domain (adds SPF/DKIM/DMARC DNS records). Best deliverability.
+- Option B: Verify a single sender email (faster, OK for testing). You can switch to domain later.
+
+3) Complete domain authentication (if using a domain)
+- Follow Brevo’s DNS instructions for your DNS provider (GoDaddy, Cloudflare, etc.)
+- Wait until Brevo shows your domain as “verified/authenticated” (can take up to a few hours)
+
+4) Create an API key
+- Go to SMTP & API → API Keys → Create a New API Key (Transactional)
+- Name it (e.g., makers-admin-prod)
+- Copy the key safely → This is BREVO_API_KEY
+
+5) Choose your sender and system recipient addresses
+- SYSTEM_EMAIL_FROM: The verified sender email you’ll send from (e.g., noreply@yourdomain.com)
+- SYSTEM_EMAIL_TO: Your inbox to receive notifications (e.g., ops@yourdomain.com)
+
+6) (Optional but recommended) Create 2 email templates
+- Go to Campaigns → Templates → New Template (Transactional)
+- Template A: “Franchise Request Received” (for the user)
+  - Subject example: “We received your franchise request – Makers of Milkshakes”
+  - Content: Thank them, let them know you’ll get back soon
+  - Add variables if you like: {{ params.name }}
+- Template B: “New Franchise Lead” (for you)
+  - Subject example: “New Franchise Request: {{ params.name }}”
+  - Content: A short note that someone submitted the form; prompt to check the admin dashboard
+- Note each template’s numeric ID if you plan to use templates (optional). If you prefer, you can send custom HTML without templates.
+
+7) Send a test email (optional)
+- Use the “Send a test” feature in the template screen to confirm delivery to your own inbox
+- If it lands in spam, ensure your domain is fully authenticated (SPF/DKIM/DMARC) and warms up gradually
+
+=====================================
+C) Environment variables to prepare
+=====================================
+Provide these to your developer/agent and also set them in your hosting provider (e.g., Vercel):
+
+Required
+- FIREBASE_PROJECT_ID = your Firebase project id
+- FIREBASE_CLIENT_EMAIL = your service account client email
+- FIREBASE_PRIVATE_KEY = your service account private key (with \n newlines and quotes)
+- BREVO_API_KEY = your Brevo transactional API key
+- SYSTEM_EMAIL_FROM = verified sender in Brevo (e.g., noreply@yourdomain.com)
+- SYSTEM_EMAIL_TO = your inbox (e.g., you@yourdomain.com)
+- ADMIN_TOKEN = a strong random string you’ll use to secure the admin API endpoints
+
+Local development
+- Create a file named .env.local at the project root with the values. Example:
+
+# Firebase
+FIREBASE_PROJECT_ID=your-project-id
+FIREBASE_CLIENT_EMAIL=firebase-adminsdk-xxxxx@your-project-id.iam.gserviceaccount.com
+FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nMIIEv...\n...\n-----END PRIVATE KEY-----\n"
+
+# Brevo
+BREVO_API_KEY=your_brevo_api_key
+SYSTEM_EMAIL_FROM=noreply@yourdomain.com
+SYSTEM_EMAIL_TO=you@yourdomain.com
+
+# Admin API token
+ADMIN_TOKEN=your-very-strong-random-token
+
+Hosting (e.g., Vercel)
+- In Project Settings → Environment Variables, add the same keys
+- For FIREBASE_PRIVATE_KEY, keep it quoted and with \n newlines as above
+
+=====================================
+D) Quick external smoke checks (no code)
+=====================================
+- Firestore: In Firebase Console, add a test doc to franchiseLeads; confirm it appears and rules remain locked to the public
+- Brevo: Send a template test to your inbox; verify it arrives and shows as delivered in Brevo logs
+
+=====================================
+E) Hand-off to your developer/agent
+=====================================
+Tell your agent to implement (using the variables above):
+- Save franchise form submissions to Firestore collection franchiseLeads
+- Send two emails via Brevo on submission (to user + to SYSTEM_EMAIL_TO)
+- Build admin endpoints to list leads and update interestStatus (high/medium/low/unassigned)
+- Admin UI: show color chips (green/yellow/red/gray) and allow status updates
+
+That’s all you need to do outside the repo. Once the above is done, your agent can wire the app end-to-end.

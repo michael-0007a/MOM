@@ -207,7 +207,7 @@ const MakersMenu = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/40 to-blue-50/60 relative overflow-hidden">
+        <div className="menu-page min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/40 to-blue-50/60 relative overflow-hidden">
             {/* Animated Background Elements */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute top-20 left-10 w-32 h-32 bg-blue-100/30 rounded-full mix-blend-multiply filter blur-xl opacity-50 animate-blob"></div>
