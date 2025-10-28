@@ -215,12 +215,26 @@ export default function Home() {
         },
     ];
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        // Require confirmation checkbox
         if (!formData.confirm) return;
-        alert('Thank you for your interest! We will contact you within 24 hours.');
-        setFormData(initialForm);
+        try {
+            const res = await fetch('/api/franchise/submit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData),
+            });
+            if (!res.ok) {
+                const data = await res.json().catch(() => ({}));
+                alert(data?.error || 'Submission failed. Please try again later.');
+                return;
+            }
+            alert('Thank you! Your franchise request was submitted.');
+            setFormData(initialForm);
+            setCurrentStep(1);
+        } catch (err) {
+            alert('Network error. Please try again.');
+        }
     };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
