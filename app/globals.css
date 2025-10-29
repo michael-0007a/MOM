@@ -30,10 +30,14 @@ body {
   font-family: var(--font-manrope), 'Manrope', system-ui, -apple-system, sans-serif;
 }
 
-/* Performance optimizations for animations */
+/* Performance optimizations for animations (safe) */
 * {
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
+}
+
+/* Opt-in GPU/perspective utility if needed (avoid on layout containers) */
+.gpu-opt {
   -webkit-perspective: 1000px;
   perspective: 1000px;
 }

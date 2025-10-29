@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 // Mapbox CSS (global)
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -15,6 +15,12 @@ const notable = Notable({ subsets: ["latin"], variable: "--font-notable", displa
 export const metadata: Metadata = {
   title: "Makers of Milkshakes - Sip the Joy. Taste the Magic.",
   description: "Crafted with love, one shake at a time. Discover our premium milkshakes made with the finest ingredients.",
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
 };
 
 export default function RootLayout({
