@@ -6,6 +6,7 @@ import '@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css';
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import ClientLayout from "./components/ClientLayout";
+import SmoothScrollProvider from "./components/SmoothScrollProvider";
 import { Manrope, Syne, Notable } from "next/font/google";
 
 const manrope = Manrope({ subsets: ["latin"], variable: "--font-manrope", display: "swap", weight: ["200","300","400","500","600","700","800"] });
@@ -31,13 +32,16 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${manrope.variable} ${syne.variable} ${notable.variable}`}>
       <body className="antialiased">
-        <ClientLayout>
-          <Navbar />
-          <main>
-            {children}
-          </main>
-          <Footer />
-        </ClientLayout>
+        <SmoothScrollProvider>
+          <ClientLayout>
+            <Navbar />
+            {/* Desktop-only offset so fixed header doesn't cover hero; mobile stays overlay/floating */}
+            <main className="pt-0 lg:pt-20">
+              {children}
+            </main>
+            <Footer />
+          </ClientLayout>
+        </SmoothScrollProvider>
       </body>
     </html>
   );

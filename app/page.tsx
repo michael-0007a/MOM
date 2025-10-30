@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { ArrowRight, Sparkles, Heart, Blend, Users, Award, TrendingUp, Globe, ChevronDown, ChevronUp, DollarSign, Milk, Cookie, IceCream, Cherry, Coffee, CheckCircle } from 'lucide-react';
 import Image from 'next/image';
 import FranchiseCharacterPng from '@/public/franchise_section_character.png';
+import ScrollAnimation, { ParallaxContainer, SmoothReveal } from './components/ScrollAnimation';
 
 export default function Home() {
     const [loaded, setLoaded] = useState(false);
@@ -32,7 +33,6 @@ export default function Home() {
     const [formData, setFormData] = useState(initialForm);
     // Only render random decorative elements on the client to avoid hydration mismatch
     const [mounted, setMounted] = useState(false);
-    const [showAllPerks, setShowAllPerks] = useState(false);
     // Multi-step form state
     const [currentStep, setCurrentStep] = useState(1);
     const totalSteps = 4;
@@ -165,29 +165,6 @@ export default function Home() {
         : galleryItems.filter(item => item.type === activeFilter);
 
     // Franchise data
-    const benefits = [
-        {
-            icon: DollarSign,
-            title: 'High ROI',
-            description: 'Average return on investment within 18-24 months',
-        },
-        {
-            icon: Users,
-            title: 'Training & Support',
-            description: 'Comprehensive training and ongoing support for all franchisees',
-        },
-        {
-            icon: TrendingUp,
-            title: 'Proven Model',
-            description: 'Successfully operating in 50+ cities with consistent growth',
-        },
-        {
-            icon: Award,
-            title: 'Brand Power',
-            description: 'Leverage our award-winning brand and loyal customer base',
-        },
-    ];
-
     const faqs = [
         {
             question: 'What is the initial investment required?',
@@ -232,7 +209,7 @@ export default function Home() {
             alert('Thank you! Your franchise request was submitted.');
             setFormData(initialForm);
             setCurrentStep(1);
-        } catch (err) {
+        } catch {
             alert('Network error. Please try again.');
         }
     };
@@ -288,7 +265,7 @@ export default function Home() {
     return (
         <div className="min-h-screen bg-white">
             {/* Milkshake Shop Hero Section - Optimized */}
-            <section id="home" className="relative min-h-screen flex items-center justify-center overflow-hidden py-12 scroll-mt-20">
+            <section id="home" className="relative min-h-screen flex items-center justify-center overflow-visible py-12 scroll-mt-20">
                 {/* Light Background with Enhanced Grid */}
                 <div className="absolute inset-0 bg-gradient-to-br from-gray-50 via-blue-50/40 to-blue-50/60">
                     {/* Enhanced Grid Overlay - More Visible */}
@@ -348,7 +325,8 @@ export default function Home() {
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
 
                         {/* Left Side - Text Content */}
-                        <div className={`lg:col-span-1 col-span-1 mx-auto max-w-2xl lg:max-w-none space-y-6 transition-all duration-1000 ${loaded ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-10'}`}>
+                        <ScrollAnimation animation="fadeRight" duration={1000} delay={200}>
+                            <div className={`lg:col-span-1 col-span-1 mx-auto max-w-2xl lg:max-w-none space-y-6 transition-all duration-1000 ${loaded ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-10'}`}>
                             {/* Shop Badge */}
                             <div className="flex items-center justify-center md:justify-start space-x-1 md:space-x-2 glass-3d badge-3d w-max mx-auto md:mx-0 px-2.5 py-1.5 md:px-6 md:py-3 rounded-full shadow-md md:shadow-lg mt-6 md:mt-0 mb-1 md:mb-8 border border-blue-200 md:border-2 hover:scale-105 transition-transform duration-300 cursor-pointer">
                                 <Sparkles className="w-3.5 h-3.5 md:w-5 md:h-5 text-blue-500" />
@@ -402,7 +380,6 @@ export default function Home() {
                                     { icon: Blend, label: '30+', desc: 'Unique Flavors' },
                                     { icon: Globe, label: '50+', desc: 'Locations' }
                                 ].map((stat, idx) => {
-                                    const Icon = stat.icon;
                                     return (
                                         <div
                                             key={idx}
@@ -410,7 +387,7 @@ export default function Home() {
                                         >
                                             <div className="relative z-10">
                                                 <div className="w-12 h-12 mx-auto mb-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center transform group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 shadow-lg">
-                                                    <Icon className="w-6 h-6 text-white" />
+                                                    <stat.icon className="w-6 h-6 text-white" />
                                                 </div>
                                                 <div className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">{stat.label}</div>
                                                 <div className="text-sm text-gray-600 font-medium">{stat.desc}</div>
@@ -422,9 +399,12 @@ export default function Home() {
                                 })}
                             </div>
                         </div>
+                        </ScrollAnimation>
 
                         {/* Right Side - Dashboard Cards (Desktop Only) */}
-                        <div className="hidden lg:block relative h-[600px] hero-no-purple">
+                        <ParallaxContainer>
+                            <ScrollAnimation animation="parallax" parallaxSpeed={-0.3}>
+                                <div className="hidden lg:block relative h-[600px] hero-no-purple">
 
                             {/* Recipe Analysis Panel - Top Left */}
                             <div
@@ -652,6 +632,8 @@ export default function Home() {
                             </div>
 
                         </div>
+                            </ScrollAnimation>
+                        </ParallaxContainer>
                     </div>
                 </div>
 
@@ -682,17 +664,19 @@ export default function Home() {
             {/* Menu Section */}
             <section id="menu" className="py-20 bg-gradient-to-br from-blue-50 to-blue-100 scroll-mt-20">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className={`text-center mb-16 transition-all duration-1000 ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-                        <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
-                            Our <span className="bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">Menu</span>
-                        </h2>
-                        <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-                            Discover our handcrafted milkshakes, each one perfectly balanced for maximum flavor
-                        </p>
-                    </div>
+                    <ScrollAnimation animation="fadeUp" delay={100}>
+                        <div className={`text-center mb-16 transition-all duration-1000 ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+                            <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
+                                Our <span className="bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">Menu</span>
+                            </h2>
+                            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+                                Discover our handcrafted milkshakes, each one perfectly balanced for maximum flavor
+                            </p>
+                        </div>
+                    </ScrollAnimation>
 
                     {/* Featured Menu Items Preview */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-12">
+                    <SmoothReveal stagger={150} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-12">
                         {/* Signature Shakes Preview */}
                         <div className={`bg-white/80 backdrop-blur-sm rounded-xl p-4 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
                             <div className="flex justify-start items-start mb-3">
@@ -863,65 +847,71 @@ export default function Home() {
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </SmoothReveal>
 
                     {/* View Complete Menu Button */}
-                    <div className="text-center">
-                        <a
-                            href="/menu"
-                            className={`inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-500 text-white font-bold text-lg rounded-full hover:from-blue-700 hover:to-blue-600 transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
-                            style={{ animationDelay: '0.8s' }}
-                        >
-                            <span>View Complete Menu</span>
-                            <ArrowRight className="ml-2 w-5 h-5" />
-                        </a>
-                        <p className="mt-4 text-gray-600 text-sm">
-                            Explore our full collection of 80+ handcrafted flavors
-                        </p>
-                    </div>
+                    <ScrollAnimation animation="fadeUp" delay={400}>
+                        <div className="text-center">
+                            <a
+                                href="/menu"
+                                className={`inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-500 text-white font-bold text-lg rounded-full hover:from-blue-700 hover:to-blue-600 transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
+                                style={{ animationDelay: '0.8s' }}
+                            >
+                                <span>View Complete Menu</span>
+                                <ArrowRight className="ml-2 w-5 h-5" />
+                            </a>
+                            <p className="mt-4 text-gray-600 text-sm">
+                                Explore our full collection of 80+ handcrafted flavors
+                            </p>
+                        </div>
+                    </ScrollAnimation>
                 </div>
             </section>
 
             {/* Our Story Section */}
-            <section id="our-story" className="py-10 sm:py-20 bg-white scroll-mt-20">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className={`text-center mb-16 transition-all duration-1000 ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-                        <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
-                            Our <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Story</span>
-                        </h2>
-                        <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-                            From a small kitchen experiment to a nationwide sensation
-                        </p>
-                    </div>
+            <section id="our-story" className="py-10 sm:py-20 bg-white scroll-mt-28 md:scroll-mt-32">
+                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                     <ScrollAnimation animation="fadeUp" delay={100}>
+                        <div className={`relative z-10 text-center mb-16 transition-all duration-1000 ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+                             <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
+                                 Our <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Story</span>
+                         </h2>
+                         <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+                             From a small kitchen experiment to a nationwide sensation
+                         </p>
+                     </div>
+                     </ScrollAnimation>
 
-                    {/* Enhanced Mobile-Optimized Timeline */}
-                    <div className="relative">
-                        {/* Animated Timeline Line with Progress - Blue Theme */}
-                        <div className="absolute left-1/2 transform -translate-x-1/2 w-1 h-full bg-gradient-to-b from-blue-200 via-blue-300 to-blue-400 rounded-full">
-                            {/* Progress overlay - Blue Theme */}
-                            <div
-                                className="absolute top-0 left-0 w-full bg-gradient-to-b from-blue-500 via-blue-600 to-blue-700 rounded-full transition-all duration-300 ease-out shadow-lg"
-                                style={{
-                                    height: `${timelineProgress * 100}%`,
-                                    boxShadow: '0 0 20px rgba(59, 130, 246, 0.5)'
-                                }}
-                            ></div>
-                        </div>
+                     {/* Enhanced Mobile-Optimized Timeline */}
+                    <ParallaxContainer className="mt-16 sm:mt-20">
+                        <ScrollAnimation animation="none">
+                            <div className="relative pt-10 sm:pt-12 md:pt-14">
+                         {/* Animated Timeline Line with Progress - Blue Theme */}
+                         <div className="absolute left-1/2 transform -translate-x-1/2 w-1 top-12 sm:top-16 md:top-20 bottom-0 bg-gradient-to-b from-blue-200 via-blue-300 to-blue-400 rounded-full z-0 pointer-events-none">
+                             {/* Progress overlay - Blue Theme */}
+                             <div
+                                 className="absolute top-0 left-0 w-full bg-gradient-to-b from-blue-500 via-blue-600 to-blue-700 rounded-full transition-all duration-300 ease-out shadow-lg"
+                                 style={{
+                                     height: `${timelineProgress * 100}%`,
+                                     boxShadow: '0 0 20px rgba(59, 130, 246, 0.5)'
+                                 }}
+                             ></div>
+                         </div>
 
-                        {milestones.map((milestone, index) => (
-                            <div
-                                key={milestone.year}
-                                className={`timeline-milestone relative flex items-center transition-all duration-700 ease-out mb-5 sm:mb-2 md:mb-0 lg:mb-2 ${
-                                     // Mobile: center everything, Desktop: alternating sides
-                                     'flex-col sm:flex-row' + (index % 2 === 0 ? ' sm:flex-row' : ' sm:flex-row-reverse')
-                                 } ${
-                                     activeTimelineIndex >= index 
-                                         ? 'opacity-100 translate-y-0 scale-100' 
-                                         : 'opacity-70 translate-y-4 scale-95'
-                                 }`}
-                            >
-                                {/* Mobile: Icon above card, Desktop: Icon in center */}
-                                <div className="flex flex-col items-center sm:contents">
+                         {milestones.map((milestone, index) => (
+                             <div
+                                 key={milestone.year}
+                                 className={`timeline-milestone relative flex items-center transition-all duration-700 ease-out mb-5 sm:mb-2 md:mb-0 lg:mb-2 ${index === 0 ? 'mt-10 sm:mt-16' : ''} ${
+                                      // Mobile: center everything, Desktop: alternating sides
+                                      'flex-col sm:flex-row' + (index % 2 === 0 ? ' sm:flex-row' : ' sm:flex-row-reverse')
+                                  } ${
+                                      activeTimelineIndex >= index 
+                                          ? 'opacity-100 translate-y-0 scale-100' 
+                                          : 'opacity-70 translate-y-4 scale-95'
+                                  }`}
+                             >
+                                 {/* Mobile: Icon above card, Desktop: Icon in center */}
+                                 <div className="flex flex-col items-center sm:contents">
                                     {/* Enhanced Timeline Node - Mobile Optimized */}
                                     <div className={`w-8 h-8 sm:w-14 sm:h-14 md:w-12 md:h-12 lg:w-14 lg:h-14 rounded-full flex items-center justify-center transition-all duration-500 z-10 mb-2 sm:mb-0 ${
                                          // Mobile: relative positioning, Desktop: absolute center
@@ -992,31 +982,36 @@ export default function Home() {
                                                 </div>
                                             )}
                                         </div>
-                                    </div>
-                                </div>
+                                     </div>
+                                 </div>
 
-                                {/* Empty space for desktop layout */}
-                                <div className="hidden sm:block sm:w-5/12"></div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </section>
+                                 {/* Empty space for desktop layout */}
+                                 <div className="hidden sm:block sm:w-5/12"></div>
+                             </div>
+                         ))}
+                     </div>
+                             </ScrollAnimation>
+                         </ParallaxContainer>
+                 </div>
+             </section>
 
             {/* Gallery Section */}
             <section id="gallery" className="py-20 bg-gradient-to-br from-gray-50 to-blue-50 scroll-mt-20">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className={`text-center mb-16 transition-all duration-1000 ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-                        <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
-                            Our <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Gallery</span>
+                    <ScrollAnimation animation="fadeUp" delay={100}>
+                        <div className={`text-center mb-16 transition-all duration-1000 ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+                            <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
+                                Our <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Gallery</span>
                         </h2>
                         <p className="text-xl text-gray-600 max-w-3xl mx-auto">
                             Moments of joy, creativity, and milkshake magic
                         </p>
                     </div>
+                    </ScrollAnimation>
 
                     {/* Gallery Filter */}
-                    <div className="flex flex-wrap justify-center gap-4 mb-12">
+                    <ScrollAnimation animation="fadeUp" delay={200}>
+                        <div className="flex flex-wrap justify-center gap-4 mb-12">
                         {galleryCategories.map((category) => (
                             <button
                                 key={category.filter}
@@ -1031,9 +1026,10 @@ export default function Home() {
                             </button>
                         ))}
                     </div>
+                    </ScrollAnimation>
 
                     {/* Gallery Grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    <SmoothReveal stagger={100} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                         {filteredGallery.map((item, index) => (
                             <div
                                 key={item.id}
@@ -1047,7 +1043,7 @@ export default function Home() {
                                 <div className="absolute inset-0 bg-black/20 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
                             </div>
                         ))}
-                    </div>
+                    </SmoothReveal>
                 </div>
             </section>
 
@@ -1087,13 +1083,15 @@ export default function Home() {
                         </p>
                     </div>
 
-                    {/* Main Content - Image Left, Details Right */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-stretch">
+                {/* Main Content and Form container */}
+                     {/* Main Content - Image Left, Details Right */}
+                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-stretch">
                         {/* Left Column - Character Image */}
-                        <div className="relative flex items-center justify-center">
-                            <div className="relative w-full max-w-2xl">
+                        <ScrollAnimation animation="fadeLeft" delay={200}>
+                            <div className="relative flex items-center justify-center">
+                                <div className="relative w-full max-w-2xl">
                                 {/* Enhanced background effects */}
-                                <div className="absolute inset-0 -inset-16">
+                                <div className="absolute -inset-16">
                                     <div className="absolute inset-0 bg-gradient-to-br from-orange-100/40 via-yellow-100/30 to-amber-100/50 rounded-3xl blur-3xl opacity-50" />
                                     <div className="absolute top-6 right-8 w-24 h-24 bg-gradient-to-br from-orange-300/20 to-yellow-300/20 rounded-full blur-2xl" />
                                     <div className="absolute bottom-8 left-6 w-20 h-20 bg-gradient-to-br from-amber-300/20 to-orange-300/20 rounded-full blur-2xl" />
@@ -1115,88 +1113,91 @@ export default function Home() {
                                 </div>
                             </div>
                         </div>
+                        </ScrollAnimation>
 
                         {/* Right Column - Franchise Details */}
-                        <div className="flex flex-col justify-center space-y-8">
-                            <div className="bg-white/80 backdrop-blur-sm border border-blue-100 rounded-2xl p-8 shadow-lg">
-                                <h3 className="text-2xl font-bold text-gray-900 mb-6">Why Choose Our Franchise?</h3>
+                        <ScrollAnimation animation="fadeRight" delay={400}>
+                            <div className="flex flex-col justify-center space-y-8">
+                                <div className="bg-white/80 backdrop-blur-sm border border-blue-100 rounded-2xl p-8 shadow-lg">
+                                    <h3 className="text-2xl font-bold text-gray-900 mb-6">Why Choose Our Franchise?</h3>
 
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
-                                    <div className="flex items-start space-x-4">
-                                        <div className="w-12 h-12 flex items-center justify-center">
-                                            <DollarSign className="w-6 h-6 text-blue-600" />
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
+                                        <div className="flex items-start space-x-4">
+                                            <div className="w-12 h-12 flex items-center justify-center">
+                                                <DollarSign className="w-6 h-6 text-blue-600" />
+                                            </div>
+                                            <div>
+                                                <h4 className="font-semibold text-gray-900 text-lg">High ROI</h4>
+                                                <p className="text-gray-600">18-24 month returns guaranteed</p>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <h4 className="font-semibold text-gray-900 text-lg">High ROI</h4>
-                                            <p className="text-gray-600">18-24 month returns guaranteed</p>
+                                        <div className="flex items-start space-x-4">
+                                            <div className="w-12 h-12 flex items-center justify-center">
+                                                <Users className="w-6 h-6 text-blue-600" />
+                                            </div>
+                                            <div>
+                                                <h4 className="font-semibold text-gray-900 text-lg">Full Support</h4>
+                                                <p className="text-gray-600">Complete training & ongoing assistance</p>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-start space-x-4">
+                                            <div className="w-12 h-12 flex items-center justify-center">
+                                                <TrendingUp className="w-6 h-6 text-blue-600" />
+                                            </div>
+                                            <div>
+                                                <h4 className="font-semibold text-gray-900 text-lg">Proven Model</h4>
+                                                <p className="text-gray-600">50+ successful locations nationwide</p>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-start space-x-4">
+                                            <div className="w-12 h-12 flex items-center justify-center">
+                                                <Award className="w-6 h-6 text-blue-600" />
+                                            </div>
+                                            <div>
+                                                <h4 className="font-semibold text-gray-900 text-lg">Strong Brand</h4>
+                                                <p className="text-gray-600">Award-winning reputation & recognition</p>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div className="flex items-start space-x-4">
-                                        <div className="w-12 h-12 flex items-center justify-center">
-                                            <Users className="w-6 h-6 text-blue-600" />
-                                        </div>
-                                        <div>
-                                            <h4 className="font-semibold text-gray-900 text-lg">Full Support</h4>
-                                            <p className="text-gray-600">Complete training & ongoing assistance</p>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-start space-x-4">
-                                        <div className="w-12 h-12 flex items-center justify-center">
-                                            <TrendingUp className="w-6 h-6 text-blue-600" />
-                                        </div>
-                                        <div>
-                                            <h4 className="font-semibold text-gray-900 text-lg">Proven Model</h4>
-                                            <p className="text-gray-600">50+ successful locations nationwide</p>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-start space-x-4">
-                                        <div className="w-12 h-12 flex items-center justify-center">
-                                            <Award className="w-6 h-6 text-blue-600" />
-                                        </div>
-                                        <div>
-                                            <h4 className="font-semibold text-gray-900 text-lg">Strong Brand</h4>
-                                            <p className="text-gray-600">Award-winning reputation & recognition</p>
-                                        </div>
-                                    </div>
-                                </div>
 
-                                <div className="border-t border-gray-200 pt-6">
-                                    <h4 className="font-semibold text-gray-900 text-lg mb-4">What You&apos;ll Get</h4>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-gray-600">
-                                        <div className="flex items-start gap-3">
-                                            <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
-                                            <span>Site selection & lease assistance</span>
-                                        </div>
-                                        <div className="flex items-start gap-3">
-                                            <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
-                                            <span>Store design & branding guidelines</span>
-                                        </div>
-                                        <div className="flex items-start gap-3">
-                                            <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
-                                            <span>Staff training & operational SOPs</span>
-                                        </div>
-                                        <div className="flex items-start gap-3">
-                                            <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
-                                            <span>Supply chain & quality assurance</span>
-                                        </div>
-                                        <div className="flex items-start gap-3">
-                                            <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
-                                            <span>Marketing kit & promotional materials</span>
-                                        </div>
-                                        <div className="flex items-start gap-3">
-                                            <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
-                                            <span>Technology suite (POS, analytics, CRM)</span>
+                                    <div className="border-t border-gray-200 pt-6">
+                                        <h4 className="font-semibold text-gray-900 text-lg mb-4">What You&apos;ll Get</h4>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-gray-600">
+                                            <div className="flex items-start gap-3">
+                                                <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                                                <span>Site selection & lease assistance</span>
+                                            </div>
+                                            <div className="flex items-start gap-3">
+                                                <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                                                <span>Store design & branding guidelines</span>
+                                            </div>
+                                            <div className="flex items-start gap-3">
+                                                <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                                                <span>Staff training & operational SOPs</span>
+                                            </div>
+                                            <div className="flex items-start gap-3">
+                                                <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                                                <span>Supply chain & quality assurance</span>
+                                            </div>
+                                            <div className="flex items-start gap-3">
+                                                <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                                                <span>Marketing kit & promotional materials</span>
+                                            </div>
+                                            <div className="flex items-start gap-3">
+                                                <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                                                <span>Technology suite (POS, analytics, CRM)</span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </ScrollAnimation>
                     </div>
 
                     {/* Multi-Step Form - Full Width at Bottom */}
                     <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-8 shadow-xl">
                         <div className="flex items-center justify-between mb-8">
-                            <h3 className="text-2xl font-bold text-gray-900">Start Your Franchise Journey</h3>
+                           <h3 className="text-2xl font-bold text-gray-900">Start Your Franchise Journey</h3>
                             <div className="flex items-center space-x-2">
                                 <span className="text-sm text-gray-600">Step {currentStep} of {totalSteps}</span>
                                 <div className="w-24 h-2 bg-gray-200 rounded-full overflow-hidden">
@@ -1519,38 +1520,38 @@ export default function Home() {
                             </div>
                         </form>
                     </div>
+                </div>
 
-                    {/* FAQ Section */}
-                    <div className="mt-20">
-                        <h3 className="text-3xl font-bold text-gray-900 text-center mb-12">Frequently Asked Questions</h3>
-                        <div className="max-w-4xl mx-auto space-y-4">
-                            {faqs.map((faq, index) => (
-                                <div
-                                    key={index}
-                                    className={`bg-white border border-gray-200 rounded-xl transition-all duration-1000 ${
-                                        loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-                                    }`}
-                                    style={{ animationDelay: `${index * 0.1}s` }}
+                {/* FAQ Section */}
+                <div className="mt-20">
+                    <h3 className="text-3xl font-bold text-gray-900 text-center mb-12">Frequently Asked Questions</h3>
+                    <div className="max-w-4xl mx-auto space-y-4">
+                        {faqs.map((faq, index) => (
+                            <div
+                                key={index}
+                                className={`bg-white border border-gray-200 rounded-xl transition-all duration-1000 ${
+                                    loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+                                }`}
+                                style={{ animationDelay: `${index * 0.1}s` }}
+                            >
+                                <button
+                                    onClick={() => setOpenFaq(openFaq === index ? null : index)}
+                                    className="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50 rounded-xl transition-colors"
                                 >
-                                    <button
-                                        onClick={() => setOpenFaq(openFaq === index ? null : index)}
-                                        className="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50 rounded-xl transition-colors"
-                                    >
-                                        <span className="font-semibold text-gray-900">{faq.question}</span>
-                                        {openFaq === index ? (
-                                            <ChevronUp className="w-5 h-5 text-gray-500" />
-                                        ) : (
-                                            <ChevronDown className="w-5 h-5 text-gray-500" />
-                                        )}
-                                    </button>
-                                    {openFaq === index && (
-                                        <div className="px-6 pb-4">
-                                            <p className="text-gray-600">{faq.answer}</p>
-                                        </div>
+                                    <span className="font-semibold text-gray-900">{faq.question}</span>
+                                    {openFaq === index ? (
+                                        <ChevronUp className="w-5 h-5 text-gray-500" />
+                                    ) : (
+                                        <ChevronDown className="w-5 h-5 text-gray-500" />
                                     )}
-                                </div>
-                            ))}
-                        </div>
+                                </button>
+                                {openFaq === index && (
+                                    <div className="px-6 pb-4">
+                                        <p className="text-gray-600">{faq.answer}</p>
+                                    </div>
+                                )}
+                            </div>
+                        ))}
                     </div>
                 </div>
             </section>

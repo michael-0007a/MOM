@@ -18,22 +18,93 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  /* Use font variables injected by next/font as primary fonts */
-  --font-sans: var(--font-manrope), system-ui, -apple-system, sans-serif;
-  --font-heading: var(--font-syne), sans-serif;
+  /* Use static stacks to avoid unresolved custom-prop errors during build */
+  --font-sans: 'Manrope', system-ui, -apple-system, sans-serif;
+  --font-heading: 'Syne', system-ui, sans-serif;
+}
+
+/* Ensure anchor/scrollIntoView offset under fixed header on desktop */
+@media (min-width: 1024px) {
+  html { scroll-padding-top: 5rem; } /* 80px header */
+
+  /* Ensure sections land perfectly below the fixed navbar on desktop */
+  #home,
+  #our-story,
+  #menu,
+  #gallery,
+  #franchise {
+    scroll-margin-top: 5rem; /* keep in sync with header height */
+  }
 }
 
 body {
   background: var(--background);
   color: #1f2937;
-  /* Default to Manrope via next/font */
-  font-family: var(--font-manrope), 'Manrope', system-ui, -apple-system, sans-serif;
+  /* Default to Manrope font stack */
+  font-family: 'Manrope', system-ui, -apple-system, sans-serif;
 }
 
 /* Performance optimizations for animations (safe) */
 * {
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
+}
+
+/* Lenis Smooth Scroll Optimizations */
+html.lenis {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+/* Enhanced smooth scrolling styles */
+* {
+  scroll-behavior: smooth;
+}
+
+/* Disable scroll behavior when Lenis is active */
+html.lenis * {
+  scroll-behavior: auto !important;
+}
+
+/* Performance optimizations for scroll animations */
+.scroll-animation {
+  will-change: transform, opacity;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+}
+
+/* Parallax container optimizations */
+.parallax-container {
+  transform-style: preserve-3d;
+  perspective: 1000px;
+}
+
+/* Smooth transitions for scroll-triggered elements */
+.scroll-fade {
+  transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .scroll-animation {
+    transform: none !important;
+  }
 }
 
 /* Opt-in GPU/perspective utility if needed (avoid on layout containers) */
@@ -59,42 +130,42 @@ body {
 
 /* Notable font class */
 .notable-regular {
-  font-family: var(--font-notable), 'Notable', sans-serif;
+  font-family: 'Notable', sans-serif;
   font-weight: 400;
   font-style: normal;
 }
 
 /* Syne font utility classes */
 .syne-regular {
-  font-family: var(--font-syne), 'Syne', sans-serif;
+  font-family: 'Syne', sans-serif;
   font-optical-sizing: auto;
   font-weight: 400;
   font-style: normal;
 }
 
 .syne-medium {
-  font-family: var(--font-syne), 'Syne', sans-serif;
+  font-family: 'Syne', sans-serif;
   font-optical-sizing: auto;
   font-weight: 500;
   font-style: normal;
 }
 
 .syne-semibold {
-  font-family: var(--font-syne), 'Syne', sans-serif;
+  font-family: 'Syne', sans-serif;
   font-optical-sizing: auto;
   font-weight: 600;
   font-style: normal;
 }
 
 .syne-bold {
-  font-family: var(--font-syne), 'Syne', sans-serif;
+  font-family: 'Syne', sans-serif;
   font-optical-sizing: auto;
   font-weight: 700;
   font-style: normal;
 }
 
 .syne-extrabold {
-  font-family: var(--font-syne), 'Syne', sans-serif;
+  font-family: 'Syne', sans-serif;
   font-optical-sizing: auto;
   font-weight: 800;
   font-style: normal;
@@ -102,49 +173,49 @@ body {
 
 /* Manrope font utility classes */
 .manrope-light {
-  font-family: var(--font-manrope), 'Manrope', sans-serif;
+  font-family: 'Manrope', sans-serif;
   font-optical-sizing: auto;
   font-weight: 200;
   font-style: normal;
 }
 
 .manrope-extralight {
-  font-family: var(--font-manrope), 'Manrope', sans-serif;
+  font-family: 'Manrope', sans-serif;
   font-optical-sizing: auto;
   font-weight: 300;
   font-style: normal;
 }
 
 .manrope-regular {
-  font-family: var(--font-manrope), 'Manrope', sans-serif;
+  font-family: 'Manrope', sans-serif;
   font-optical-sizing: auto;
   font-weight: 400;
   font-style: normal;
 }
 
 .manrope-medium {
-  font-family: var(--font-manrope), 'Manrope', sans-serif;
+  font-family: 'Manrope', sans-serif;
   font-optical-sizing: auto;
   font-weight: 500;
   font-style: normal;
 }
 
 .manrope-semibold {
-  font-family: var(--font-manrope), 'Manrope', sans-serif;
+  font-family: 'Manrope', sans-serif;
   font-optical-sizing: auto;
   font-weight: 600;
   font-style: normal;
 }
 
 .manrope-bold {
-  font-family: var(--font-manrope), 'Manrope', sans-serif;
+  font-family: 'Manrope', sans-serif;
   font-optical-sizing: auto;
   font-weight: 700;
   font-style: normal;
 }
 
 .manrope-extrabold {
-  font-family: var(--font-manrope), 'Manrope', sans-serif;
+  font-family: 'Manrope', sans-serif;
   font-optical-sizing: auto;
   font-weight: 800;
   font-style: normal;
@@ -220,9 +291,7 @@ body {
   border-radius: 50%;
 }
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* Removed deprecated @tailwind base/components/utilities (v4) */
 
 @layer utilities {
   /* Blob Animation */
@@ -279,7 +348,7 @@ body {
   /* Gradient Animation */
   @keyframes gradient {
     0%, 100% {
-      background-position: 0% 50%;
+      background-position: 0 50%;
     }
     50% {
       background-position: 100% 50%;

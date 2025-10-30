@@ -19,6 +19,8 @@ const eslintConfig = [
       "build/**",
       "next-env.d.ts",
       "old code/**",
+      "scripts/**",
+      "scripts/checkStoresJson.cjs",
     ],
   },
 ];
