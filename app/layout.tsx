@@ -1,8 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
-// Mapbox CSS (global)
-import 'mapbox-gl/dist/mapbox-gl.css';
-import '@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css';
+// Leaflet CSS (global)
+import 'leaflet/dist/leaflet.css';
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import ClientLayout from "./components/ClientLayout";

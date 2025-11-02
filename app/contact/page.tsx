@@ -1,201 +1,139 @@
 'use client';
 
-import { useState } from 'react';
-import { Mail, Phone, MapPin, Instagram, Facebook, Send, MessageCircle } from 'lucide-react';
+import { Mail, Phone, MapPin, Instagram, Facebook, MessageCircle, Twitter } from 'lucide-react';
+import { CONTACT, SOCIAL, LINKS } from '@/lib/siteConfig';
 
 export default function Contact() {
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    subject: '',
-    message: '',
-  });
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    alert('Thank you for contacting us! We will get back to you within 24 hours.');
-    setFormData({ name: '', email: '', subject: '', message: '' });
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 py-20 overflow-hidden">
+      <section className="relative bg-gradient-to-br from-[#e6f3fb] via-[#eef2ff] to-[#fdeaf2] py-12 sm:py-16 overflow-hidden">
         <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-20 left-10 w-96 h-96 bg-blue-500 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-20 right-10 w-80 h-80 bg-pink-500 rounded-full blur-3xl"></div>
+          <div className="absolute top-20 left-10 w-72 h-72 bg-[#2b91cb] rounded-full blur-3xl"></div>
+          <div className="absolute bottom-16 right-10 w-60 h-60 bg-pink-500 rounded-full blur-3xl"></div>
         </div>
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          {/* Badge with 3D Effect */}
-          <div className="inline-flex items-center space-x-2 glass-3d badge-3d px-6 py-3 rounded-full shadow-lg mb-6 border-2 border-blue-200">
-            <MessageCircle className="w-5 h-5 text-blue-500" />
-            <span className="text-blue-800 font-semibold">We&apos;re Here to Help</span>
+          {/* Badge */}
+          <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full shadow-sm mb-4 border-2 border-[#bfe1f5] bg-white/70 backdrop-blur">
+            <MessageCircle className="w-5 h-5 text-[#2b91cb]" />
+            <span className="text-[#1e7bb8] font-semibold">We&apos;re here to help</span>
           </div>
 
-          <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold text-blue-800 mb-6">
-            Contact Us
-          </h1>
-          <p className="text-xl md:text-2xl text-gray-700 max-w-3xl mx-auto font-medium">
-            We&apos;d love to hear from you! Whether you have a question, feedback, or just want to say hello,
-            we&apos;re here to help.
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-[#1e3a5f] mb-3">Contact Us</h1>
+          <p className="text-base sm:text-lg md:text-xl text-gray-700 max-w-2xl md:max-w-3xl mx-auto">
+            Questions, feedback, or franchise enquiries—reach us anytime. We typically respond within 24 hours.
           </p>
         </div>
       </section>
 
-      {/* Contact Info and Form Section */}
-      <section className="py-20 bg-gradient-to-b from-white to-blue-50">
+      {/* Contact Info + Quick Actions */}
+      <section className="py-12 sm:py-16 bg-gradient-to-b from-white to-[#f0f7fc]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            {/* Contact Information */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+            {/* Left: Contact Information */}
             <div className="space-y-8">
               <div>
-                <h2 className="text-3xl md:text-4xl font-bold text-blue-800 mb-8">
-                  Get in Touch
-                </h2>
-                <p className="text-lg md:text-xl text-gray-700 mb-8 leading-relaxed">
-                  Have a question or need assistance? Our friendly team is here to help you
-                  with anything you need. Reach out through any of these channels:
+                <h2 className="text-2xl md:text-3xl font-bold text-[#1e3a5f] mb-3">Get in Touch</h2>
+                <p className="text-gray-700 leading-relaxed">
+                  Our friendly team is happy to help with anything you need. Choose the channel that suits you best:
                 </p>
               </div>
 
-              {/* Contact Cards */}
-              <div className="space-y-6">
-                <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl p-6 md:p-8 flex items-start space-x-4 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border-2 border-blue-100">
-                  <div className="w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-blue-800 to-purple-800 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg">
-                    <Mail className="w-7 h-7 md:w-8 md:h-8 text-white" />
+              {/* Cards */}
+              <div className="space-y-5">
+                <div className="bg-white rounded-2xl p-5 md:p-6 flex items-start gap-4 shadow-sm hover:shadow-md transition-all border border-[#d9ecf8]">
+                  <div className="w-12 h-12 md:w-14 md:h-14 bg-[#2b91cb] rounded-full flex items-center justify-center flex-shrink-0 shadow-md">
+                    <Mail className="w-6 h-6 md:w-7 md:h-7 text-white" />
                   </div>
-                  <div>
-                    <h3 className="font-bold text-blue-800 mb-2 text-lg md:text-xl">Email Us</h3>
-                    <a
-                      href="mailto:hello@makersofmilkshakes.com"
-                      className="text-gray-700 hover:text-blue-800 transition-colors text-base md:text-lg font-medium"
-                    >
-                      hello@makersofmilkshakes.com
+                  <div className="min-w-0">
+                    <h3 className="font-bold text-[#1e3a5f] mb-1.5 text-lg">Email Us</h3>
+                    <a href={LINKS.mailtoHref} className="text-[#1e7bb8] hover:underline font-medium break-all inline-block">
+                      {CONTACT.email}
                     </a>
-                    <p className="text-sm md:text-base text-gray-600 mt-2">We&apos;ll respond within 24 hours</p>
+                    <p className="text-sm text-gray-600 mt-1">We&apos;ll reply within 24 hours</p>
                   </div>
                 </div>
 
-                <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl p-6 md:p-8 flex items-start space-x-4 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border-2 border-blue-100">
-                  <div className="w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-blue-800 to-purple-800 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg">
-                    <Phone className="w-7 h-7 md:w-8 md:h-8 text-white" />
+                <div className="bg-white rounded-2xl p-5 md:p-6 flex items-start gap-4 shadow-sm hover:shadow-md transition-all border border-[#d9ecf8]">
+                  <div className="w-12 h-12 md:w-14 md:h-14 bg-[#2b91cb] rounded-full flex items-center justify-center flex-shrink-0 shadow-md">
+                    <Phone className="w-6 h-6 md:w-7 md:h-7 text-white" />
                   </div>
-                  <div>
-                    <h3 className="font-bold text-blue-800 mb-2 text-lg md:text-xl">Call Us</h3>
-                    <a
-                      href="tel:+15551234567"
-                      className="text-gray-700 hover:text-blue-800 transition-colors text-base md:text-lg font-medium"
-                    >
-                      +1 (555) 123-4567
+                  <div className="min-w-0">
+                    <h3 className="font-bold text-[#1e3a5f] mb-1.5 text-lg">Call Us</h3>
+                    <a href={LINKS.telHref} className="text-[#1e7bb8] hover:underline font-medium">
+                      {CONTACT.phoneDisplay}
                     </a>
-                    <p className="text-sm md:text-base text-gray-600 mt-2">Mon-Fri: 9:00 AM - 6:00 PM EST</p>
+                    <p className="text-sm text-gray-600 mt-1">Mon–Fri · 9:00 AM – 6:00 PM</p>
                   </div>
                 </div>
 
-                <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl p-6 md:p-8 flex items-start space-x-4 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border-2 border-blue-100">
-                  <div className="w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-blue-800 to-purple-800 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg">
-                    <MapPin className="w-7 h-7 md:w-8 md:h-8 text-white" />
+                <div className="bg-white rounded-2xl p-5 md:p-6 flex items-start gap-4 shadow-sm hover:shadow-md transition-all border border-[#d9ecf8]">
+                  <div className="w-12 h-12 md:w-14 md:h-14 bg-[#2b91cb] rounded-full flex items-center justify-center flex-shrink-0 shadow-md">
+                    <MapPin className="w-6 h-6 md:w-7 md:h-7 text-white" />
                   </div>
-                  <div>
-                    <h3 className="font-bold text-blue-800 mb-2 text-lg md:text-xl">Headquarters</h3>
-                    <p className="text-gray-700 text-base md:text-lg">123 Shake Street</p>
-                    <p className="text-gray-700 text-base md:text-lg">New York, NY 10001</p>
+                  <div className="min-w-0">
+                    <h3 className="font-bold text-[#1e3a5f] mb-1.5 text-lg">Head Office</h3>
+                    <p className="text-gray-700">{CONTACT.addressLines[0]}</p>
+                    <p className="text-gray-700">{CONTACT.addressLines[1]}</p>
                   </div>
                 </div>
               </div>
 
-              {/* Social Media */}
-              <div className="bg-white rounded-2xl p-6 md:p-8 shadow-lg border-2 border-blue-100">
-                <h3 className="font-bold text-blue-800 mb-4 text-xl md:text-2xl">Follow Us</h3>
-                <div className="flex space-x-4">
-                  <a
-                    href="#"
-                    className="w-12 h-12 md:w-14 md:h-14 bg-gradient-to-br from-blue-800 to-purple-800 rounded-full flex items-center justify-center hover:scale-110 transition-transform duration-300 shadow-md"
-                  >
-                    <Instagram className="w-6 h-6 md:w-7 md:h-7 text-white" />
+              {/* Social */}
+              <div className="bg-white rounded-2xl p-5 md:p-6 shadow-sm border border-[#d9ecf8]">
+                <h3 className="font-bold text-[#1e3a5f] mb-3 text-lg">Follow us</h3>
+                <div className="flex gap-3">
+                  <a href={SOCIAL.instagram} target="_blank" rel="noopener noreferrer" className="w-11 h-11 md:w-12 md:h-12 bg-[#2b91cb] rounded-full flex items-center justify-center hover:opacity-90 transition-opacity shadow">
+                    <Instagram className="w-5 h-5 md:w-6 md:h-6 text-white" />
                   </a>
-                  <a
-                    href="#"
-                    className="w-12 h-12 md:w-14 md:h-14 bg-gradient-to-br from-blue-800 to-purple-800 rounded-full flex items-center justify-center hover:scale-110 transition-transform duration-300 shadow-md"
-                  >
-                    <Facebook className="w-6 h-6 md:w-7 md:h-7 text-white" />
+                  <a href={SOCIAL.facebook} target="_blank" rel="noopener noreferrer" className="w-11 h-11 md:w-12 md:h-12 bg-[#2b91cb] rounded-full flex items-center justify-center hover:opacity-90 transition-opacity shadow">
+                    <Facebook className="w-5 h-5 md:w-6 md:h-6 text-white" />
+                  </a>
+                  <a href={SOCIAL.twitter} target="_blank" rel="noopener noreferrer" className="w-11 h-11 md:w-12 md:h-12 bg-[#2b91cb] rounded-full flex items-center justify-center hover:opacity-90 transition-opacity shadow">
+                    <Twitter className="w-5 h-5 md:w-6 md:h-6 text-white" />
                   </a>
                 </div>
               </div>
             </div>
 
-            {/* Contact Form */}
-            <div className="bg-white rounded-3xl p-6 md:p-10 shadow-2xl border-2 border-blue-100">
-              <h2 className="text-3xl md:text-4xl font-bold text-blue-800 mb-6">
-                Send Us a Message
-              </h2>
-
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div>
-                  <label className="block text-gray-700 font-semibold mb-2 text-base md:text-lg">Name *</label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    required
-                    className="w-full px-4 py-3 md:py-4 rounded-xl border-2 border-gray-200 focus:border-blue-800 focus:outline-none transition-colors text-base md:text-lg"
-                    placeholder="Your name"
-                  />
+            {/* Right: Quick Actions & Support */}
+            <aside className="space-y-6">
+              {/* Quick Actions */}
+              <div className="bg-white rounded-3xl p-6 md:p-8 shadow-md border border-[#d9ecf8]">
+                <h2 className="text-xl md:text-2xl font-bold text-[#1e3a5f] mb-4">Quick Actions</h2>
+                <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                  <a href={LINKS.telHref} className="group flex items-center gap-2 px-4 py-3 rounded-xl border border-[#2b91cb] text-[#2b91cb] hover:bg-[#2b91cb]/10 transition-colors font-semibold justify-center">
+                    <Phone className="w-5 h-5" />
+                    <span>Call</span>
+                  </a>
+                  <a href={LINKS.mailtoHref} className="group flex items-center gap-2 px-4 py-3 rounded-xl border border-[#2b91cb] text-[#2b91cb] hover:bg-[#2b91cb]/10 transition-colors font-semibold justify-center">
+                    <Mail className="w-5 h-5" />
+                    <span>Email</span>
+                  </a>
+                  <a href={LINKS.whatsappHref} target="_blank" rel="noopener noreferrer" className="group flex items-center gap-2 px-4 py-3 rounded-xl border border-[#2b91cb] text-[#2b91cb] hover:bg-[#2b91cb]/10 transition-colors font-semibold justify-center col-span-2">
+                    <MessageCircle className="w-5 h-5" />
+                    <span>WhatsApp</span>
+                  </a>
                 </div>
 
-                <div>
-                  <label className="block text-gray-700 font-semibold mb-2 text-base md:text-lg">Email *</label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    required
-                    className="w-full px-4 py-3 md:py-4 rounded-xl border-2 border-gray-200 focus:border-blue-800 focus:outline-none transition-colors text-base md:text-lg"
-                    placeholder="your.email@example.com"
-                  />
+                <div className="mt-5">
+                  <a href="/store-locator" className="w-full inline-flex items-center justify-center px-5 py-3 rounded-full bg-[#2b91cb] text-white font-semibold hover:bg-[#1e7bb8] transition-colors">
+                    Find a Store Near You
+                  </a>
                 </div>
+              </div>
 
-                <div>
-                  <label className="block text-gray-700 font-semibold mb-2 text-base md:text-lg">Subject *</label>
-                  <input
-                    type="text"
-                    name="subject"
-                    value={formData.subject}
-                    onChange={handleChange}
-                    required
-                    className="w-full px-4 py-3 md:py-4 rounded-xl border-2 border-gray-200 focus:border-blue-800 focus:outline-none transition-colors text-base md:text-lg"
-                    placeholder="What's this about?"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-gray-700 font-semibold mb-2 text-base md:text-lg">Message *</label>
-                  <textarea
-                    name="message"
-                    value={formData.message}
-                    onChange={handleChange}
-                    required
-                    rows={6}
-                    className="w-full px-4 py-3 md:py-4 rounded-xl border-2 border-gray-200 focus:border-blue-800 focus:outline-none transition-colors text-base md:text-lg"
-                    placeholder="Tell us what's on your mind..."
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  className="w-full px-8 py-4 bg-gradient-to-r from-blue-800 to-purple-800 text-white rounded-full font-bold text-lg md:text-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:scale-105 flex items-center justify-center space-x-2"
-                >
-                  <span>Send Message</span>
-                  <Send className="w-5 h-5 md:w-6 md:h-6" />
-                </button>
-              </form>
-            </div>
+              {/* Support Hours */}
+              <div className="bg-white rounded-3xl p-6 md:p-8 shadow-md border border-[#d9ecf8]">
+                <h3 className="text-lg md:text-xl font-bold text-[#1e3a5f] mb-2">Support Hours</h3>
+                <ul className="text-gray-700 space-y-1">
+                  <li>Mon–Fri: 9:00 AM – 6:00 PM</li>
+                  <li>Sat: 10:00 AM – 4:00 PM</li>
+                  <li>Sun: Closed</li>
+                </ul>
+                <p className="text-sm text-gray-500 mt-3">Expect a response within 24 hours on business days.</p>
+              </div>
+            </aside>
           </div>
         </div>
       </section>

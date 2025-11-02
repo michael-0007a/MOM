@@ -1,14 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef } from 'react';
-import mapboxgl, { Map } from 'mapbox-gl';
-import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder';
-import * as turf from '@turf/turf';
-import type { Feature, Geometry } from 'geojson';
-
-// Mapbox CSS moved to app/layout.tsx
-// import 'mapbox-gl/dist/mapbox-gl.css';
-// import '@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css';
+import * as L from 'leaflet';
 
 export type StoreLocation = {
   id: number;
@@ -26,24 +19,24 @@ interface InteractiveMapProps {
   selectedStoreId?: number | null;
   onSelectStore?: (id: number) => void;
   onSearchResult?: (lngLat: [number, number]) => void;
+  className?: string; // optional height/extra classes from parent
+  isVisible?: boolean; // hint for invalidating size when container becomes visible
 }
 
-export default function InteractiveMap({ stores, selectedStoreId, onSelectStore, onSearchResult }: InteractiveMapProps) {
+export default function InteractiveMap({ stores, selectedStoreId, onSelectStore, onSearchResult, className, isVisible = true }: InteractiveMapProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const mapRef = useRef<Map | null>(null);
-  const markersRef = useRef<mapboxgl.Marker[]>([]);
-  const popupRef = useRef<mapboxgl.Popup | null>(null);
+  const mapRef = useRef<L.Map | null>(null);
+  const markersRef = useRef<Record<number, L.Marker>>({});
+  const searchPointRef = useRef<L.Layer | null>(null);
+  const mapReadyRef = useRef(false);
+  const onSelectRef = useRef<((id: number) => void) | undefined>(onSelectStore);
+  const onSearchRef = useRef<((lngLat: [number, number]) => void) | undefined>(onSearchResult);
+  useEffect(() => { onSelectRef.current = onSelectStore; }, [onSelectStore]);
+  useEffect(() => { onSearchRef.current = onSearchResult; }, [onSearchResult]);
 
-  // Provide a safe default token (prefer env). Avoid throwing if missing in dev.
-  const accessToken = useMemo(() => {
-    // Fallback to the token used in the legacy maps demo so the map works out-of-the-box
-    const legacyFallback = 'pk.eyJ1IjoiZ3V0dGFtYW5pc2giLCJhIjoiY2p2MnJ5MW0xMDdudTQ0bm1xb3cwem5qdiJ9.Ln422s_gkHRuM48W9eTs4A';
-    return process.env.NEXT_PUBLIC_MAPBOX_TOKEN || legacyFallback;
-  }, []);
-
+  // Compute an initial center (avg of store coords), fallback to NYC-like coords
   const initialCenter: [number, number] = useMemo(() => {
     if (stores && stores.length > 0) {
-      // Average center of stores for initial view
       const avg = stores.reduce(
         (acc, s) => {
           acc[0] += s.coordinates[0];
@@ -54,214 +47,246 @@ export default function InteractiveMap({ stores, selectedStoreId, onSelectStore,
       );
       return [avg[0] / stores.length, avg[1] / stores.length];
     }
-    // NYC fallback
     return [-73.9857, 40.7484];
   }, [stores]);
 
-  // Initialize map once
+  // Initialize Leaflet map exactly once (do not depend on changing props)
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
 
-    // If no token provided, Mapbox still requires a string; map may error. We'll log a helpful message.
-    if (!accessToken) {
-      console.warn('Mapbox token missing: set NEXT_PUBLIC_MAPBOX_TOKEN to enable the map.');
-    }
-    mapboxgl.accessToken = accessToken;
-
-    const map = new mapboxgl.Map({
-      container: containerRef.current,
-      style: 'mapbox://styles/mapbox/light-v11',
-      center: initialCenter,
+    const map = L.map(containerRef.current, {
+      zoomControl: true,
+      center: L.latLng(initialCenter[1], initialCenter[0]),
       zoom: 11,
+      attributionControl: false,
     });
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+    // Mark map ready after first render
+    map.whenReady(() => {
+      mapReadyRef.current = true;
+      // Ensure correct sizing if container became visible later
+      setTimeout(() => map.invalidateSize(), 0);
+    });
+
+    // Invalidate size on window resize
+    const onResize = () => {
+      if (mapRef.current) {
+        try { mapRef.current.invalidateSize(); } catch {}
+      }
+    };
+    window.addEventListener('resize', onResize);
+
+    // Simple "Locate Me" control that also reports onSearchResult
+    const LocateControl = (L.Control as unknown as {
+      extend: (props: Partial<L.Control> & { onAdd: (map: L.Map) => HTMLElement; onRemove?: (map: L.Map) => void }) => {
+        new (options?: L.ControlOptions): L.Control;
+      };
+    }).extend({
+      onAdd: (m: L.Map) => {
+        const container = L.DomUtil.create('div', 'leaflet-bar');
+        const a = L.DomUtil.create('a', '', container);
+        a.title = 'Locate me';
+        a.href = '#';
+        a.innerHTML = '⌖';
+        a.style.width = '32px';
+        a.style.height = '32px';
+        a.style.lineHeight = '32px';
+        a.style.textAlign = 'center';
+        a.style.fontSize = '18px';
+        L.DomEvent.on(a, { click: (e: Event) => {
+          L.DomEvent.stop(e);
+          m.locate({ setView: true, enableHighAccuracy: true, maxZoom: 14 });
+        }});
+        return container;
+      },
+      onRemove: () => void 0,
+    });
+
+    const locate = new (LocateControl as unknown as { new (options?: L.ControlOptions): L.Control })({ position: 'topright' });
+    locate.addTo(map);
+
+    // On geolocation found: show a marker and notify parent for distance calc
+    const onLocationFound = (ev: L.LocationEvent) => {
+      const m = mapRef.current;
+      if (!m || !mapReadyRef.current) return;
+      // Remove previous search marker
+      if (searchPointRef.current) {
+        try { m.removeLayer(searchPointRef.current); } catch {}
+        searchPointRef.current = null;
+      }
+      const circle = L.circleMarker(ev.latlng, {
+        radius: 8,
+        color: '#1e7bb8',
+        weight: 2,
+        fillColor: '#2b91cb',
+        fillOpacity: 0.9,
+      }).bindPopup('You are here');
+      try {
+        circle.addTo(m);
+        searchPointRef.current = circle;
+      } catch {}
+      onSearchRef.current?.([ev.latlng.lng, ev.latlng.lat]);
+    };
+
+    map.on('locationfound', onLocationFound);
+    map.on('locationerror', () => { /* user may deny */ });
 
     mapRef.current = map;
 
-    // Controls
-    map.addControl(new mapboxgl.NavigationControl({ showCompass: true }), 'top-right');
-
-    // Geolocate (optional, improves UX)
-    map.addControl(
-      new mapboxgl.GeolocateControl({
-        positionOptions: { enableHighAccuracy: true },
-        trackUserLocation: false,
-        showUserHeading: true,
-      }),
-      'top-right'
-    );
-
-    // Geocoder control
-    try {
-      // Local cast to satisfy geocoder's mapboxgl type expectations
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const mapboxglAny: any = mapboxgl;
-      const geocoder = new MapboxGeocoder({
-        accessToken: mapboxgl.accessToken,
-        mapboxgl: mapboxglAny,
-        marker: false,
-        placeholder: 'Search places…',
-      });
-      map.addControl(geocoder, 'top-left');
-
-      // Optional: show the searched point and fit bounds with nearest store
-      const singlePointSourceId = 'single-point';
-      map.on('load', () => {
-        if (!map.getSource(singlePointSourceId)) {
-          map.addSource(singlePointSourceId, {
-            type: 'geojson',
-            data: { type: 'FeatureCollection', features: [] },
-          });
-          map.addLayer({
-            id: 'single-point-layer',
-            source: singlePointSourceId,
-            type: 'circle',
-            paint: {
-              'circle-radius': 8,
-              'circle-color': '#007cbf',
-              'circle-stroke-width': 2,
-              'circle-stroke-color': '#fff',
-            },
-          });
-        }
-      });
-
-      geocoder.on('result', (ev: { result: Feature<Geometry> }) => {
-        const map = mapRef.current;
-        if (!map) return;
-        const searchGeometry = ev.result?.geometry;
-        const src = map.getSource(singlePointSourceId) as mapboxgl.GeoJSONSource | undefined;
-        if (src && searchGeometry) {
-          const feature: Feature<Geometry> = {
-            type: 'Feature',
-            geometry: searchGeometry,
-            properties: {},
-          };
-          src.setData(feature);
-        }
-        // Notify parent of search result point
-        if (searchGeometry && searchGeometry.type === 'Point') {
-          onSearchResult?.(searchGeometry.coordinates as [number, number]);
-        }
-        // Compute nearest store and focus it
-        if (stores && stores.length && searchGeometry && searchGeometry.type === 'Point') {
-          try {
-            const from = turf.point(searchGeometry.coordinates as [number, number]);
-            const nearest = stores
-              .map((s) => ({
-                store: s,
-                dist: turf.distance(from, turf.point(s.coordinates), { units: 'miles' }),
-              }))
-              .sort((a, b) => a.dist - b.dist)[0];
-            if (nearest) {
-              flyToStore(nearest.store);
-              openPopup(nearest.store);
-              onSelectStore?.(nearest.store.id);
-            }
-          } catch {}
-        }
-      });
-    } catch {
-      // geocoder optional
-    }
-
     return () => {
-      // Cleanup
-      markersRef.current.forEach((m) => m.remove());
-      markersRef.current = [];
-      popupRef.current?.remove();
-      popupRef.current = null;
-      map.remove();
+      window.removeEventListener('resize', onResize);
+      map.off('locationfound', onLocationFound);
+      try {
+        Object.values(markersRef.current).forEach((mm) => map.removeLayer(mm));
+      } catch {}
+      markersRef.current = {};
+      if (searchPointRef.current) {
+        try { map.removeLayer(searchPointRef.current); } catch {}
+        searchPointRef.current = null;
+      }
+      try { map.remove(); } catch {}
       mapRef.current = null;
+      mapReadyRef.current = false;
     };
-    // We intentionally avoid listing stores in deps here to not re-init map
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [accessToken, initialCenter]);
+  }, []);
 
-  // Helpers
-  const flyToStore = (store: StoreLocation) => {
+  // Invalidate map size when it becomes visible (e.g., mobile tab switch)
+  useEffect(() => {
+    if (!isVisible) return;
     const map = mapRef.current;
-    if (!map) return;
-    map.flyTo({ center: store.coordinates, zoom: 14, essential: true });
-  };
+    if (!map || !mapReadyRef.current) return;
+    const raf = requestAnimationFrame(() => {
+      try { map.invalidateSize(); } catch {}
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [isVisible]);
 
-  const openPopup = (store: StoreLocation) => {
-    const map = mapRef.current;
-    if (!map) return;
-    // Close existing
-    popupRef.current?.remove();
-
-    const popupHtml = `
-      <div style="font-family: ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif;">
-        <h3 style="margin:0;background:#2772ff;color:#fff;padding:8px 10px;border-radius:6px 6px 0 0;font-weight:700;font-size:14px;">${
-          store.name || 'Location'
-        }</h3>
-        <div style="padding:10px;font-size:12px;color:#374151;">
-          <div>${store.address}</div>
-          ${store.city ? `<div>${store.city}${store.zipcode ? `, ${store.zipcode}` : ''}</div>` : ''}
-        </div>
-      </div>
-    `;
-
-    popupRef.current = new mapboxgl.Popup({ closeOnClick: true })
-      .setLngLat(store.coordinates)
-      .setHTML(popupHtml)
-      .addTo(map);
-  };
-
-  // Render markers for current stores and fit bounds
+  // Render markers for current stores and fit bounds (favor Hyderabad cluster)
   useEffect(() => {
     const map = mapRef.current;
-    if (!map) return;
+    if (!map || !mapReadyRef.current) return;
 
-    // Remove existing markers
-    markersRef.current.forEach((m) => m.remove());
-    markersRef.current = [];
+    // Clear existing markers
+    try {
+      Object.values(markersRef.current).forEach((m) => map.removeLayer(m));
+    } catch {}
+    markersRef.current = {} as Record<number, L.Marker>;
 
     if (!stores || stores.length === 0) return;
 
-    const bounds = new mapboxgl.LngLatBounds();
+    const boundsAll = L.latLngBounds([]);
+    const hydCenter: [number, number] = [78.4867, 17.3850];
+    const hydBounds = L.latLngBounds([]);
+    const innerHydBounds = L.latLngBounds(L.latLng(17.30, 78.35), L.latLng(17.48, 78.60));
 
     stores.forEach((s) => {
-      const marker = new mapboxgl.Marker({ color: '#2b91cb' })
-        .setLngLat(s.coordinates)
-        .addTo(map)
-        .setPopup(
-          new mapboxgl.Popup({ offset: 24 }).setHTML(
-            `<div style=\"font-size:13px;font-weight:600;color:#1f2937;\">${s.name}</div><div style=\"font-size:12px;color:#4b5563;\">${s.address}</div>`
-          )
-        );
+      const latlng = L.latLng(s.coordinates[1], s.coordinates[0]);
+      const markerHtml = `
+        <svg width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\" style=\"filter: drop-shadow(0 4px 10px rgba(0,0,0,.25)); transition: all .25s ease\">
+          <path d=\"M12 2C8.13401 2 5 5.13401 5 9C5 13.4183 10.2 19.4 11.37 20.74C11.72 21.14 12.28 21.14 12.63 20.74C13.8 19.4 19 13.4183 19 9C19 5.13401 15.866 2 12 2Z\" fill=\"#2b91cb\" stroke=\"white\" stroke-width=\"2\"/>
+          <circle cx=\"12\" cy=\"9.5\" r=\"3\" fill=\"white\"/>
+        </svg>`;
+      const icon = L.divIcon({ className: 'custom-pin', html: markerHtml, iconSize: [24, 24], iconAnchor: [12, 22], popupAnchor: [0, -20] });
 
-      marker.getElement().addEventListener('click', (e) => {
-        e.stopPropagation();
-        onSelectStore?.(s.id);
-      });
+      const marker = L.marker(latlng, { icon })
+        .bindPopup(
+          `<div style=\"font-size:13px;font-weight:600;color:#1f2937;\">${s.name}</div><div style=\"font-size:12px;color:#4b5563;\">${s.address}</div>`
+        )
+        .on('click', (e) => {
+          e.originalEvent.stopPropagation();
+          onSelectRef.current?.(s.id);
+        });
 
-      markersRef.current.push(marker);
-      bounds.extend(s.coordinates);
+      try { marker.addTo(map); } catch {}
+      markersRef.current[s.id] = marker;
+      boundsAll.extend(latlng);
+
+      const d = map.distance(latlng, L.latLng(hydCenter[1], hydCenter[0])) / 1000;
+      if (d <= 150) hydBounds.extend(latlng);
     });
 
-    // Fit bounds to markers on render
-    if (!bounds.isEmpty()) {
-      const padding = { top: 40, bottom: 40, left: 40, right: 40 } as mapboxgl.PaddingOptions;
-      map.fitBounds(bounds, { padding, duration: 700 });
+    // Prefer inner Hyderabad view if any markers inside
+    const innerCount = Object.values(markersRef.current).filter((layer) => innerHydBounds.contains(layer.getLatLng())).length;
+    if (innerCount >= 1) {
+      try { map.fitBounds(innerHydBounds, { padding: [24, 24], maxZoom: 14 }); } catch {}
+      return;
     }
-  }, [stores, onSelectStore]);
 
-  // When selected store changes, fly and open popup
+    if (hydBounds.isValid() && hydBounds.getNorth() !== hydBounds.getSouth()) {
+      const hydCount = Object.values(markersRef.current).filter((layer) => hydBounds.contains(layer.getLatLng())).length;
+      if (hydCount >= 3) {
+        try { map.fitBounds(hydBounds, { padding: [32, 32], maxZoom: 12 }); } catch {}
+        return;
+      }
+    }
+
+    if (boundsAll.isValid()) {
+      try { map.fitBounds(boundsAll, { padding: [32, 32] }); } catch {}
+    }
+  }, [stores]);
+
+  // Safe helpers that wait for marker element to exist
+  const waitForMarkerElement = (marker: L.Marker, cb: () => void, tries = 0) => {
+    const el = (marker as L.Marker & { getElement?: () => HTMLElement | null }).getElement?.() ?? null;
+    if (el) {
+      cb();
+      return;
+    }
+    if (tries > 20) return; // give up after ~20 frames (~320ms)
+    requestAnimationFrame(() => waitForMarkerElement(marker, cb, tries + 1));
+  };
+
+  const safeSetIcon = (marker: L.Marker, icon: L.DivIcon) => {
+    waitForMarkerElement(marker, () => {
+      try { marker.setIcon(icon); } catch {}
+    });
+  };
+
+  const safeOpenPopup = (marker: L.Marker) => {
+    waitForMarkerElement(marker, () => {
+      try { marker.openPopup(); } catch {}
+    });
+  };
+
+  // When selected store changes, fly and open popup + update icon
   useEffect(() => {
-    if (!selectedStoreId || !stores) return;
-    const store = stores.find((s) => s.id === selectedStoreId);
-    if (!store) return;
-    flyToStore(store);
-    openPopup(store);
+    const map = mapRef.current;
+    if (!map || !stores || !mapReadyRef.current) return;
+
+    // Update icons with selection state
+    stores.forEach((s) => {
+      const marker = markersRef.current[s.id];
+      if (!marker) return;
+      const isActive = s.id === (selectedStoreId ?? -1);
+      const html = `
+        <svg width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\" style=\"filter: drop-shadow(0 4px 10px rgba(0,0,0,.25)); transition: all .25s ease\">
+          <path d=\"M12 2C8.13401 2 5 5.13401 5 9C5 13.4183 10.2 19.4 11.37 20.74C11.72 21.14 12.28 21.14 12.63 20.74C13.8 19.4 19 13.4183 19 9C19 5.13401 15.866 2 12 2Z\" fill=\"${isActive ? '#1e7bb8' : '#2b91cb'}\" stroke=\"white\" stroke-width=\"2\"/>
+          <circle cx=\"12\" cy=\"9.5\" r=\"3\" fill=\"white\"/>
+        </svg>`;
+      const icon = L.divIcon({ className: 'custom-pin', html, iconSize: [24, 24], iconAnchor: [12, 22], popupAnchor: [0, -20] });
+      safeSetIcon(marker, icon);
+    });
+
+    if (!selectedStoreId) return;
+    const sel = stores.find((x) => x.id === selectedStoreId);
+    if (!sel) return;
+    const marker = markersRef.current[sel.id];
+    if (!marker) return;
+    const latlng = marker.getLatLng();
+    try { map.setView(latlng, Math.max(map.getZoom(), 14), { animate: true }); } catch {}
+    safeOpenPopup(marker);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedStoreId]);
+  }, [selectedStoreId, stores]);
 
   return (
     <div
       ref={containerRef}
-      style={{ width: '100%', height: '24rem' }}
-      className="rounded-2xl overflow-hidden lg:h-[600px] bg-gray-100"
+      style={{ width: '100%' }}
+      className={`rounded-2xl overflow-hidden bg-gray-100 transition-all duration-300 ${className || 'h-96 lg:h-[600px]'}`}
+      data-lenis-prevent
     />
   );
 }

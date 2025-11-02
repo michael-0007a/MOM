@@ -4,6 +4,8 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
+import { Home, BookOpen, Phone as PhoneIcon, Store as StoreIcon, Building2 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
 // Link type for nav items
 type NavItem = {
@@ -29,6 +31,7 @@ export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const headerRef = useRef<HTMLElement | null>(null);
   const topBarRef = useRef<HTMLDivElement | null>(null);
+  const bottomBarRef = useRef<HTMLDivElement | null>(null);
 
   // Central definition of links; section links are anchored to home
   const links: NavItem[] = useMemo(
@@ -254,9 +257,21 @@ export default function Navbar() {
   }, [pathname]);
 
   // Visual styles
-  // const translucent = !scrolled && isHome; // no longer used
-  // Force transparent on mobile, opaque on lg+
-  const baseBg = 'bg-transparent lg:bg-white lg:shadow-md';
+  // Force transparent on mobile until scrolled; opaque on lg+
+  const mobileBg = scrolled
+    ? 'bg-white/90 backdrop-blur supports-[backdrop-filter]:bg-white/60 ring-1 ring-black/5'
+    : 'bg-transparent';
+  const baseBg = `${mobileBg} lg:bg-white lg:shadow-md`;
+
+  // Prevent background scroll when mobile menu is open
+  useEffect(() => {
+    if (mobileOpen) {
+      document.body.classList.add('overflow-hidden');
+    } else {
+      document.body.classList.remove('overflow-hidden');
+    }
+    return () => document.body.classList.remove('overflow-hidden');
+  }, [mobileOpen]);
 
   function NavLink({
     label,
@@ -299,13 +314,70 @@ export default function Navbar() {
         />
       </Link>
     );
-  };
+  }
+
+  // Add bottom padding on body when mobile bottom bar is present (lg hidden)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const apply = () => {
+      const isMobile = window.matchMedia('(max-width: 1023.98px)').matches;
+      if (isMobile) {
+        const h = bottomBarRef.current?.offsetHeight || 0;
+        document.body.style.paddingBottom = h ? `${h}px` : '64px';
+      } else {
+        document.body.style.paddingBottom = '';
+      }
+    };
+
+    apply();
+    window.addEventListener('resize', apply);
+    window.addEventListener('orientationchange', apply);
+    return () => {
+      window.removeEventListener('resize', apply);
+      window.removeEventListener('orientationchange', apply);
+      document.body.style.paddingBottom = '';
+    };
+  }, []);
+
+  function MobileTabButton({
+    label,
+    icon: Icon,
+    href,
+    sectionId,
+  }: { label: string; icon: LucideIcon; href: string; sectionId?: string }) {
+    const isActive = sectionId ? active === sectionId : pathname === href;
+
+    const onClick = (e: React.MouseEvent) => {
+      // Section on home: smooth scroll
+      if (sectionId) {
+        e.preventDefault();
+        setActive(sectionId);
+        requestAnimationFrame(() => smoothScrollTo(href));
+      }
+    };
+
+    return (
+      <Link
+        href={href}
+        onClick={onClick}
+        className={`flex flex-col items-center justify-center gap-0.5 px-2 py-1.5 rounded-xl text-[10px] font-medium transition-colors ${
+          isActive ? 'text-[#2b91cb]' : 'text-gray-600 hover:text-[#2b91cb]'
+        }`}
+        aria-current={isActive ? 'page' : undefined}
+      >
+        <Icon className={`h-5 w-5 ${isActive ? 'text-[#2b91cb]' : 'text-gray-600'}`} />
+        <span className="leading-none">{label}</span>
+      </Link>
+    );
+  }
 
   return (
-    <header ref={(el) => { headerRef.current = el; }} className={`fixed top-0 left-0 right-0 z-[1000] ${baseBg}`} style={{ paddingTop: 'env(safe-area-inset-top)' }}>
-      <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" aria-label="Primary">
+    <>
+    <header ref={(el) => { headerRef.current = el; }} className={`fixed top-0 left-0 right-0 z-[1000] hidden lg:block ${baseBg}`} style={{ paddingTop: 'env(safe-area-inset-top)' }}>
+      <nav className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8" aria-label="Primary">
         {/* Top bar */}
-        <div ref={topBarRef} className="h-16 md:h-20 flex items-center justify-between gap-3">
+        <div ref={topBarRef} className="h-14 md:h-20 flex items-center justify-between gap-2 md:gap-3">
           {/* Left: Logo */}
           <Link href="/" className="flex items-center gap-2 group shrink-0" aria-label="Makers of Milkshakes - Home">
             <Image
@@ -313,7 +385,7 @@ export default function Navbar() {
               alt="Makers of Milkshakes Logo"
               width={40}
               height={40}
-              className="transition-transform group-hover:scale-105"
+              className="w-8 h-8 md:w-10 md:h-10 transition-transform group-hover:scale-105"
               priority
             />
             <span className="hidden md:inline text-lg syne-bold text-[#2b91cb]">Makers of Milkshakes</span>
@@ -344,20 +416,21 @@ export default function Navbar() {
             </div>
 
             {/* Mobile hamburger */}
+            {/* Hidden on mobile as header is hidden; keep for lg+ */}
             <button
               type="button"
-              className="lg:hidden inline-flex items-center justify-center h-10 w-10 rounded-full bg-white text-gray-800 ring-1 ring-black/10 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2b91cb]"
+              className="lg:hidden inline-flex items-center justify-center h-9 w-9 rounded-full bg-white text-gray-800 ring-1 ring-black/10 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2b91cb]"
               aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
               aria-expanded={mobileOpen}
               aria-controls="mobile-menu"
               onClick={() => setMobileOpen(o => !o)}
             >
               {!mobileOpen ? (
-                <svg className="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
+                <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5" />
                 </svg>
               ) : (
-                <svg className="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
+                <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               )}
@@ -365,10 +438,20 @@ export default function Navbar() {
           </div>
         </div>
 
+        {/* Mobile backdrop overlay */}
+        {mobileOpen && (
+          <div
+            className="lg:hidden fixed inset-0 z-[900] bg-black/40 animate-fade-in"
+            aria-hidden
+            onClick={() => setMobileOpen(false)}
+            data-lenis-prevent
+          />
+        )}
+
         {/* Mobile: slide-down panel below top bar */}
-        <div className="lg:hidden" id="mobile-menu" role="region" aria-label="Mobile menu">
+        <div className="lg:hidden relative z-[1001]" id="mobile-menu" role="region" aria-label="Mobile menu">
           {mobileOpen && (
-            <div className="mt-2 mb-3 rounded-2xl bg-white ring-1 ring-gray-200 shadow-md p-2 animate-fade-in">
+            <div className="mt-2 mb-3 rounded-2xl bg-white ring-1 ring-gray-200 shadow-md p-2 animate-fade-in" data-lenis-prevent>
               <div className="flex flex-col gap-1">
                 {links.map(l => (
                   <NavLink
@@ -381,7 +464,14 @@ export default function Navbar() {
                   />
                 ))}
               </div>
-              <div className="pt-2">
+              <div className="pt-2 grid grid-cols-1 gap-2">
+                <Link
+                  href="/store-locator"
+                  className="block w-full text-center px-4 py-3 rounded-xl text-white bg-[#2b91cb] hover:bg-[#1e7bb8] transition-colors shadow-sm"
+                  onClick={() => setMobileOpen(false)}
+                >
+                  Store Locator
+                </Link>
                 <Link
                   href="/#franchise"
                   className="block w-full text-center px-4 py-3 rounded-xl text-white bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 transition-colors shadow-sm"
@@ -396,10 +486,46 @@ export default function Navbar() {
                   Franchise With Us
                 </Link>
               </div>
+              <div className="h-[env(safe-area-inset-bottom)]" />
             </div>
           )}
         </div>
       </nav>
     </header>
-  );
-}
+
+    {/* Mobile Bottom Nav */}
+    <div className="lg:hidden fixed inset-x-0 bottom-0 z-[999]">
+      <div className="relative max-w-7xl mx-auto px-4">
+        {/* Bar */}
+        <div ref={(el) => { bottomBarRef.current = el; }} className="h-12 rounded-2xl bg-white/90 backdrop-blur supports-[backdrop-filter]:bg-white/70 shadow-[0_-6px_24px_rgba(0,0,0,0.08)] ring-1 ring-black/5 flex items-center justify-between px-2">
+          <div className="flex items-center gap-1">
+            <MobileTabButton label="Home" icon={Home} href="/#home" sectionId="home" />
+            <MobileTabButton label="Menu" icon={BookOpen} href="/#menu" sectionId="menu" />
+          </div>
+          <div className="flex items-center gap-1">
+            <MobileTabButton label="Stores" icon={StoreIcon} href="/store-locator" />
+            <MobileTabButton label="Contact" icon={PhoneIcon} href="/contact" />
+          </div>
+        </div>
+        {/* Floating Franchise CTA */}
+        <div className="absolute left-1/2 -translate-x-1/2 -top-5">
+          <Link
+            href="/#franchise"
+            onClick={(e) => {
+              if (isHome) {
+                e.preventDefault();
+                smoothScrollTo('/#franchise');
+              }
+            }}
+            className="inline-flex items-center justify-center h-12 w-12 rounded-full bg-[#2b91cb] text-white shadow-lg ring-4 ring-white/80 hover:bg-[#1e7bb8] transition-colors"
+            aria-label="Franchise With Us"
+          >
+            <Building2 className="h-5 w-5" />
+          </Link>
+        </div>
+      </div>
+      <div className="h-[env(safe-area-inset-bottom)]" />
+    </div>
+    </>
+   );
+ }

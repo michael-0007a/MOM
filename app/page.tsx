@@ -661,6 +661,133 @@ export default function Home() {
                 `}</style>
             </section>
 
+            {/* Our Story Section */}
+            <section id="our-story" className="py-10 sm:py-20 bg-white scroll-mt-28 md:scroll-mt-32">
+                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                     <ScrollAnimation animation="fadeUp" delay={100}>
+                        <div className={`relative z-10 text-center mb-0 transition-all duration-1000 ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+                             <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
+                                 Our <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Story</span>
+                         </h2>
+                         <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
+                             From a small kitchen experiment to a nationwide sensation
+                         </p>
+                     </div>
+                     </ScrollAnimation>
+
+                     {/* Enhanced Mobile-Optimized Timeline */}
+                    <ParallaxContainer className="mt-0">
+                        <ScrollAnimation animation="none">
+                            <div className="relative pt-4 sm:pt-6 md:pt-8">
+                         {/* Animated Timeline Line with Progress - Blue Theme */}
+                         <div className="absolute left-1/2 transform -translate-x-1/2 w-1 top-0 bottom-0 bg-gradient-to-b from-blue-200 via-blue-300 to-blue-400 rounded-full z-0 pointer-events-none">
+                             {/* Progress overlay - Blue Theme */}
+                             <div
+                                 className="absolute top-0 left-0 w-full bg-gradient-to-b from-blue-500 via-blue-600 to-blue-700 rounded-full transition-all duration-300 ease-out shadow-lg"
+                                 style={{
+                                     height: `${timelineProgress * 100}%`,
+                                     boxShadow: '0 0 20px rgba(59, 130, 246, 0.5)'
+                                 }}
+                             ></div>
+                         </div>
+
+                         {milestones.map((milestone, index) => (
+                             <div
+                                 key={milestone.year}
+                                 className={`timeline-milestone relative flex items-center transition-all duration-700 ease-out mb-5 sm:mb-2 md:mb-0 lg:mb-2 ${index === 0 ? 'mt-0' : ''} ${
+                                      // Mobile: center everything, Desktop: alternating sides
+                                      'flex-col sm:flex-row' + (index % 2 === 0 ? ' sm:flex-row' : ' sm:flex-row-reverse')
+                                  } ${
+                                      activeTimelineIndex >= index 
+                                          ? 'opacity-100 translate-y-0 scale-100' 
+                                          : 'opacity-70 translate-y-4 scale-95'
+                                  }`}
+                             >
+                                 {/* Mobile: Icon above card, Desktop: Icon in center */}
+                                 <div className="flex flex-col items-center sm:contents">
+                                    {/* Enhanced Timeline Node - Mobile Optimized */}
+                                    <div className={`w-8 h-8 sm:w-14 sm:h-14 md:w-12 md:h-12 lg:w-14 lg:h-14 rounded-full flex items-center justify-center transition-all duration-500 z-10 mb-2 sm:mb-0 ${
+                                         // Mobile: relative positioning, Desktop: absolute center
+                                         'relative sm:absolute sm:left-1/2 sm:transform sm:-translate-x-1/2'
+                                     } ${
+                                         activeTimelineIndex >= index 
+                                             ? 'bg-gradient-to-br from-blue-500 to-blue-600 shadow-xl scale-110' 
+                                             : 'bg-gradient-to-br from-gray-400 to-gray-500 shadow-lg scale-100'
+                                     }`}>
+                                        {/* Pulsing ring for active node - Blue Theme */}
+                                        {activeTimelineIndex === index && (
+                                            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 animate-ping opacity-30"></div>
+                                        )}
+
+                                        {/* Completed nodes glow - Blue Theme */}
+                                        {activeTimelineIndex > index && (
+                                            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-blue-400 to-blue-500 opacity-20 animate-pulse"></div>
+                                        )}
+
+                                        <milestone.icon className={`w-3.5 h-3.5 sm:w-7 sm:h-7 md:w-6 md:h-6 lg:w-7 lg:h-7 text-white transition-all duration-300 relative z-10 ${
+                                            activeTimelineIndex >= index ? 'drop-shadow-sm' : ''
+                                        }`} />
+                                    </div>
+
+                                    {/* Enhanced Content Card - Mobile Optimized */}
+                                     <div className={`w-full max-w-[84%] mx-auto sm:w-5/12 sm:max-w-none sm:mx-0 ${
+                                         // Mobile: always centered, Desktop: alternating alignment
+                                         'text-center sm:text-left' + (index % 2 === 0 ? ' sm:pr-8 md:pr-2 lg:pr-8 sm:text-right' : ' sm:pl-8 md:pl-2 lg:pl-8 sm:text-left')
+                                     }`}>
+                                        <div className={`relative bg-white p-3 sm:p-5 md:p-4 lg:p-5 rounded-2xl border transition-all duration-500 transform ${
+                                             activeTimelineIndex === index 
+                                                 ? 'shadow-2xl border-blue-300 scale-105 bg-gradient-to-br from-white to-blue-50/30' 
+                                                 : 'shadow-lg border-gray-200 hover:shadow-xl hover:border-blue-200'
+                                         }`}>
+                                            {/* Active card glow effect - Blue Theme */}
+                                            {activeTimelineIndex === index && (
+                                                <div className="absolute inset-0 bg-gradient-to-br from-blue-400/10 via-blue-500/10 to-blue-600/10 rounded-2xl animate-pulse"></div>
+                                            )}
+
+                                            <div className="relative z-10">
+                                                <div className={`text-xl sm:text-3xl md:text-2xl lg:text-3xl font-bold mb-2 sm:mb-2 md:mb-0 transition-colors duration-300 ${
+                                                    activeTimelineIndex === index 
+                                                        ? 'text-blue-600 drop-shadow-sm' 
+                                                        : 'text-blue-500'
+                                                }`}>
+                                                    {milestone.year}
+                                                </div>
+                                                <h3 className={`text-sm sm:text-xl md:text-lg lg:text-xl font-bold mb-2 sm:mb-2 md:mb-0 transition-colors duration-300 ${
+                                                    activeTimelineIndex === index 
+                                                        ? 'text-gray-900' 
+                                                        : 'text-gray-800'
+                                                }`}>
+                                                    {milestone.title}
+                                                </h3>
+                                                <p className={`text-xs sm:text-base md:text-sm lg:text-base transition-colors duration-300 ${
+                                                    activeTimelineIndex === index 
+                                                        ? 'text-gray-700' 
+                                                        : 'text-gray-600'
+                                                }`}>
+                                                    {milestone.description}
+                                                </p>
+                                            </div>
+
+                                            {/* Animated progress indicator - Blue Theme */}
+                                            {activeTimelineIndex === index && (
+                                                <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2">
+                                                    <div className="w-10 h-[3px] bg-gradient-to-r from-blue-500 to-blue-600 rounded-full animate-pulse shadow"></div>
+                                                </div>
+                                            )}
+                                        </div>
+                                     </div>
+                                 </div>
+
+                                 {/* Empty space for desktop layout */}
+                                 <div className="hidden sm:block sm:w-5/12"></div>
+                             </div>
+                         ))}
+                     </div>
+                             </ScrollAnimation>
+                         </ParallaxContainer>
+                 </div>
+             </section>
+
             {/* Menu Section */}
             <section id="menu" className="py-20 bg-gradient-to-br from-blue-50 to-blue-100 scroll-mt-20">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -867,133 +994,6 @@ export default function Home() {
                     </ScrollAnimation>
                 </div>
             </section>
-
-            {/* Our Story Section */}
-            <section id="our-story" className="py-10 sm:py-20 bg-white scroll-mt-28 md:scroll-mt-32">
-                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                     <ScrollAnimation animation="fadeUp" delay={100}>
-                        <div className={`relative z-10 text-center mb-16 transition-all duration-1000 ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-                             <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
-                                 Our <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Story</span>
-                         </h2>
-                         <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-                             From a small kitchen experiment to a nationwide sensation
-                         </p>
-                     </div>
-                     </ScrollAnimation>
-
-                     {/* Enhanced Mobile-Optimized Timeline */}
-                    <ParallaxContainer className="mt-16 sm:mt-20">
-                        <ScrollAnimation animation="none">
-                            <div className="relative pt-10 sm:pt-12 md:pt-14">
-                         {/* Animated Timeline Line with Progress - Blue Theme */}
-                         <div className="absolute left-1/2 transform -translate-x-1/2 w-1 top-12 sm:top-16 md:top-20 bottom-0 bg-gradient-to-b from-blue-200 via-blue-300 to-blue-400 rounded-full z-0 pointer-events-none">
-                             {/* Progress overlay - Blue Theme */}
-                             <div
-                                 className="absolute top-0 left-0 w-full bg-gradient-to-b from-blue-500 via-blue-600 to-blue-700 rounded-full transition-all duration-300 ease-out shadow-lg"
-                                 style={{
-                                     height: `${timelineProgress * 100}%`,
-                                     boxShadow: '0 0 20px rgba(59, 130, 246, 0.5)'
-                                 }}
-                             ></div>
-                         </div>
-
-                         {milestones.map((milestone, index) => (
-                             <div
-                                 key={milestone.year}
-                                 className={`timeline-milestone relative flex items-center transition-all duration-700 ease-out mb-5 sm:mb-2 md:mb-0 lg:mb-2 ${index === 0 ? 'mt-10 sm:mt-16' : ''} ${
-                                      // Mobile: center everything, Desktop: alternating sides
-                                      'flex-col sm:flex-row' + (index % 2 === 0 ? ' sm:flex-row' : ' sm:flex-row-reverse')
-                                  } ${
-                                      activeTimelineIndex >= index 
-                                          ? 'opacity-100 translate-y-0 scale-100' 
-                                          : 'opacity-70 translate-y-4 scale-95'
-                                  }`}
-                             >
-                                 {/* Mobile: Icon above card, Desktop: Icon in center */}
-                                 <div className="flex flex-col items-center sm:contents">
-                                    {/* Enhanced Timeline Node - Mobile Optimized */}
-                                    <div className={`w-8 h-8 sm:w-14 sm:h-14 md:w-12 md:h-12 lg:w-14 lg:h-14 rounded-full flex items-center justify-center transition-all duration-500 z-10 mb-2 sm:mb-0 ${
-                                         // Mobile: relative positioning, Desktop: absolute center
-                                         'relative sm:absolute sm:left-1/2 sm:transform sm:-translate-x-1/2'
-                                     } ${
-                                         activeTimelineIndex >= index 
-                                             ? 'bg-gradient-to-br from-blue-500 to-blue-600 shadow-xl scale-110' 
-                                             : 'bg-gradient-to-br from-gray-400 to-gray-500 shadow-lg scale-100'
-                                     }`}>
-                                        {/* Pulsing ring for active node - Blue Theme */}
-                                        {activeTimelineIndex === index && (
-                                            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 animate-ping opacity-30"></div>
-                                        )}
-
-                                        {/* Completed nodes glow - Blue Theme */}
-                                        {activeTimelineIndex > index && (
-                                            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-blue-400 to-blue-500 opacity-20 animate-pulse"></div>
-                                        )}
-
-                                        <milestone.icon className={`w-3.5 h-3.5 sm:w-7 sm:h-7 md:w-6 md:h-6 lg:w-7 lg:h-7 text-white transition-all duration-300 relative z-10 ${
-                                            activeTimelineIndex >= index ? 'drop-shadow-sm' : ''
-                                        }`} />
-                                    </div>
-
-                                    {/* Enhanced Content Card - Mobile Optimized */}
-                                     <div className={`w-full max-w-[84%] mx-auto sm:w-5/12 sm:max-w-none sm:mx-0 ${
-                                         // Mobile: always centered, Desktop: alternating alignment
-                                         'text-center sm:text-left' + (index % 2 === 0 ? ' sm:pr-8 md:pr-2 lg:pr-8 sm:text-right' : ' sm:pl-8 md:pl-2 lg:pl-8 sm:text-left')
-                                     }`}>
-                                        <div className={`relative bg-white p-3 sm:p-5 md:p-4 lg:p-5 rounded-2xl border transition-all duration-500 transform ${
-                                             activeTimelineIndex === index 
-                                                 ? 'shadow-2xl border-blue-300 scale-105 bg-gradient-to-br from-white to-blue-50/30' 
-                                                 : 'shadow-lg border-gray-200 hover:shadow-xl hover:border-blue-200'
-                                         }`}>
-                                            {/* Active card glow effect - Blue Theme */}
-                                            {activeTimelineIndex === index && (
-                                                <div className="absolute inset-0 bg-gradient-to-br from-blue-400/10 via-blue-500/10 to-blue-600/10 rounded-2xl animate-pulse"></div>
-                                            )}
-
-                                            <div className="relative z-10">
-                                                <div className={`text-xl sm:text-3xl md:text-2xl lg:text-3xl font-bold mb-2 sm:mb-2 md:mb-0 transition-colors duration-300 ${
-                                                    activeTimelineIndex === index 
-                                                        ? 'text-blue-600 drop-shadow-sm' 
-                                                        : 'text-blue-500'
-                                                }`}>
-                                                    {milestone.year}
-                                                </div>
-                                                <h3 className={`text-sm sm:text-xl md:text-lg lg:text-xl font-bold mb-2 sm:mb-2 md:mb-0 transition-colors duration-300 ${
-                                                    activeTimelineIndex === index 
-                                                        ? 'text-gray-900' 
-                                                        : 'text-gray-800'
-                                                }`}>
-                                                    {milestone.title}
-                                                </h3>
-                                                <p className={`text-xs sm:text-base md:text-sm lg:text-base transition-colors duration-300 ${
-                                                    activeTimelineIndex === index 
-                                                        ? 'text-gray-700' 
-                                                        : 'text-gray-600'
-                                                }`}>
-                                                    {milestone.description}
-                                                </p>
-                                            </div>
-
-                                            {/* Animated progress indicator - Blue Theme */}
-                                            {activeTimelineIndex === index && (
-                                                <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2">
-                                                    <div className="w-10 h-[3px] bg-gradient-to-r from-blue-500 to-blue-600 rounded-full animate-pulse shadow"></div>
-                                                </div>
-                                            )}
-                                        </div>
-                                     </div>
-                                 </div>
-
-                                 {/* Empty space for desktop layout */}
-                                 <div className="hidden sm:block sm:w-5/12"></div>
-                             </div>
-                         ))}
-                     </div>
-                             </ScrollAnimation>
-                         </ParallaxContainer>
-                 </div>
-             </section>
 
             {/* Gallery Section */}
             <section id="gallery" className="py-20 bg-gradient-to-br from-gray-50 to-blue-50 scroll-mt-20">

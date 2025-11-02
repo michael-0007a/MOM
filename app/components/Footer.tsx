@@ -1,6 +1,7 @@
 import Link from 'next/link';
-import { Instagram, Facebook, Mail, Phone, MapPin } from 'lucide-react';
+import { Instagram, Facebook, Mail, Phone, MapPin, Twitter } from 'lucide-react';
 import Image from 'next/image';
+import { CONTACT, SOCIAL, LINKS } from '@/lib/siteConfig';
 
 export default function Footer() {
   return (
@@ -42,15 +43,22 @@ export default function Footer() {
             <ul className="space-y-3">
               <li className="flex items-center space-x-2 text-white/80">
                 <Mail className="w-4 h-4" />
-                <span className="text-sm manrope-regular">hello@makersofmilkshakes.com</span>
+                <a href={LINKS.mailtoHref} className="text-sm manrope-regular hover:underline break-all inline-block">
+                  {CONTACT.email}
+                </a>
               </li>
               <li className="flex items-center space-x-2 text-white/80">
                 <Phone className="w-4 h-4" />
-                <span className="text-sm manrope-regular">+1 (555) 123-4567</span>
+                <a href={LINKS.telHref} className="text-sm manrope-regular hover:underline">
+                  {CONTACT.phoneDisplay}
+                </a>
               </li>
               <li className="flex items-center space-x-2 text-white/80">
                 <MapPin className="w-4 h-4" />
-                <span className="text-sm manrope-regular">123 Shake Street, NY</span>
+                <div className="text-sm manrope-regular">
+                  <p>{CONTACT.addressLines[0]}</p>
+                  <p>{CONTACT.addressLines[1]}</p>
+                </div>
               </li>
             </ul>
           </div>
@@ -60,7 +68,7 @@ export default function Footer() {
             <h3 className="syne-semibold text-lg mb-4">Follow Us</h3>
             <div className="flex space-x-4">
               <a
-                href="https://instagram.com"
+                href={SOCIAL.instagram}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center hover:bg-white hover:text-[#2b91cb] transition-all duration-300"
@@ -68,12 +76,20 @@ export default function Footer() {
                 <Instagram className="w-5 h-5" />
               </a>
               <a
-                href="https://facebook.com"
+                href={SOCIAL.facebook}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center hover:bg-white hover:text-[#2b91cb] transition-all duration-300"
               >
                 <Facebook className="w-5 h-5" />
+              </a>
+              <a
+                href={SOCIAL.twitter}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center hover:bg-white hover:text-[#2b91cb] transition-all duration-300"
+              >
+                <Twitter className="w-5 h-5" />
               </a>
             </div>
           </div>

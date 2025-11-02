@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { Sparkles, Coffee, Droplets, IceCream, Leaf, Cake, Star, ChefHat } from 'lucide-react';
+import { CONTACT, LINKS } from '@/lib/siteConfig';
 
 interface MenuItem {
     name: string;
@@ -459,10 +460,10 @@ const MakersMenu = () => {
                             <h3 className="font-extrabold text-xl md:text-3xl mb-2 md:mb-4">Catering Available!</h3>
                             <p className="font-normal text-sm md:text-base mb-4 md:mb-6 opacity-90">Perfect for Birthdays, Weddings, Anniversaries, and College Events</p>
                             <div className="flex flex-col sm:flex-row flex-wrap justify-center gap-2 md:gap-4">
-                                <a href="tel:9100561234" className="group bg-white/90 backdrop-blur-sm text-blue-600 px-4 md:px-6 py-2 md:py-3 rounded-lg md:rounded-xl font-bold text-sm md:text-base hover:bg-white transition-all duration-300 transform hover:scale-105 shadow-md">
-                                    Call: 9100 56 1234
+                                <a href={LINKS.telHref} className="group bg-white/90 backdrop-blur-sm text-blue-600 px-4 md:px-6 py-2 md:py-3 rounded-lg md:rounded-xl font-bold text-sm md:text-base hover:bg-white transition-all duration-300 transform hover:scale-105 shadow-md">
+                                    Call: {CONTACT.phoneDisplay}
                                 </a>
-                                <a href="mailto:info@makersofmilkshakes.com" className="group bg-white/20 backdrop-blur-sm border-2 border-white text-white px-4 md:px-6 py-2 md:py-3 rounded-lg md:rounded-xl font-bold text-sm md:text-base hover:bg-white hover:text-blue-600 transition-all duration-300 transform hover:scale-105">
+                                <a href={LINKS.mailtoHref} className="group bg-white/20 backdrop-blur-sm border-2 border-white text-white px-4 md:px-6 py-2 md:py-3 rounded-lg md:rounded-xl font-bold text-sm md:text-base hover:bg-white hover:text-blue-600 transition-all duration-300 transform hover:scale-105">
                                     Email Us
                                 </a>
                             </div>
