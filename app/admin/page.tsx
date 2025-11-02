@@ -326,7 +326,7 @@ export default function Admin() {
                 <div className="text-gray-800">{lead.phone || '—'}</div>
                 <div className="text-gray-500">City/State</div>
                 <div className="text-gray-800">{lead.cityState || '—'}</div>
-                {/* Budget moved to details */}
+t                {/* Budget moved to details */}
               </div>
 
               <button
