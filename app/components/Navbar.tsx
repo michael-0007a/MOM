@@ -345,15 +345,37 @@ export default function Navbar() {
     icon: Icon,
     href,
     sectionId,
-  }: { label: string; icon: LucideIcon; href: string; sectionId?: string }) {
-    const isActive = sectionId ? active === sectionId : pathname === href;
+    className = '',
+  }: { label: string; icon: LucideIcon; href: string; sectionId?: string; className?: string }) {
+    const pathname = usePathname();
+    const [active, setActive] = useState<string>('');
+
+    // Determine active for non-section links
+    const isActive = sectionId ? false : pathname === href;
 
     const onClick = (e: React.MouseEvent) => {
-      // Section on home: smooth scroll
       if (sectionId) {
         e.preventDefault();
         setActive(sectionId);
-        requestAnimationFrame(() => smoothScrollTo(href));
+        const smoothScrollTo = (hashHref: string) => {
+          const id = hashHref.replace('/#', '');
+          const el = document.getElementById(id);
+          if (!el) {
+            window.location.href = hashHref;
+            return;
+          }
+          const y = el.offsetTop;
+          const lenis = (window as unknown as { lenis?: { scrollTo: (y: number, opts?: { duration?: number; easing?: (t: number) => number }) => void } }).lenis;
+          if (lenis) {
+            lenis.scrollTo(y, {
+              duration: 1.2,
+              easing: (t: number) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2),
+            });
+          } else {
+            window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
+          }
+        };
+        smoothScrollTo(href);
       }
     };
 
@@ -361,9 +383,9 @@ export default function Navbar() {
       <Link
         href={href}
         onClick={onClick}
-        className={`flex flex-col items-center justify-center gap-0.5 px-2 py-1.5 rounded-xl text-[10px] font-medium transition-colors ${
+        className={`w-full flex flex-col items-center justify-center gap-0.5 px-2 py-1.5 rounded-xl text-[10px] font-medium transition-colors ${
           isActive ? 'text-[#2b91cb]' : 'text-gray-600 hover:text-[#2b91cb]'
-        }`}
+        } ${className}`}
         aria-current={isActive ? 'page' : undefined}
       >
         <Icon className={`h-5 w-5 ${isActive ? 'text-[#2b91cb]' : 'text-gray-600'}`} />
@@ -497,15 +519,15 @@ export default function Navbar() {
     <div className="lg:hidden fixed inset-x-0 bottom-0 z-[999]">
       <div className="relative max-w-7xl mx-auto px-4">
         {/* Bar */}
-        <div ref={(el) => { bottomBarRef.current = el; }} className="h-12 rounded-2xl bg-white/90 backdrop-blur supports-[backdrop-filter]:bg-white/70 shadow-[0_-6px_24px_rgba(0,0,0,0.08)] ring-1 ring-black/5 flex items-center justify-between px-2">
-          <div className="flex items-center gap-1">
-            <MobileTabButton label="Home" icon={Home} href="/#home" sectionId="home" />
-            <MobileTabButton label="Menu" icon={BookOpen} href="/#menu" sectionId="menu" />
-          </div>
-          <div className="flex items-center gap-1">
-            <MobileTabButton label="Stores" icon={StoreIcon} href="/store-locator" />
-            <MobileTabButton label="Contact" icon={PhoneIcon} href="/contact" />
-          </div>
+        <div ref={(el) => { bottomBarRef.current = el; }} className="h-12 rounded-2xl bg-white/90 backdrop-blur supports-[backdrop-filter]:bg-white/70 shadow-[0_-6px_24px_rgba(0,0,0,0.08)] ring-1 ring-black/5 grid grid-cols-5 gap-0 px-2 items-stretch">
+          {/* Left two tabs */}
+          <MobileTabButton label="Home" icon={Home} href="/#home" sectionId="home" />
+          <MobileTabButton label="Menu" icon={BookOpen} href="/#menu" sectionId="menu" />
+          {/* Middle spacer for Franchise CTA */}
+          <div aria-hidden className="w-full" />
+          {/* Right two tabs */}
+          <MobileTabButton label="Stores" icon={StoreIcon} href="/store-locator" />
+          <MobileTabButton label="Contact" icon={PhoneIcon} href="/contact" />
         </div>
         {/* Floating Franchise CTA */}
         <div className="absolute left-1/2 -translate-x-1/2 -top-5">
@@ -529,3 +551,57 @@ export default function Navbar() {
     </>
    );
  }
+
+function MobileTabButton({
+  label,
+  icon: Icon,
+  href,
+  sectionId,
+  className = '',
+}: { label: string; icon: LucideIcon; href: string; sectionId?: string; className?: string }) {
+  const pathname = usePathname();
+  const [active, setActive] = useState<string>('');
+
+  // Determine active for non-section links
+  const isActive = sectionId ? false : pathname === href;
+
+  const onClick = (e: React.MouseEvent) => {
+    if (sectionId) {
+      e.preventDefault();
+      setActive(sectionId);
+      const smoothScrollTo = (hashHref: string) => {
+        const id = hashHref.replace('/#', '');
+        const el = document.getElementById(id);
+        if (!el) {
+          window.location.href = hashHref;
+          return;
+        }
+        const y = el.offsetTop;
+        const lenis = (window as unknown as { lenis?: { scrollTo: (y: number, opts?: { duration?: number; easing?: (t: number) => number }) => void } }).lenis;
+        if (lenis) {
+          lenis.scrollTo(y, {
+            duration: 1.2,
+            easing: (t: number) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2),
+          });
+        } else {
+          window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
+        }
+      };
+      smoothScrollTo(href);
+    }
+  };
+
+  return (
+    <Link
+      href={href}
+      onClick={onClick}
+      className={`w-full flex flex-col items-center justify-center gap-0.5 px-2 py-1.5 rounded-xl text-[10px] font-medium transition-colors ${
+        isActive ? 'text-[#2b91cb]' : 'text-gray-600 hover:text-[#2b91cb]'
+      } ${className}`}
+      aria-current={isActive ? 'page' : undefined}
+    >
+      <Icon className={`h-5 w-5 ${isActive ? 'text-[#2b91cb]' : 'text-gray-600'}`} />
+      <span className="leading-none">{label}</span>
+    </Link>
+  );
+}
