@@ -3,7 +3,6 @@
 import { useMemo, useState, useEffect, useRef } from 'react';
 import { useLenis } from '@/app/components/SmoothScrollProvider';
 import { MapPin, Clock, Phone, Search, Navigation } from 'lucide-react';
-import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import storesGeo from './stores.json';
 import * as turf from '@turf/turf';
@@ -27,6 +26,21 @@ type RawFeatureCollection = {
   type: 'FeatureCollection';
   features: RawFeature[];
 };
+
+// Strongly-typed store model for UI rendering
+export type Store = {
+  id: number;
+  name: string;
+  address: string;
+  phone: string;
+  hours: string;
+  city: string;
+  zipcode: string;
+  distance: string; // formatted e.g., "4.8 KM away"
+  coordinates: [number, number]; // [lng, lat]
+};
+
+type StoreWithDistance = Store & { _distanceValue: number };
 
 const InteractiveMap = dynamic(() => import('@/app/components/InteractiveMap'), { ssr: false });
 
@@ -68,10 +82,10 @@ export default function StoreLocator() {
   };
 
   // Map legacy GeoJSON stores to UI model (move before uniqueCities)
-  const stores = useMemo(() => {
+  const stores = useMemo<Store[]>(() => {
     const features = (storesGeo as unknown as RawFeatureCollection).features;
 
-    return features.map((f, idx) => {
+    return features.map((f, idx): Store => {
       // Normalize coordinates into a strict tuple [lng, lat]
       const coordsArray = Array.isArray(f.geometry.coordinates) ? f.geometry.coordinates : [];
       const lng = typeof coordsArray[0] === 'number' ? coordsArray[0] : 0;
@@ -93,17 +107,19 @@ export default function StoreLocator() {
   }, []);
 
   // Distance enrichment (kept)
-  const storesWithDistance = useMemo(() => {
+  const storesWithDistance = useMemo<Store[]>(() => {
     if (!searchPoint) return stores;
     const from = turf.point(searchPoint);
-    const enriched = stores.map((s) => {
+
+    const enriched: StoreWithDistance[] = stores.map((s) => {
       const dKm = turf.distance(from, turf.point(s.coordinates), { units: 'kilometers' });
       const rounded = Math.round(dKm * 100) / 100;
-      return { ...s, distance: `${rounded} KM away`, _distanceValue: dKm } as any;
+      return { ...s, distance: `${rounded} KM away`, _distanceValue: dKm };
     });
+
     return enriched
-      .sort((a: any, b: any) => a._distanceValue - b._distanceValue)
-      .map(({ _distanceValue, ...rest }: any) => rest);
+      .sort((a, b) => a._distanceValue - b._distanceValue)
+      .map(({ _distanceValue: _omit, ...rest }) => rest);
   }, [stores, searchPoint]);
 
   // Apply search + region filter (use deduced region)
@@ -184,12 +200,11 @@ export default function StoreLocator() {
     };
 
     // Wait a tick to ensure layout has settled
-    let raf1 = requestAnimationFrame(() => {
-      let raf2 = requestAnimationFrame(() => { scrollNow(); });
+    const raf1 = requestAnimationFrame(() => {
+      const raf2 = requestAnimationFrame(() => { scrollNow(); });
       return () => cancelAnimationFrame(raf2);
     });
     return () => cancelAnimationFrame(raf1);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedStore, orderedStores, visibleCount, lenis]);
 
   // Retry pending scroll after expanding list or on next paint
