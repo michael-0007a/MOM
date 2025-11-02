@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { ArrowRight, Sparkles, Heart, Blend, Users, Award, TrendingUp, Globe, ChevronDown, ChevronUp, DollarSign, Milk, Cookie, IceCream, Cherry, Coffee, CheckCircle } from 'lucide-react';
+import { ArrowRight, Sparkles, Heart, Blend, Users, Award, TrendingUp, Globe, ChevronDown, ChevronUp, DollarSign, Milk, Cookie, IceCream, Cherry, Coffee, CheckCircle, ChevronLeft, ChevronRight, ZoomIn } from 'lucide-react';
 import Image from 'next/image';
 import FranchiseCharacterPng from '@/public/franchise_section_character.png';
 import ScrollAnimation, { ParallaxContainer, SmoothReveal } from './components/ScrollAnimation';
@@ -36,6 +36,22 @@ export default function Home() {
     // Multi-step form state
     const [currentStep, setCurrentStep] = useState(1);
     const totalSteps = 4;
+
+    // Gallery state
+    const [galleryImages, setGalleryImages] = useState<string[]>([]);
+    const [galleryIndex, setGalleryIndex] = useState(0);
+    const [lightbox, setLightbox] = useState<number | null>(null);
+
+    // New states for form submission
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [submitCooldownUntil, setSubmitCooldownUntil] = useState<number | null>(null);
+    const [honeypot, setHoneypot] = useState('');
+    const [formMountedAt] = useState(() => Date.now());
+
+    // Validation state
+    const [errors, setErrors] = useState<Record<string, string>>({});
+    const [touched, setTouched] = useState<Record<string, boolean>>({});
+    const [showErrorsForStep, setShowErrorsForStep] = useState<number | null>(null);
 
     useEffect(() => {
         setLoaded(true);
@@ -95,6 +111,14 @@ export default function Home() {
             window.removeEventListener('scroll', handleTimelineScroll);
             window.removeEventListener('resize', handleTimelineScroll);
         };
+    }, []);
+
+    useEffect(() => {
+        // Fetch gallery images from public/gallery via API
+        fetch('/api/gallery/list')
+            .then(res => res.json())
+            .then((data: { images: string[] }) => setGalleryImages(Array.isArray(data.images) ? data.images : []))
+            .catch(() => setGalleryImages([]));
     }, []);
 
     // Timeline data
@@ -195,7 +219,17 @@ export default function Home() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!formData.confirm) return;
+
+        // Simple anti-spam: block if honeypot filled or too fast
+        if (honeypot.trim().length > 0) return;
+        if (Date.now() - formMountedAt < 1200) {
+            alert('Please wait a moment before submitting.');
+            return;
+        }
+        if (isSubmitting || (submitCooldownUntil && Date.now() < submitCooldownUntil)) return;
+
         try {
+            setIsSubmitting(true);
             const res = await fetch('/api/franchise/submit', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -209,8 +243,12 @@ export default function Home() {
             alert('Thank you! Your franchise request was submitted.');
             setFormData(initialForm);
             setCurrentStep(1);
+            // Cooldown for 3 seconds to avoid accidental double submits
+            setSubmitCooldownUntil(Date.now() + 3000);
         } catch {
             alert('Network error. Please try again.');
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -233,9 +271,81 @@ export default function Home() {
         }));
     };
 
+    // Validators
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const indianPhoneRegex = /^(?:\+91[-\s]?)?[6-9]\d{9}$/;
+    const isValidEmail = (s: string) => emailRegex.test((s || '').trim());
+    const isValidIndianPhone = (s: string) => indianPhoneRegex.test((s || '').replace(/\s|-/g, ''));
+
+    // Per-step field validation helpers
+    const validateStep = (step: number): Record<string, string> => {
+        const e: Record<string, string> = {};
+        if (step === 1) {
+            if (!formData.fullName || formData.fullName.trim().length < 2) e.fullName = 'Please enter your full name.';
+            if (!isValidEmail(formData.email)) e.email = 'Enter a valid email address.';
+            if (!isValidIndianPhone(formData.phone)) e.phone = 'Enter a valid Indian mobile number.';
+            if (!formData.cityState || formData.cityState.trim().length < 2) e.cityState = 'Enter your city and state.';
+        } else if (step === 2) {
+            if (!formData.ownBusiness) e.ownBusiness = 'Please select an option.';
+            if (formData.ownBusiness === 'yes') {
+                if (!formData.businessName || formData.businessName.trim().length < 2) e.businessName = 'Business name is required.';
+                if (!formData.businessIndustry || formData.businessIndustry.trim().length < 2) e.businessIndustry = 'Industry is required.';
+            }
+        } else if (step === 3) {
+            if (!formData.interestReason || formData.interestReason.trim().length < 10) e.interestReason = 'Please tell us a bit more (min 10 characters).';
+            if (!formData.estimatedBudget) e.estimatedBudget = 'Select an estimated budget.';
+            if (!formData.hasSpace) e.hasSpace = 'Please select an option.';
+            if (formData.hasSpace === 'yes') {
+                if (!formData.spaceLocation || formData.spaceLocation.trim().length < 2) e.spaceLocation = 'Space location is required.';
+                const size = (formData.spaceSize || '').trim();
+                const n = parseInt(size, 10);
+                if (!size) e.spaceSize = 'Space size is required.';
+                else if (isNaN(n)) e.spaceSize = 'Enter a valid number (sq ft).';
+                else if (n < 100 || n > 20000) e.spaceSize = 'Enter size between 100 and 20000 sq ft.';
+            }
+        } else if (step === 4) {
+            if (!formData.startTimeline || formData.startTimeline.trim().length < 3) e.startTimeline = 'Please provide your expected start timeline.';
+            if (!formData.hearAboutUs || formData.hearAboutUs.trim().length < 3) e.hearAboutUs = 'Please tell us how you heard about us.';
+            if (!formData.confirm) e.confirm = 'Please confirm to proceed.';
+        }
+        return e;
+    };
+
+    const validateAll = (): Record<string, string> => {
+        return [1, 2, 3, 4].reduce<Record<string, string>>((acc, step) => {
+            const e = validateStep(step);
+            return { ...acc, ...e };
+        }, {});
+    };
+
+    const markTouched = (fields: string[]) => {
+        setTouched(prev => fields.reduce((p, k) => ({ ...p, [k]: true }), { ...prev }));
+    };
+
+    const handleBlur = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+        const name = e.target.name;
+        setTouched(prev => ({ ...prev, [name]: true }));
+        const stepErrors = validateStep(currentStep);
+        setErrors(prev => ({ ...prev, ...stepErrors }));
+    };
+
     const nextStep = () => {
         if (currentStep < totalSteps) {
             setCurrentStep(prev => prev + 1);
+        }
+    };
+
+    // Replace navigation logic to run validation and then advance
+    const nextStepWithValidation = () => {
+        const stepErrors = validateStep(currentStep);
+        setErrors(prev => ({ ...prev, ...stepErrors }));
+        if (Object.keys(stepErrors).length === 0) {
+            setShowErrorsForStep(null);
+            nextStep();
+        } else {
+            setShowErrorsForStep(currentStep);
+            // mark fields as touched so messages appear immediately
+            markTouched(Object.keys(stepErrors));
         }
     };
 
@@ -247,20 +357,35 @@ export default function Home() {
 
     const isStepValid = () => {
         switch (currentStep) {
-            case 1:
-                return formData.fullName && formData.email && formData.phone && formData.cityState;
+            case 1: {
+                const nameOk = !!formData.fullName && formData.fullName.trim().length > 1;
+                const emailOk = isValidEmail(formData.email);
+                const phoneOk = isValidIndianPhone(formData.phone);
+                const cityOk = !!formData.cityState && formData.cityState.trim().length > 1;
+                return nameOk && emailOk && phoneOk && cityOk;
+            }
             case 2:
                 return formData.ownBusiness &&
                        (formData.ownBusiness === 'no' || (formData.businessName && formData.businessIndustry));
-            case 3:
-                return formData.interestReason && formData.estimatedBudget && formData.hasSpace &&
-                       (formData.hasSpace === 'no' || (formData.spaceLocation && formData.spaceSize));
+            case 3: {
+                const baseOk = !!formData.interestReason && formData.interestReason.trim().length >= 10 && !!formData.estimatedBudget && !!formData.hasSpace;
+                if (!baseOk) return false;
+                if (formData.hasSpace === 'yes') {
+                    const n = parseInt((formData.spaceSize || '').trim(), 10);
+                    return !!formData.spaceLocation && !isNaN(n) && n >= 100 && n <= 20000;
+                }
+                return true;
+            }
             case 4:
-                return formData.startTimeline && formData.hearAboutUs && formData.confirm;
+                return !!formData.startTimeline && formData.startTimeline.trim().length > 2 && !!formData.hearAboutUs && formData.hearAboutUs.trim().length > 2 && !!formData.confirm;
             default:
                 return false;
         }
     };
+
+    // Gallery navigation
+    const galleryPrev = () => setGalleryIndex(i => (i - 1 + galleryImages.length) % (galleryImages.length || 1));
+    const galleryNext = () => setGalleryIndex(i => (i + 1) % (galleryImages.length || 1));
 
     return (
         <div className="min-h-screen bg-white">
@@ -999,51 +1124,75 @@ export default function Home() {
             <section id="gallery" className="py-20 bg-gradient-to-br from-gray-50 to-blue-50 scroll-mt-20">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <ScrollAnimation animation="fadeUp" delay={100}>
-                        <div className={`text-center mb-16 transition-all duration-1000 ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-                            <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
-                                Our <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Gallery</span>
-                        </h2>
-                        <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-                            Moments of joy, creativity, and milkshake magic
-                        </p>
-                    </div>
-                    </ScrollAnimation>
+                        <div className={`text-center mb-10 sm:mb-14 transition-all duration-1000 ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+                          <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-4">
+                            Our <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Gallery</span>
+                          </h2>
+                          <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto">A peek into our shakes, moments, and stores.</p>
+                        </div>
+                      </ScrollAnimation>
 
-                    {/* Gallery Filter */}
-                    <ScrollAnimation animation="fadeUp" delay={200}>
-                        <div className="flex flex-wrap justify-center gap-4 mb-12">
-                        {galleryCategories.map((category) => (
-                            <button
-                                key={category.filter}
-                                onClick={() => setActiveFilter(category.filter)}
-                                className={`px-6 py-3 rounded-full font-semibold transition-all duration-300 ${
-                                    activeFilter === category.filter
-                                        ? 'bg-blue-600 text-white shadow-lg'
-                                        : 'bg-white text-gray-700 hover:bg-blue-50 border border-gray-200'
-                                }`}
-                            >
-                                {category.name}
-                            </button>
-                        ))}
-                    </div>
-                    </ScrollAnimation>
-
-                    {/* Gallery Grid */}
-                    <SmoothReveal stagger={100} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                        {filteredGallery.map((item, index) => (
-                            <div
-                                key={item.id}
-                                className={`group relative bg-gradient-to-br ${item.color} rounded-2xl p-8 h-64 flex flex-col items-center justify-center text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 ${
-                                    loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-                                }`}
-                                style={{ animationDelay: `${index * 0.1}s` }}
-                            >
-                                <item.icon className="w-16 h-16 mb-4 group-hover:scale-110 transition-transform" />
-                                <h3 className="text-xl font-bold text-center">{item.title}</h3>
-                                <div className="absolute inset-0 bg-black/20 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                      {/* Mobile Carousel */}
+                      <div className="sm:hidden">
+                        <div className="relative w-full overflow-hidden">
+                          {galleryImages.length > 0 ? (
+                            <div className="relative aspect-[4/5] bg-gray-100 rounded-2xl overflow-hidden shadow">
+                              <Image
+                                src={galleryImages[galleryIndex]}
+                                alt={`Gallery ${galleryIndex + 1}`}
+                                fill
+                                className="object-cover"
+                                sizes="(max-width: 640px) 100vw, 0"
+                                priority
+                              />
+                              <button className="absolute left-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/80 shadow" onClick={galleryPrev} aria-label="Previous">
+                                <ChevronLeft className="w-5 h-5" />
+                              </button>
+                              <button className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/80 shadow" onClick={galleryNext} aria-label="Next">
+                                <ChevronRight className="w-5 h-5" />
+                              </button>
+                              <button className="absolute right-2 bottom-2 p-2 rounded-full bg-white/80 shadow" onClick={() => setLightbox(galleryIndex)} aria-label="Open full">
+                                <ZoomIn className="w-5 h-5" />
+                              </button>
                             </div>
-                        ))}
-                    </SmoothReveal>
+                          ) : (
+                            <div className="p-8 text-center text-gray-500">No images found in /public/gallery</div>
+                          )}
+                          {galleryImages.length > 1 && (
+                            <div className="flex items-center justify-center gap-1 py-3">
+                              {galleryImages.map((_, i) => (
+                                <button key={i} onClick={() => setGalleryIndex(i)} className={`h-1.5 rounded-full transition-all ${i === galleryIndex ? 'w-5 bg-[#2b91cb]' : 'w-2 bg-gray-300'}`} aria-label={`Go to slide ${i + 1}`} />
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Desktop Masonry Grid */}
+                      <div className="hidden sm:block">
+                        <div className="columns-2 md:columns-3 lg:columns-4 gap-3 [&_img]:mb-3">
+                          {galleryImages.map((src) => (
+                            <button key={src} className="relative w-full overflow-hidden rounded-xl shadow group" onClick={() => setLightbox(galleryImages.indexOf(src))} aria-label="Open image">
+                              <Image src={src} alt="Gallery" width={800} height={1000} className="w-full h-auto object-cover transition-transform duration-300 group-hover:scale-[1.03]" />
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Lightbox */}
+                      {lightbox != null && galleryImages[lightbox] && (
+                        <div className="fixed inset-0 z-[1000] bg-black/90 flex items-center justify-center" onClick={() => setLightbox(null)}>
+                          <div className="relative w-[92vw] max-w-5xl aspect-video">
+                            <Image src={galleryImages[lightbox]} alt="Preview" fill className="object-contain" sizes="100vw" />
+                            <button className="absolute left-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/90" onClick={(e) => { e.stopPropagation(); setLightbox((i) => (i! - 1 + galleryImages.length) % galleryImages.length); }} aria-label="Prev">
+                              <ChevronLeft className="w-5 h-5" />
+                            </button>
+                            <button className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/90" onClick={(e) => { e.stopPropagation(); setLightbox((i) => (i! + 1) % galleryImages.length); }} aria-label="Next">
+                              <ChevronRight className="w-5 h-5" />
+                            </button>
+                          </div>
+                        </div>
+                      )}
                 </div>
             </section>
 
@@ -1105,7 +1254,7 @@ export default function Home() {
                                         className="w-full h-auto max-w-lg lg:max-w-xl xl:max-w-2xl"
                                         sizes="(max-width: 640px) 320px, (max-width: 768px) 512px, (max-width: 1024px) 576px, 768px"
                                         quality={95}
-                                        priority={false}
+                                        priority
                                         style={{
                                             filter: 'drop-shadow(0 25px 50px rgba(251, 146, 60, 0.2)) drop-shadow(0 15px 30px rgba(245, 158, 11, 0.15))'
                                         }}
@@ -1222,10 +1371,15 @@ export default function Home() {
                                                 name="fullName"
                                                 value={formData.fullName}
                                                 onChange={handleChange}
+                                                onBlur={handleBlur}
                                                 required
-                                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                                placeholder="Enter your full name"
+                                                aria-invalid={!!errors.fullName}
+                                                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.fullName && (touched.fullName || showErrorsForStep === 1) ? 'border-red-500' : 'border-gray-300'}`}
+                                                placeholder="Your full name"
                                             />
+                                            {(touched.fullName || showErrorsForStep === 1) && errors.fullName && (
+                                                <p className="mt-1 text-sm text-red-600">{errors.fullName}</p>
+                                            )}
                                         </div>
                                         <div>
                                             <label className="block text-gray-700 font-semibold mb-2">Email Address *</label>
@@ -1234,10 +1388,16 @@ export default function Home() {
                                                 name="email"
                                                 value={formData.email}
                                                 onChange={handleChange}
+                                                onBlur={handleBlur}
                                                 required
-                                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                                placeholder="your.email@example.com"
+                                                inputMode="email"
+                                                aria-invalid={!!errors.email}
+                                                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.email && (touched.email || showErrorsForStep === 1) ? 'border-red-500' : 'border-gray-300'}`}
+                                                placeholder="name@example.com"
                                             />
+                                            {(touched.email || showErrorsForStep === 1) && errors.email && (
+                                                <p className="mt-1 text-sm text-red-600">{errors.email}</p>
+                                            )}
                                         </div>
                                         <div>
                                             <label className="block text-gray-700 font-semibold mb-2">Phone Number *</label>
@@ -1246,10 +1406,18 @@ export default function Home() {
                                                 name="phone"
                                                 value={formData.phone}
                                                 onChange={handleChange}
+                                                onBlur={handleBlur}
                                                 required
-                                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                                placeholder="+1 (555) 123-4567"
+                                                inputMode="tel"
+                                                pattern="^(?:\\+91[-\\s]?)?[6-9]\\d{9}$"
+                                                title="Enter a valid Indian mobile number (e.g., +91 9876543210 or 9876543210)"
+                                                aria-invalid={!!errors.phone}
+                                                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.phone && (touched.phone || showErrorsForStep === 1) ? 'border-red-500' : 'border-gray-300'}`}
+                                                placeholder="+91 98765 43210"
                                             />
+                                            {(touched.phone || showErrorsForStep === 1) && errors.phone && (
+                                                <p className="mt-1 text-sm text-red-600">{errors.phone}</p>
+                                            )}
                                         </div>
                                         <div>
                                             <label className="block text-gray-700 font-semibold mb-2">City/State *</label>
@@ -1258,10 +1426,15 @@ export default function Home() {
                                                 name="cityState"
                                                 value={formData.cityState}
                                                 onChange={handleChange}
+                                                onBlur={handleBlur}
                                                 required
-                                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                                placeholder="City, State"
+                                                aria-invalid={!!errors.cityState}
+                                                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.cityState && (touched.cityState || showErrorsForStep === 1) ? 'border-red-500' : 'border-gray-300'}`}
+                                                placeholder="Hyderabad, Telangana"
                                             />
+                                            {(touched.cityState || showErrorsForStep === 1) && errors.cityState && (
+                                                <p className="mt-1 text-sm text-red-600">{errors.cityState}</p>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
@@ -1281,6 +1454,7 @@ export default function Home() {
                                                     value="yes"
                                                     checked={formData.ownBusiness === 'yes'}
                                                     onChange={() => handleRadioChange('ownBusiness', 'yes')}
+                                                    onBlur={handleBlur}
                                                     required
                                                     className="w-4 h-4 text-blue-600"
                                                 />
@@ -1293,6 +1467,7 @@ export default function Home() {
                                                     value="no"
                                                     checked={formData.ownBusiness === 'no'}
                                                     onChange={() => handleRadioChange('ownBusiness', 'no')}
+                                                    onBlur={handleBlur}
                                                     required
                                                     className="w-4 h-4 text-blue-600"
                                                 />
@@ -1310,10 +1485,15 @@ export default function Home() {
                                                     name="businessName"
                                                     value={formData.businessName}
                                                     onChange={handleChange}
+                                                    onBlur={handleBlur}
                                                     required={formData.ownBusiness === 'yes'}
-                                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                    aria-invalid={!!errors.businessName}
+                                                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.businessName && (touched.businessName || showErrorsForStep === 2) ? 'border-red-500' : 'border-gray-300'}`}
                                                     placeholder="Your business name"
                                                 />
+                                                {(touched.businessName || showErrorsForStep === 2) && errors.businessName && (
+                                                    <p className="mt-1 text-sm text-red-600">{errors.businessName}</p>
+                                                )}
                                             </div>
                                             <div>
                                                 <label className="block text-gray-700 font-semibold mb-2">Industry *</label>
@@ -1322,10 +1502,15 @@ export default function Home() {
                                                     name="businessIndustry"
                                                     value={formData.businessIndustry}
                                                     onChange={handleChange}
+                                                    onBlur={handleBlur}
                                                     required={formData.ownBusiness === 'yes'}
-                                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                    aria-invalid={!!errors.businessIndustry}
+                                                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.businessIndustry && (touched.businessIndustry || showErrorsForStep === 2) ? 'border-red-500' : 'border-gray-300'}`}
                                                     placeholder="e.g., Retail, Food & Beverage"
                                                 />
+                                                {(touched.businessIndustry || showErrorsForStep === 2) && errors.businessIndustry && (
+                                                    <p className="mt-1 text-sm text-red-600">{errors.businessIndustry}</p>
+                                                )}
                                             </div>
                                         </div>
                                     )}
@@ -1336,11 +1521,16 @@ export default function Home() {
                                             name="interestReason"
                                             value={formData.interestReason}
                                             onChange={handleChange}
+                                            onBlur={handleBlur}
                                             rows={4}
                                             required
-                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            aria-invalid={!!errors.interestReason}
+                                            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.interestReason && (touched.interestReason || showErrorsForStep === 3) ? 'border-red-500' : 'border-gray-300'}`}
                                             placeholder="Tell us about your motivation, experience, and what attracts you to our brand..."
                                         />
+                                        {(touched.interestReason || showErrorsForStep === 3) && errors.interestReason && (
+                                            <p className="mt-1 text-sm text-red-600">{errors.interestReason}</p>
+                                        )}
                                     </div>
                                 </div>
                             )}
@@ -1355,15 +1545,20 @@ export default function Home() {
                                             name="estimatedBudget"
                                             value={formData.estimatedBudget}
                                             onChange={handleChange}
+                                            onBlur={handleBlur}
                                             required
-                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            aria-invalid={!!errors.estimatedBudget}
+                                            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.estimatedBudget && (touched.estimatedBudget || showErrorsForStep === 3) ? 'border-red-500' : 'border-gray-300'}`}
                                         >
-                                            <option value="">Select investment range</option>
-                                            <option value="150k-200k">$150,000 - $200,000</option>
-                                            <option value="200k-250k">$200,000 - $250,000</option>
-                                            <option value="250k-300k">$250,000 - $300,000</option>
-                                            <option value="300k+">$300,000+</option>
+                                            <option value="">Select investment range (₹)</option>
+                                            <option value="₹20L–₹30L">₹20L–₹30L</option>
+                                            <option value="₹30L–₹40L">₹30L–₹40L</option>
+                                            <option value="₹40L–₹50L">₹40L–₹50L</option>
+                                            <option value="₹50L+">₹50L+</option>
                                         </select>
+                                        {(touched.estimatedBudget || showErrorsForStep === 3) && errors.estimatedBudget && (
+                                            <p className="mt-1 text-sm text-red-600">{errors.estimatedBudget}</p>
+                                        )}
                                     </div>
 
                                     <div>
@@ -1376,6 +1571,7 @@ export default function Home() {
                                                     value="yes"
                                                     checked={formData.hasSpace === 'yes'}
                                                     onChange={() => handleRadioChange('hasSpace', 'yes')}
+                                                    onBlur={handleBlur}
                                                     required
                                                     className="w-4 h-4 text-blue-600"
                                                 />
@@ -1388,6 +1584,7 @@ export default function Home() {
                                                     value="no"
                                                     checked={formData.hasSpace === 'no'}
                                                     onChange={() => handleRadioChange('hasSpace', 'no')}
+                                                    onBlur={handleBlur}
                                                     required
                                                     className="w-4 h-4 text-blue-600"
                                                 />
@@ -1405,10 +1602,15 @@ export default function Home() {
                                                     name="spaceLocation"
                                                     value={formData.spaceLocation}
                                                     onChange={handleChange}
+                                                    onBlur={handleBlur}
                                                     required={formData.hasSpace === 'yes'}
-                                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                    aria-invalid={!!errors.spaceLocation}
+                                                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.spaceLocation && (touched.spaceLocation || showErrorsForStep === 3) ? 'border-red-500' : 'border-gray-300'}`}
                                                     placeholder="Street address or general area"
                                                 />
+                                                {(touched.spaceLocation || showErrorsForStep === 3) && errors.spaceLocation && (
+                                                    <p className="mt-1 text-sm text-red-600">{errors.spaceLocation}</p>
+                                                )}
                                             </div>
                                             <div>
                                                 <label className="block text-gray-700 font-semibold mb-2">Space Size (sq ft) *</label>
@@ -1417,10 +1619,15 @@ export default function Home() {
                                                     name="spaceSize"
                                                     value={formData.spaceSize}
                                                     onChange={handleChange}
+                                                    onBlur={handleBlur}
                                                     required={formData.hasSpace === 'yes'}
-                                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                                    placeholder="e.g., 800-1200 sq ft"
+                                                    aria-invalid={!!errors.spaceSize}
+                                                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.spaceSize && (touched.spaceSize || showErrorsForStep === 3) ? 'border-red-500' : 'border-gray-300'}`}
+                                                    placeholder="e.g., 800"
                                                 />
+                                                {(touched.spaceSize || showErrorsForStep === 3) && errors.spaceSize && (
+                                                    <p className="mt-1 text-sm text-red-600">{errors.spaceSize}</p>
+                                                )}
                                             </div>
                                         </div>
                                     )}
@@ -1439,10 +1646,15 @@ export default function Home() {
                                                 name="startTimeline"
                                                 value={formData.startTimeline}
                                                 onChange={handleChange}
+                                                onBlur={handleBlur}
                                                 required
-                                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                aria-invalid={!!errors.startTimeline}
+                                                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.startTimeline && (touched.startTimeline || showErrorsForStep === 4) ? 'border-red-500' : 'border-gray-300'}`}
                                                 placeholder="e.g., Within 3-6 months, As soon as possible"
                                             />
+                                            {(touched.startTimeline || showErrorsForStep === 4) && errors.startTimeline && (
+                                                <p className="mt-1 text-sm text-red-600">{errors.startTimeline}</p>
+                                            )}
                                         </div>
                                         <div>
                                             <label className="block text-gray-700 font-semibold mb-2">How did you hear about us? *</label>
@@ -1451,10 +1663,15 @@ export default function Home() {
                                                 name="hearAboutUs"
                                                 value={formData.hearAboutUs}
                                                 onChange={handleChange}
+                                                onBlur={handleBlur}
                                                 required
-                                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                aria-invalid={!!errors.hearAboutUs}
+                                                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.hearAboutUs && (touched.hearAboutUs || showErrorsForStep === 4) ? 'border-red-500' : 'border-gray-300'}`}
                                                 placeholder="e.g., Social media, Friend referral, Google search"
                                             />
+                                            {(touched.hearAboutUs || showErrorsForStep === 4) && errors.hearAboutUs && (
+                                                <p className="mt-1 text-sm text-red-600">{errors.hearAboutUs}</p>
+                                            )}
                                         </div>
                                     </div>
 
@@ -1465,6 +1682,7 @@ export default function Home() {
                                                 name="confirm"
                                                 checked={formData.confirm}
                                                 onChange={handleChange}
+                                                onBlur={handleBlur}
                                                 className="mt-1 w-4 h-4 text-blue-600"
                                                 required
                                             />
@@ -1475,6 +1693,17 @@ export default function Home() {
                                     </div>
                                 </div>
                             )}
+
+                            {/* Hidden honeypot field for spam bots */}
+                            <input
+                                type="text"
+                                name="website"
+                                value={honeypot}
+                                onChange={(e) => setHoneypot(e.target.value)}
+                                className="hidden"
+                                tabIndex={-1}
+                                autoComplete="off"
+                            />
 
                             {/* Navigation Buttons */}
                             <div className="flex justify-between pt-6 border-t border-gray-200">
@@ -1494,7 +1723,7 @@ export default function Home() {
                                 {currentStep < totalSteps ? (
                                     <button
                                         type="button"
-                                        onClick={nextStep}
+                                        onClick={nextStepWithValidation}
                                         disabled={!isStepValid()}
                                         className={`px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg font-semibold transition-all duration-300 shadow-lg ${
                                             isStepValid()
@@ -1507,14 +1736,37 @@ export default function Home() {
                                 ) : (
                                     <button
                                         type="submit"
-                                        disabled={!isStepValid()}
-                                        className={`px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg font-semibold transition-all duration-300 shadow-lg ${
-                                            isStepValid()
-                                                ? 'hover:from-blue-500 hover:to-blue-600 hover:shadow-xl transform hover:scale-105'
-                                                : 'opacity-50 cursor-not-allowed'
+                                        disabled={isSubmitting || !isStepValid() || (submitCooldownUntil && Date.now() < submitCooldownUntil) ? true : false}
+                                        className={`px-8 py-3 rounded-lg font-semibold transition-all duration-300 shadow-lg text-white ${
+                                            isSubmitting || (submitCooldownUntil && Date.now() < submitCooldownUntil)
+                                                ? 'bg-blue-400 cursor-wait'
+                                                : 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 hover:shadow-xl transform hover:scale-105'
                                         }`}
+                                        onClick={(e) => {
+                                            // run full validation before submit
+                                            const all = validateAll();
+                                            if (Object.keys(all).length) {
+                                                e.preventDefault();
+                                                setErrors(all);
+                                                // Focus first invalid step
+                                                for (const step of [1,2,3,4]) {
+                                                    const stepErr = validateStep(step);
+                                                    if (Object.keys(stepErr).length) {
+                                                        setCurrentStep(step);
+                                                        setShowErrorsForStep(step);
+                                                        markTouched(Object.keys(stepErr));
+                                                        break;
+                                                    }
+                                                }
+                                            }
+                                        }}
                                     >
-                                        Submit Application
+                                        {isSubmitting ? (
+                                            <span className="inline-flex items-center gap-2">
+                                                <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+                                                Submitting…
+                                            </span>
+                                        ) : (submitCooldownUntil && Date.now() < submitCooldownUntil) ? 'Submitted' : 'Submit Application'}
                                     </button>
                                 )}
                             </div>

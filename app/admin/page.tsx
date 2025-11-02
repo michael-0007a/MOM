@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { LogIn, Users, Eye, EyeOff, ChevronDown, ChevronRight } from 'lucide-react';
+import React from 'react';
 
 export default function Admin() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -35,7 +36,6 @@ export default function Admin() {
   const [leads, setLeads] = useState<AdminLead[]>([]);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
-  const SESSION_TTL_MS = 1000 * 60 * 60; // 1 hour absolute session TTL
   const IDLE_TIMEOUT_MS = 1000 * 60 * 30; // 30 minutes inactivity
   const SESSION_MAX_AGE_MS = 1000 * 60 * 60 * 8; // 8 hours absolute max
 
@@ -293,84 +293,172 @@ export default function Admin() {
       </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white rounded-2xl shadow-md overflow-hidden">
-          <table className="w-full">
-            <thead className="bg-blue-50">
-              <tr>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-blue-800">Name</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-blue-800">Email</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-blue-800">Phone</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-blue-800">City/State</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-blue-800">Budget</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-blue-800">Has Space</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-blue-800">Status</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-blue-800">Details</th>
-              </tr>
-            </thead>
-            <tbody>
-              {leads.map((lead) => (
-                <>
-                  <tr key={lead.id} className="border-t border-gray-100 hover:bg-blue-50/30 transition-colors">
-                    <td className="px-6 py-4 font-medium text-gray-800">{lead.fullName || '—'}</td>
-                    <td className="px-6 py-4 text-gray-700">{lead.email || '—'}</td>
-                    <td className="px-6 py-4 text-gray-700">{lead.phone || '—'}</td>
-                    <td className="px-6 py-4 text-gray-700">{lead.cityState || '—'}</td>
-                    <td className="px-6 py-4 text-gray-700">{lead.estimatedBudget || '—'}</td>
-                    <td className="px-6 py-4 text-gray-700">{lead.hasSpace === 'yes' ? 'Yes' : lead.hasSpace === 'no' ? 'No' : '—'}</td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${statusClass(lead.interestStatus)}`}>
-                          {lead.interestStatus || 'unassigned'}
-                        </span>
-                        <select
-                          value={lead.interestStatus || 'unassigned'}
-                          onChange={(e) => updateStatus(lead.id, e.target.value as InterestStatus)}
-                          className="border border-gray-300 rounded-md text-sm px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                          <option value="high">high</option>
-                          <option value="medium">medium</option>
-                          <option value="low">low</option>
-                          <option value="unassigned">unassigned</option>
-                        </select>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <button onClick={() => toggleExpand(lead.id)} className="inline-flex items-center gap-1 text-blue-700 hover:text-blue-900 font-semibold">
-                        {expanded[lead.id] ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-                        {expanded[lead.id] ? 'Hide' : 'View'}
-                      </button>
-                    </td>
-                  </tr>
-                  {expanded[lead.id] && (
-                    <tr className="bg-blue-50/30">
-                      <td colSpan={8} className="px-6 py-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
-                          <Detail label="Own Business" value={lead.ownBusiness ? (lead.ownBusiness === 'yes' ? 'Yes' : 'No') : '—'} />
-                          <Detail label="Business Name" value={lead.businessName || '—'} />
-                          <Detail label="Business Industry" value={lead.businessIndustry || '—'} />
-                          <Detail label="Space Location" value={lead.spaceLocation || '—'} />
-                          <Detail label="Space Size" value={lead.spaceSize || '—'} />
-                          <Detail label="Start Timeline" value={lead.startTimeline || '—'} />
-                          <Detail label="Heard About Us" value={lead.hearAboutUs || '—'} />
-                          <Detail label="Confirmed" value={lead.confirm ? 'Yes' : 'No'} />
-                          <Detail label="Submitted At" value={formatDate(lead.createdAt)} />
-                          <div className="md:col-span-2 lg:col-span-3">
-                            <div className="text-gray-800 font-semibold mb-1">Interest Reason</div>
-                            <div className="text-gray-700 whitespace-pre-wrap bg-white rounded-md border border-gray-200 p-3">{lead.interestReason || '—'}</div>
-                          </div>
+        {/* Mobile view: stacked cards */}
+        <div className="md:hidden space-y-4">
+          {leads.map((lead) => (
+            <div key={`card-${lead.id}`} className="bg-white rounded-xl shadow border border-gray-100 p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <div className="text-base font-bold text-gray-900">{lead.fullName || '—'}</div>
+                  <div className="text-xs text-gray-500">{formatDate(lead.createdAt)}</div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${statusClass(lead.interestStatus)}`}>
+                    {lead.interestStatus || 'unassigned'}
+                  </span>
+                  <select
+                    value={lead.interestStatus || 'unassigned'}
+                    onChange={(e) => updateStatus(lead.id, e.target.value as InterestStatus)}
+                    className="border border-gray-300 rounded-md text-xs px-1.5 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="high">high</option>
+                    <option value="medium">medium</option>
+                    <option value="low">low</option>
+                    <option value="unassigned">unassigned</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+                <div className="text-gray-500">Email</div>
+                <div className="text-gray-800 truncate">{lead.email || '—'}</div>
+                <div className="text-gray-500">Phone</div>
+                <div className="text-gray-800">{lead.phone || '—'}</div>
+                <div className="text-gray-500">City/State</div>
+                <div className="text-gray-800">{lead.cityState || '—'}</div>
+                {/* Budget moved to details */}
+              </div>
+
+              <button
+                onClick={() => toggleExpand(lead.id)}
+                className="mt-3 inline-flex items-center gap-1 text-blue-700 hover:text-blue-900 font-semibold text-sm"
+              >
+                {expanded[lead.id] ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                {expanded[lead.id] ? 'Hide details' : 'View details'}
+              </button>
+
+              {expanded[lead.id] && (
+                <div className="mt-3 border-t border-gray-200 pt-3 space-y-3">
+                  <div className="grid grid-cols-1 gap-2 text-sm">
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+                      <div className="text-gray-500">Own Business</div>
+                      <div className="text-gray-800">{lead.ownBusiness ? (lead.ownBusiness === 'yes' ? 'Yes' : 'No') : '—'}</div>
+                      <div className="text-gray-500">Business Name</div>
+                      <div className="text-gray-800">{lead.businessName || '—'}</div>
+                      <div className="text-gray-500">Industry</div>
+                      <div className="text-gray-800">{lead.businessIndustry || '—'}</div>
+                      <div className="text-gray-500">Space Location</div>
+                      <div className="text-gray-800">{lead.spaceLocation || '—'}</div>
+                      <div className="text-gray-500">Space Size</div>
+                      <div className="text-gray-800">{lead.spaceSize || '—'}</div>
+                      <div className="text-gray-500">Budget</div>
+                      <div className="text-gray-800">{lead.estimatedBudget || '—'}</div>
+                      <div className="text-gray-500">Has Space</div>
+                      <div className="text-gray-800">{lead.hasSpace === 'yes' ? 'Yes' : lead.hasSpace === 'no' ? 'No' : '—'}</div>
+                      <div className="text-gray-500">Start Timeline</div>
+                      <div className="text-gray-800">{lead.startTimeline || '—'}</div>
+                      <div className="text-gray-500">Heard About Us</div>
+                      <div className="text-gray-800">{lead.hearAboutUs || '—'}</div>
+                      <div className="text-gray-500">Confirmed</div>
+                      <div className="text-gray-800">{lead.confirm ? 'Yes' : 'No'}</div>
+                    </div>
+                    <div>
+                      <div className="text-gray-800 font-semibold mb-1">Interest Reason</div>
+                      <div className="text-gray-700 whitespace-pre-wrap bg-gray-50 rounded-md border border-gray-200 p-2">{lead.interestReason || '—'}</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+          {leads.length === 0 && (
+            <div className="text-center text-gray-600">No leads yet.</div>
+          )}
+        </div>
+
+        {/* Desktop/table view */}
+        <div className="hidden md:block bg-white rounded-2xl shadow-md">
+          <div className="relative w-full overflow-x-auto">
+            <table className="w-full min-w-[1080px]">
+              <thead className="bg-blue-50">
+                <tr>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-blue-800">Name</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-blue-800">Email</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-blue-800">Phone</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-blue-800">City/State</th>
+                  {/* Budget column removed */}
+                  {/* Has Space column removed */}
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-blue-800">Status</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-blue-800">Details</th>
+                </tr>
+              </thead>
+              <tbody>
+                {leads.map((lead) => (
+                  <React.Fragment key={`row-${lead.id}`}>
+                    <tr className="border-t border-gray-100 hover:bg-blue-50/30 transition-colors">
+                      <td className="px-6 py-4 font-medium text-gray-800">{lead.fullName || '—'}</td>
+                      <td className="px-6 py-4 text-gray-700">{lead.email || '—'}</td>
+                      <td className="px-6 py-4 text-gray-700">{lead.phone || '—'}</td>
+                      <td className="px-6 py-4 text-gray-700">{lead.cityState || '—'}</td>
+                      {/* Budget cell removed */}
+                      {/* Has Space cell removed */}
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-2">
+                          <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${statusClass(lead.interestStatus)}`}>
+                            {lead.interestStatus || 'unassigned'}
+                          </span>
+                          <select
+                            value={lead.interestStatus || 'unassigned'}
+                            onChange={(e) => updateStatus(lead.id, e.target.value as InterestStatus)}
+                            className="border border-gray-300 rounded-md text-sm px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          >
+                            <option value="high">high</option>
+                            <option value="medium">medium</option>
+                            <option value="low">low</option>
+                            <option value="unassigned">unassigned</option>
+                          </select>
                         </div>
                       </td>
+                      <td className="px-6 py-4">
+                        <button onClick={() => toggleExpand(lead.id)} className="inline-flex items-center gap-1 text-blue-700 hover:text-blue-900 font-semibold">
+                          {expanded[lead.id] ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                          {expanded[lead.id] ? 'Hide' : 'View'}
+                        </button>
+                      </td>
                     </tr>
-                  )}
-                </>
-              ))}
-              {leads.length === 0 && (
-                <tr>
-                  <td colSpan={8} className="px-6 py-8 text-center text-gray-600">No leads yet.</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                    {expanded[lead.id] && (
+                      <tr key={`${lead.id}-details`} className="bg-blue-50/30">
+                        <td colSpan={6} className="px-6 py-4">
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
+                            <Detail label="Own Business" value={lead.ownBusiness ? (lead.ownBusiness === 'yes' ? 'Yes' : 'No') : '—'} />
+                            <Detail label="Business Name" value={lead.businessName || '—'} />
+                            <Detail label="Business Industry" value={lead.businessIndustry || '—'} />
+                            <Detail label="Space Location" value={lead.spaceLocation || '—'} />
+                            <Detail label="Space Size" value={lead.spaceSize || '—'} />
+                            <Detail label="Budget" value={lead.estimatedBudget || '—'} />
+                            <Detail label="Has Space" value={lead.hasSpace === 'yes' ? 'Yes' : lead.hasSpace === 'no' ? 'No' : '—'} />
+                            <Detail label="Start Timeline" value={lead.startTimeline || '—'} />
+                            <Detail label="Heard About Us" value={lead.hearAboutUs || '—'} />
+                            <Detail label="Confirmed" value={lead.confirm ? 'Yes' : 'No'} />
+                            <Detail label="Submitted At" value={formatDate(lead.createdAt)} />
+                            <div className="md:col-span-2 lg:col-span-3">
+                              <div className="text-gray-800 font-semibold mb-1">Interest Reason</div>
+                              <div className="text-gray-700 whitespace-pre-wrap bg-white rounded-md border border-gray-200 p-3">{lead.interestReason || '—'}</div>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
+                ))}
+                {leads.length === 0 && (
+                  <tr>
+                    <td colSpan={8} className="px-6 py-8 text-center text-gray-600">No leads yet.</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
