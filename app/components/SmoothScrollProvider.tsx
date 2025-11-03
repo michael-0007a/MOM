@@ -26,19 +26,20 @@ export default function SmoothScrollProvider({ children }: SmoothScrollProviderP
 
   useEffect(() => {
     // Initialize Lenis with optimized settings for cinematic feel
+    const isTouch = typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
     const lenis = new Lenis({
       // Core scroll behavior
-      duration: 1.2, // Smooth but not too floaty (adjust: 0.8-2.0)
-      easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // Custom easing for natural feel
+      duration: isTouch ? 0.9 : 1.2,
+      easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       orientation: 'vertical',
       gestureOrientation: 'vertical',
 
       // Smoothing settings
-      smoothWheel: true, // Enable smooth wheel scrolling on desktop
+      smoothWheel: !isTouch, // disable wheel smoothing on touch to avoid jitter
 
-      // Speed multipliers (adjust for scroll speed)
-      wheelMultiplier: 1, // Normal wheel speed (adjust: 0.5-2.0)
-      touchMultiplier: 2, // Touch speed (adjust: 1.0-3.0)
+      // Speed multipliers
+      wheelMultiplier: 1,
+      touchMultiplier: isTouch ? 1.2 : 2,
 
       // Performance optimizations
       autoResize: true,
@@ -71,11 +72,10 @@ export default function SmoothScrollProvider({ children }: SmoothScrollProviderP
         e.preventDefault();
         const targetElement = document.querySelector(url.hash);
         if (targetElement) {
-          // Smooth scroll to target with offset for navbar
           const offset = 80; // Adjust based on your navbar height
           const targetPosition = (targetElement as HTMLElement).offsetTop - offset;
           lenis.scrollTo(targetPosition, {
-            duration: 1.5, // Slightly longer for intentional navigation
+            duration: 1.2,
             easing: (t: number) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2),
           });
         }
@@ -83,7 +83,7 @@ export default function SmoothScrollProvider({ children }: SmoothScrollProviderP
     };
 
     // Add click listener for anchor links
-    document.addEventListener('click', handleAnchorClick);
+    document.addEventListener('click', handleAnchorClick, { passive: false });
 
     // Handle browser back/forward navigation
     const handlePopState = () => {
@@ -92,16 +92,15 @@ export default function SmoothScrollProvider({ children }: SmoothScrollProviderP
         if (targetElement) {
           const offset = 80;
           const targetPosition = (targetElement as HTMLElement).offsetTop - offset;
-          lenis.scrollTo(targetPosition, { duration: 0 }); // Instant for browser navigation
+          lenis.scrollTo(targetPosition, { duration: 0 });
         }
       }
     };
 
-    window.addEventListener('popstate', handlePopState);
+    window.addEventListener('popstate', handlePopState, { passive: true } as AddEventListenerOptions);
 
     // Sync with navbar scroll spy
     lenis.on('scroll', ({ scroll }: { scroll: number }) => {
-      // Dispatch custom event for navbar to listen to
       window.dispatchEvent(
         new CustomEvent('lenisScroll', {
           detail: { scrollY: scroll },
@@ -113,32 +112,28 @@ export default function SmoothScrollProvider({ children }: SmoothScrollProviderP
     const handleResize = () => {
       lenis.resize();
     };
-    window.addEventListener('resize', handleResize);
+    window.addEventListener('resize', handleResize, { passive: true });
 
     // Handle reduced motion preference
     const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const handleReducedMotion = (e: MediaQueryListEvent) => {
-      if (e.matches) {
-        // Disable smooth scrolling for users who prefer reduced motion
-        lenis.destroy();
+    const applyReducedMotion = () => {
+      if (mediaQuery.matches) {
+        lenis.stop();
       } else {
-        // Re-enable if user changes preference
         lenis.start();
       }
     };
 
-    if (mediaQuery.matches) {
-      lenis.destroy();
-    }
-
+    applyReducedMotion();
+    const handleReducedMotion = () => applyReducedMotion();
     mediaQuery.addEventListener('change', handleReducedMotion);
 
     // Cleanup
     return () => {
       lenis.destroy();
-      document.removeEventListener('click', handleAnchorClick);
-      window.removeEventListener('popstate', handlePopState);
-      window.removeEventListener('resize', handleResize);
+      document.removeEventListener('click', handleAnchorClick as EventListener);
+      window.removeEventListener('popstate', handlePopState as EventListener);
+      window.removeEventListener('resize', handleResize as EventListener);
       mediaQuery.removeEventListener('change', handleReducedMotion);
     };
   }, []);

@@ -1,17 +1,25 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { ArrowRight, Sparkles, Heart, Blend, Users, Award, TrendingUp, Globe, ChevronDown, ChevronUp, DollarSign, Milk, Cookie, IceCream, Cherry, Coffee, CheckCircle, ChevronLeft, ChevronRight, ZoomIn } from 'lucide-react';
+import { useEffect, useState, useRef } from 'react';
+import { ArrowRight, Sparkles, Heart, Blend, Users, Award, TrendingUp, Globe, ChevronDown, ChevronUp, DollarSign, CheckCircle, ChevronLeft, ChevronRight, ZoomIn } from 'lucide-react';
 import Image from 'next/image';
 import FranchiseCharacterPng from '@/public/franchise_section_character.png';
-import ScrollAnimation, { ParallaxContainer, SmoothReveal } from './components/ScrollAnimation';
+import ScrollAnimation, { ParallaxContainer } from './components/ScrollAnimation';
 
 export default function Home() {
     const [loaded, setLoaded] = useState(false);
-    const [activeFilter, setActiveFilter] = useState('all');
     const [openFaq, setOpenFaq] = useState<number | null>(null);
     const [activeTimelineIndex, setActiveTimelineIndex] = useState(0);
-    const [timelineProgress, setTimelineProgress] = useState(0);
+
+    // Refs for optimized Our Story timeline
+    const ourStorySectionRef = useRef<HTMLElement | null>(null);
+    const progressBarRef = useRef<HTMLDivElement | null>(null);
+    const sectionTopAbsRef = useRef(0);
+    const sectionHeightRef = useRef(1);
+    const milestoneCentersAbsRef = useRef<number[]>([]);
+    const lastActiveIndexRef = useRef(0);
+    const rafScheduledRef = useRef(false);
+
     // Updated form to support detailed franchise fields
     const initialForm = {
         fullName: '',
@@ -57,59 +65,95 @@ export default function Home() {
         setLoaded(true);
         setMounted(true);
 
-        // Timeline scroll handler with improved center tracking
-        const handleTimelineScroll = () => {
-            const timelineSection = document.getElementById('our-story');
-            const timelineItems = document.querySelectorAll('.timeline-milestone');
+        // Our Story: pre-measure and attach rAF-driven scroll updates
+        ourStorySectionRef.current = document.getElementById('our-story') as HTMLElement | null;
 
-            if (!timelineSection || timelineItems.length === 0) return;
+        const measure = () => {
+            const sec = ourStorySectionRef.current;
+            if (!sec) return;
+            const secRect = sec.getBoundingClientRect();
+            sectionTopAbsRef.current = secRect.top + window.scrollY;
+            sectionHeightRef.current = secRect.height || 1;
 
-            const sectionRect = timelineSection.getBoundingClientRect();
-            const sectionTop = sectionRect.top;
-            const sectionHeight = sectionRect.height;
-            const viewportHeight = window.innerHeight;
-            const viewportCenter = viewportHeight / 2;
-
-            // Calculate section progress based on viewport center position
-            const sectionStart = sectionTop;
-            const sectionEnd = sectionTop + sectionHeight;
-
-            // Progress calculation: 0 when center is at section top, 1 when center is at section bottom
-            let sectionProgress = 0;
-            if (viewportCenter >= sectionStart && viewportCenter <= sectionEnd) {
-                sectionProgress = (viewportCenter - sectionStart) / sectionHeight;
-            } else if (viewportCenter > sectionEnd) {
-                sectionProgress = 1;
-            }
-
-            sectionProgress = Math.max(0, Math.min(1, sectionProgress));
-            setTimelineProgress(sectionProgress);
-
-            // Find active milestone based on viewport center
-            let activeIndex = 0;
-            let minDistance = Infinity;
-
-            timelineItems.forEach((item, index) => {
-                const itemRect = item.getBoundingClientRect();
-                const itemCenter = itemRect.top + itemRect.height / 2;
-                const distance = Math.abs(itemCenter - viewportCenter);
-
-                if (distance < minDistance) {
-                    minDistance = distance;
-                    activeIndex = index;
-                }
+            const items = Array.from(sec.querySelectorAll<HTMLElement>('.timeline-milestone'));
+            milestoneCentersAbsRef.current = items.map((el) => {
+                const r = el.getBoundingClientRect();
+                return r.top + window.scrollY + r.height / 2;
             });
-
-            setActiveTimelineIndex(activeIndex);
         };
 
-        window.addEventListener('scroll', handleTimelineScroll);
-        window.addEventListener('resize', handleTimelineScroll);
-        handleTimelineScroll(); // Initial call
+        const applyProgressAndActive = () => {
+            const secTop = sectionTopAbsRef.current;
+            const secH = sectionHeightRef.current || 1;
+            const viewportCenterAbs = window.scrollY + window.innerHeight / 2;
+
+            // Progress as scaleY (0..1) with origin-top
+            const progress = Math.max(0, Math.min(1, (viewportCenterAbs - secTop) / secH));
+            const bar = progressBarRef.current;
+            if (bar) {
+                bar.style.transform = `scaleY(${progress})`;
+                // Apply will-change only when animating in view
+                if (progress > 0 && progress < 1) {
+                    bar.style.willChange = 'transform';
+                } else {
+                    bar.style.willChange = '';
+                }
+            }
+
+            // Active milestone: nearest to viewport center
+            const centers = milestoneCentersAbsRef.current;
+            if (centers.length) {
+                let idx = 0;
+                let minDist = Number.POSITIVE_INFINITY;
+                for (let i = 0; i < centers.length; i++) {
+                    const d = Math.abs(centers[i] - viewportCenterAbs);
+                    if (d < minDist) {
+                        minDist = d;
+                        idx = i;
+                    }
+                }
+                if (idx !== lastActiveIndexRef.current) {
+                    lastActiveIndexRef.current = idx;
+                    setActiveTimelineIndex(idx);
+                }
+            }
+        };
+
+        const schedule = () => {
+            if (rafScheduledRef.current) return;
+            rafScheduledRef.current = true;
+            requestAnimationFrame(() => {
+                rafScheduledRef.current = false;
+                applyProgressAndActive();
+            });
+        };
+
+        const onResize = () => {
+            measure();
+            schedule();
+        };
+
+        // Lenis integration if present, otherwise native scroll
+        type LenisLike = { on: (ev: string, cb: () => void) => void; off: (ev: string, cb: () => void) => void };
+        const lenis = (window as unknown as { lenis?: LenisLike }).lenis;
+
+        measure();
+        let detach: (() => void) | undefined;
+        if (lenis) {
+            lenis.on('scroll', schedule);
+            detach = () => lenis.off('scroll', schedule);
+        } else {
+            const onScroll = () => schedule();
+            window.addEventListener('scroll', onScroll, { passive: true });
+            detach = () => window.removeEventListener('scroll', onScroll);
+        }
+        window.addEventListener('resize', onResize);
+        // Initial update
+        schedule();
 
         return () => {
-            window.removeEventListener('scroll', handleTimelineScroll);
-            window.removeEventListener('resize', handleTimelineScroll);
+            if (detach) detach();
+            window.removeEventListener('resize', onResize);
         };
     }, []);
 
@@ -117,9 +161,27 @@ export default function Home() {
         // Fetch gallery images from public/gallery via API
         fetch('/api/gallery/list')
             .then(res => res.json())
-            .then((data: { images: string[] }) => setGalleryImages(Array.isArray(data.images) ? data.images : []))
+            .then((data: { images: string[] }) => {
+                const imgs = Array.isArray(data.images) ? data.images : [];
+                setGalleryImages(imgs);
+            })
             .catch(() => setGalleryImages([]));
     }, []);
+
+    // Silently preload only neighbor slides for smoother UX
+    useEffect(() => {
+        if (galleryImages.length === 0) return;
+        const len = galleryImages.length;
+        const indices = [galleryIndex, (galleryIndex + 1) % len, (galleryIndex - 1 + len) % len];
+        indices.forEach((i) => {
+            const src = galleryImages[i];
+            if (!src) return;
+            if (typeof window !== 'undefined' && 'Image' in window) {
+                const preload = new window.Image();
+                preload.src = src;
+            }
+        });
+    }, [galleryImages, galleryIndex]);
 
     // Timeline data
     const milestones = [
@@ -160,33 +222,6 @@ export default function Home() {
             description: 'Leading the industry with cutting-edge technology and nationwide delivery services.',
         },
     ];
-
-    // Gallery data
-    const galleryItems = [
-        { id: 1, type: 'milkshake', icon: Milk, title: 'Classic Collection', color: 'from-blue-400 to-blue-600' },
-        { id: 2, type: 'customer', icon: Users, title: 'Happy Customers', color: 'from-pink-400 to-pink-600' },
-        { id: 3, type: 'milkshake', icon: Cherry, title: 'Berry Delights', color: 'from-red-400 to-red-600' },
-        { id: 4, type: 'outlet', icon: Award, title: 'Our Outlets', color: 'from-blue-500 to-blue-700' },
-        { id: 5, type: 'milkshake', icon: Coffee, title: 'Chocolate Heaven', color: 'from-amber-600 to-amber-800' },
-        { id: 6, type: 'customer', icon: Sparkles, title: 'Celebrations', color: 'from-yellow-400 to-yellow-600' },
-        { id: 7, type: 'milkshake', icon: Cherry, title: 'Tropical Paradise', color: 'from-orange-400 to-orange-600' },
-        { id: 8, type: 'outlet', icon: TrendingUp, title: 'Store Ambiance', color: 'from-cyan-400 to-cyan-600' },
-        { id: 9, type: 'milkshake', icon: Cookie, title: 'Cookie Crunch', color: 'from-stone-400 to-stone-600' },
-        { id: 10, type: 'customer', icon: Heart, title: 'Family Time', color: 'from-green-400 to-green-600' },
-        { id: 11, type: 'milkshake', icon: IceCream, title: 'Birthday Specials', color: 'from-blue-400 to-blue-600' },
-        { id: 12, type: 'outlet', icon: Globe, title: 'Grand Opening', color: 'from-sky-400 to-sky-600' },
-    ];
-
-    const galleryCategories = [
-        { name: 'All', filter: 'all' },
-        { name: 'Milkshakes', filter: 'milkshake' },
-        { name: 'Customers', filter: 'customer' },
-        { name: 'Outlets', filter: 'outlet' },
-    ];
-
-    const filteredGallery = activeFilter === 'all'
-        ? galleryItems
-        : galleryItems.filter(item => item.type === activeFilter);
 
     // Franchise data
     const faqs = [
@@ -377,7 +412,7 @@ export default function Home() {
                 return true;
             }
             case 4:
-                return !!formData.startTimeline && formData.startTimeline.trim().length > 2 && !!formData.hearAboutUs && formData.hearAboutUs.trim().length > 2 && !!formData.confirm;
+                return !!formData.startTimeline && formData.startTimeline.trim().length > 2 && !!formData.hearAboutUs && formData.hearAboutUs.trim().length > 2 && formData.confirm;
             default:
                 return false;
         }
@@ -787,7 +822,7 @@ export default function Home() {
             </section>
 
             {/* Our Story Section */}
-            <section id="our-story" className="py-10 sm:py-20 bg-white scroll-mt-28 md:scroll-mt-32">
+            <section id="our-story" className="py-10 sm:py-20 bg-white scroll-mt-28 md:scroll-mt-32" ref={ourStorySectionRef}>
                  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                      <ScrollAnimation animation="fadeUp" delay={100}>
                         <div className={`relative z-10 text-center mb-0 transition-all duration-1000 ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
@@ -803,16 +838,14 @@ export default function Home() {
                      {/* Enhanced Mobile-Optimized Timeline */}
                     <ParallaxContainer className="mt-0">
                         <ScrollAnimation animation="none">
-                            <div className="relative pt-4 sm:pt-6 md:pt-8">
+                            <div className="relative pt-4 sm:pt-6 md:pt-8 content-visibility-auto">
                          {/* Animated Timeline Line with Progress - Blue Theme */}
                          <div className="absolute left-1/2 transform -translate-x-1/2 w-1 top-0 bottom-0 bg-gradient-to-b from-blue-200 via-blue-300 to-blue-400 rounded-full z-0 pointer-events-none">
-                             {/* Progress overlay - Blue Theme */}
+                             {/* Progress overlay - Blue Theme using transform scaleY for smoothness */}
                              <div
-                                 className="absolute top-0 left-0 w-full bg-gradient-to-b from-blue-500 via-blue-600 to-blue-700 rounded-full transition-all duration-300 ease-out shadow-lg"
-                                 style={{
-                                     height: `${timelineProgress * 100}%`,
-                                     boxShadow: '0 0 20px rgba(59, 130, 246, 0.5)'
-                                 }}
+                                 ref={progressBarRef}
+                                 className="absolute top-0 left-0 w-full bg-gradient-to-b from-blue-500 via-blue-600 to-blue-700 rounded-full shadow-lg"
+                                 style={{ transformOrigin: 'top', transform: 'scaleY(0)' }}
                              ></div>
                          </div>
 
@@ -928,7 +961,7 @@ export default function Home() {
                     </ScrollAnimation>
 
                     {/* Featured Menu Items Preview */}
-                    <SmoothReveal stagger={150} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-12">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-12">
                         {/* Signature Shakes Preview */}
                         <div className={`bg-white/80 backdrop-blur-sm rounded-xl p-4 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
                             <div className="flex justify-start items-start mb-3">
@@ -994,7 +1027,7 @@ export default function Home() {
                         </div>
 
                         {/* Hidden on mobile, visible on md and larger screens */}
-                        <div className={`hidden md:block bg-white/80 backdrop-blur-sm rounded-xl p-4 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`} style={{ animationDelay: '0.3s' }}>
+                        <div className={`hidden md:block bg-white/80 backdrop-blur-sm rounded-xl p-4 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`} style={{ animationDelay: '0.3s', marginTop: 0 }}>
                             <div className="flex justify-start items-start mb-3">
                                 <span className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-2 py-1 rounded-full text-xs font-bold shadow-md">
                                     Must Try
@@ -1099,7 +1132,7 @@ export default function Home() {
                                 </div>
                             </div>
                         </div>
-                    </SmoothReveal>
+                    </div>
 
                     {/* View Complete Menu Button */}
                     <ScrollAnimation animation="fadeUp" delay={400}>
@@ -1186,7 +1219,7 @@ export default function Home() {
                             <Image src={galleryImages[lightbox]} alt="Preview" fill className="object-contain" sizes="100vw" />
                             <button className="absolute left-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/90" onClick={(e) => { e.stopPropagation(); setLightbox((i) => (i! - 1 + galleryImages.length) % galleryImages.length); }} aria-label="Prev">
                               <ChevronLeft className="w-5 h-5" />
-                            </button>
+                           </button>
                             <button className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/90" onClick={(e) => { e.stopPropagation(); setLightbox((i) => (i! + 1) % galleryImages.length); }} aria-label="Next">
                               <ChevronRight className="w-5 h-5" />
                             </button>
@@ -1266,76 +1299,58 @@ export default function Home() {
 
                         {/* Right Column - Franchise Details */}
                         <ScrollAnimation animation="fadeRight" delay={400}>
-                            <div className="flex flex-col justify-center space-y-8">
-                                <div className="bg-white/80 backdrop-blur-sm border border-blue-100 rounded-2xl p-8 shadow-lg">
-                                    <h3 className="text-2xl font-bold text-gray-900 mb-6">Why Choose Our Franchise?</h3>
+                            <div className="flex flex-col justify-center space-y-6 sm:space-y-8">
+                                <div className="bg-white/80 backdrop-blur-sm border border-blue-100 rounded-2xl p-4 sm:p-8 shadow-lg">
+                                    <h3 className="text-lg sm:text-2xl font-bold text-gray-900 mb-3 sm:mb-6">Why Choose Our Franchise?</h3>
 
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
-                                        <div className="flex items-start space-x-4">
-                                            <div className="w-12 h-12 flex items-center justify-center">
-                                                <DollarSign className="w-6 h-6 text-blue-600" />
+                                    <div className="grid grid-cols-2 sm:grid-cols-2 gap-3 sm:gap-6 mb-5 sm:mb-8">
+                                        <div className="flex items-start space-x-2 sm:space-x-4">
+                                            <div className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center">
+                                                <DollarSign className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
                                             </div>
                                             <div>
-                                                <h4 className="font-semibold text-gray-900 text-lg">High ROI</h4>
-                                                <p className="text-gray-600">18-24 month returns guaranteed</p>
+                                                <h4 className="font-semibold text-gray-900 text-sm sm:text-lg">High ROI</h4>
+                                                <p className="text-gray-600 text-xs sm:text-base">18–24 month returns</p>
                                             </div>
                                         </div>
-                                        <div className="flex items-start space-x-4">
-                                            <div className="w-12 h-12 flex items-center justify-center">
-                                                <Users className="w-6 h-6 text-blue-600" />
+                                        <div className="flex items-start space-x-2 sm:space-x-4">
+                                            <div className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center">
+                                                <Users className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
                                             </div>
                                             <div>
-                                                <h4 className="font-semibold text-gray-900 text-lg">Full Support</h4>
-                                                <p className="text-gray-600">Complete training & ongoing assistance</p>
+                                                <h4 className="font-semibold text-gray-900 text-sm sm:text-lg">Full Support</h4>
+                                                <p className="text-gray-600 text-xs sm:text-base">Training + ongoing help</p>
                                             </div>
                                         </div>
-                                        <div className="flex items-start space-x-4">
-                                            <div className="w-12 h-12 flex items-center justify-center">
-                                                <TrendingUp className="w-6 h-6 text-blue-600" />
+                                        <div className="flex items-start space-x-2 sm:space-x-4">
+                                            <div className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center">
+                                                <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
                                             </div>
                                             <div>
-                                                <h4 className="font-semibold text-gray-900 text-lg">Proven Model</h4>
-                                                <p className="text-gray-600">50+ successful locations nationwide</p>
+                                                <h4 className="font-semibold text-gray-900 text-sm sm:text-lg">Proven Model</h4>
+                                                <p className="text-gray-600 text-xs sm:text-base">50+ locations</p>
                                             </div>
                                         </div>
-                                        <div className="flex items-start space-x-4">
-                                            <div className="w-12 h-12 flex items-center justify-center">
-                                                <Award className="w-6 h-6 text-blue-600" />
+                                        <div className="flex items-start space-x-2 sm:space-x-4">
+                                            <div className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center">
+                                                <Award className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
                                             </div>
                                             <div>
-                                                <h4 className="font-semibold text-gray-900 text-lg">Strong Brand</h4>
-                                                <p className="text-gray-600">Award-winning reputation & recognition</p>
+                                                <h4 className="font-semibold text-gray-900 text-sm sm:text-lg">Strong Brand</h4>
+                                                <p className="text-gray-600 text-xs sm:text-base">Award‑winning</p>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div className="border-t border-gray-200 pt-6">
-                                        <h4 className="font-semibold text-gray-900 text-lg mb-4">What You&apos;ll Get</h4>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-gray-600">
-                                            <div className="flex items-start gap-3">
-                                                <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
-                                                <span>Site selection & lease assistance</span>
-                                            </div>
-                                            <div className="flex items-start gap-3">
-                                                <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
-                                                <span>Store design & branding guidelines</span>
-                                            </div>
-                                            <div className="flex items-start gap-3">
-                                                <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
-                                                <span>Staff training & operational SOPs</span>
-                                            </div>
-                                            <div className="flex items-start gap-3">
-                                                <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
-                                                <span>Supply chain & quality assurance</span>
-                                            </div>
-                                            <div className="flex items-start gap-3">
-                                                <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
-                                                <span>Marketing kit & promotional materials</span>
-                                            </div>
-                                            <div className="flex items-start gap-3">
-                                                <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
-                                                <span>Technology suite (POS, analytics, CRM)</span>
-                                            </div>
+                                    <div className="border-t border-gray-200 pt-3 sm:pt-6">
+                                        <h4 className="font-semibold text-gray-900 text-sm sm:text-lg mb-2.5 sm:mb-4">What You&apos;ll Get</h4>
+                                        <div className="grid grid-cols-2 md:grid-cols-2 gap-2 sm:gap-3 text-xs sm:text-sm text-gray-600">
+                                            <div className="flex items-start gap-2 sm:gap-3"><CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" /><span>Site selection + lease</span></div>
+                                            <div className="flex items-start gap-2 sm:gap-3"><CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" /><span>Design + branding</span></div>
+                                            <div className="flex items-start gap-2 sm:gap-3"><CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" /><span>Training + SOPs</span></div>
+                                            <div className="flex items-start gap-2 sm:gap-3"><CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" /><span>Supply + quality</span></div>
+                                            <div className="flex items-start gap-2 sm:gap-3"><CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" /><span>Marketing kit</span></div>
+                                            <div className="flex items-start gap-2 sm:gap-3"><CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" /><span>Tech suite (POS, CRM)</span></div>
                                         </div>
                                     </div>
                                 </div>
@@ -1363,9 +1378,9 @@ export default function Home() {
                             {currentStep === 1 && (
                                 <div className="space-y-6">
                                     <h4 className="text-lg font-semibold text-gray-900 mb-4">Basic Information</h4>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                                         <div>
-                                            <label className="block text-gray-700 font-semibold mb-2">Full Name *</label>
+                                            <label className="block text-gray-700 font-semibold mb-1 sm:mb-2">Full Name *</label>
                                             <input
                                                 type="text"
                                                 name="fullName"
@@ -1374,15 +1389,17 @@ export default function Home() {
                                                 onBlur={handleBlur}
                                                 required
                                                 aria-invalid={!!errors.fullName}
-                                                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.fullName && (touched.fullName || showErrorsForStep === 1) ? 'border-red-500' : 'border-gray-300'}`}
+                                                className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.fullName && (touched.fullName || showErrorsForStep === 1) ? 'border-red-500' : 'border-gray-300'}`}
                                                 placeholder="Your full name"
+                                                inputMode="text"
+                                                autoComplete="name"
                                             />
                                             {(touched.fullName || showErrorsForStep === 1) && errors.fullName && (
                                                 <p className="mt-1 text-sm text-red-600">{errors.fullName}</p>
                                             )}
                                         </div>
                                         <div>
-                                            <label className="block text-gray-700 font-semibold mb-2">Email Address *</label>
+                                            <label className="block text-gray-700 font-semibold mb-1 sm:mb-2">Email Address *</label>
                                             <input
                                                 type="email"
                                                 name="email"
@@ -1391,8 +1408,9 @@ export default function Home() {
                                                 onBlur={handleBlur}
                                                 required
                                                 inputMode="email"
+                                                autoComplete="email"
                                                 aria-invalid={!!errors.email}
-                                                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.email && (touched.email || showErrorsForStep === 1) ? 'border-red-500' : 'border-gray-300'}`}
+                                                className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.email && (touched.email || showErrorsForStep === 1) ? 'border-red-500' : 'border-gray-300'}`}
                                                 placeholder="name@example.com"
                                             />
                                             {(touched.email || showErrorsForStep === 1) && errors.email && (
@@ -1400,7 +1418,7 @@ export default function Home() {
                                             )}
                                         </div>
                                         <div>
-                                            <label className="block text-gray-700 font-semibold mb-2">Phone Number *</label>
+                                            <label className="block text-gray-700 font-semibold mb-1 sm:mb-2">Phone Number *</label>
                                             <input
                                                 type="tel"
                                                 name="phone"
@@ -1409,10 +1427,11 @@ export default function Home() {
                                                 onBlur={handleBlur}
                                                 required
                                                 inputMode="tel"
+                                                autoComplete="tel"
                                                 pattern="^(?:\\+91[-\\s]?)?[6-9]\\d{9}$"
                                                 title="Enter a valid Indian mobile number (e.g., +91 9876543210 or 9876543210)"
                                                 aria-invalid={!!errors.phone}
-                                                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.phone && (touched.phone || showErrorsForStep === 1) ? 'border-red-500' : 'border-gray-300'}`}
+                                                className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.phone && (touched.phone || showErrorsForStep === 1) ? 'border-red-500' : 'border-gray-300'}`}
                                                 placeholder="+91 98765 43210"
                                             />
                                             {(touched.phone || showErrorsForStep === 1) && errors.phone && (
@@ -1420,7 +1439,7 @@ export default function Home() {
                                             )}
                                         </div>
                                         <div>
-                                            <label className="block text-gray-700 font-semibold mb-2">City/State *</label>
+                                            <label className="block text-gray-700 font-semibold mb-1 sm:mb-2">City/State *</label>
                                             <input
                                                 type="text"
                                                 name="cityState"
@@ -1429,8 +1448,9 @@ export default function Home() {
                                                 onBlur={handleBlur}
                                                 required
                                                 aria-invalid={!!errors.cityState}
-                                                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.cityState && (touched.cityState || showErrorsForStep === 1) ? 'border-red-500' : 'border-gray-300'}`}
+                                                className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.cityState && (touched.cityState || showErrorsForStep === 1) ? 'border-red-500' : 'border-gray-300'}`}
                                                 placeholder="Hyderabad, Telangana"
+                                                autoComplete="address-level2"
                                             />
                                             {(touched.cityState || showErrorsForStep === 1) && errors.cityState && (
                                                 <p className="mt-1 text-sm text-red-600">{errors.cityState}</p>
@@ -1477,9 +1497,9 @@ export default function Home() {
                                     </div>
 
                                     {formData.ownBusiness === 'yes' && (
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                                             <div>
-                                                <label className="block text-gray-700 font-semibold mb-2">Business Name *</label>
+                                                <label className="block text-gray-700 font-semibold mb-1 sm:mb-2">Business Name *</label>
                                                 <input
                                                     type="text"
                                                     name="businessName"
@@ -1488,7 +1508,7 @@ export default function Home() {
                                                     onBlur={handleBlur}
                                                     required={formData.ownBusiness === 'yes'}
                                                     aria-invalid={!!errors.businessName}
-                                                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.businessName && (touched.businessName || showErrorsForStep === 2) ? 'border-red-500' : 'border-gray-300'}`}
+                                                    className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.businessName && (touched.businessName || showErrorsForStep === 2) ? 'border-red-500' : 'border-gray-300'}`}
                                                     placeholder="Your business name"
                                                 />
                                                 {(touched.businessName || showErrorsForStep === 2) && errors.businessName && (
@@ -1496,7 +1516,7 @@ export default function Home() {
                                                 )}
                                             </div>
                                             <div>
-                                                <label className="block text-gray-700 font-semibold mb-2">Industry *</label>
+                                                <label className="block text-gray-700 font-semibold mb-1 sm:mb-2">Industry *</label>
                                                 <input
                                                     type="text"
                                                     name="businessIndustry"
@@ -1505,7 +1525,7 @@ export default function Home() {
                                                     onBlur={handleBlur}
                                                     required={formData.ownBusiness === 'yes'}
                                                     aria-invalid={!!errors.businessIndustry}
-                                                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.businessIndustry && (touched.businessIndustry || showErrorsForStep === 2) ? 'border-red-500' : 'border-gray-300'}`}
+                                                    className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.businessIndustry && (touched.businessIndustry || showErrorsForStep === 2) ? 'border-red-500' : 'border-gray-300'}`}
                                                     placeholder="e.g., Retail, Food & Beverage"
                                                 />
                                                 {(touched.businessIndustry || showErrorsForStep === 2) && errors.businessIndustry && (
@@ -1516,7 +1536,7 @@ export default function Home() {
                                     )}
 
                                     <div>
-                                        <label className="block text-gray-700 font-semibold mb-2">Why are you interested in a Makers of Milkshakes franchise? *</label>
+                                        <label className="block text-gray-700 font-semibold mb-1 sm:mb-2">Why are you interested in a Makers of Milkshakes franchise? *</label>
                                         <textarea
                                             name="interestReason"
                                             value={formData.interestReason}
@@ -1525,7 +1545,7 @@ export default function Home() {
                                             rows={4}
                                             required
                                             aria-invalid={!!errors.interestReason}
-                                            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.interestReason && (touched.interestReason || showErrorsForStep === 3) ? 'border-red-500' : 'border-gray-300'}`}
+                                            className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.interestReason && (touched.interestReason || showErrorsForStep === 3) ? 'border-red-500' : 'border-gray-300'}`}
                                             placeholder="Tell us about your motivation, experience, and what attracts you to our brand..."
                                         />
                                         {(touched.interestReason || showErrorsForStep === 3) && errors.interestReason && (
@@ -1540,7 +1560,7 @@ export default function Home() {
                                 <div className="space-y-6">
                                     <h4 className="text-lg font-semibold text-gray-900 mb-4">Investment & Location Details</h4>
                                     <div>
-                                        <label className="block text-gray-700 font-semibold mb-2">Estimated budget for investment *</label>
+                                        <label className="block text-gray-700 font-semibold mb-1 sm:mb-2">Estimated budget for investment *</label>
                                         <select
                                             name="estimatedBudget"
                                             value={formData.estimatedBudget}
@@ -1548,7 +1568,7 @@ export default function Home() {
                                             onBlur={handleBlur}
                                             required
                                             aria-invalid={!!errors.estimatedBudget}
-                                            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.estimatedBudget && (touched.estimatedBudget || showErrorsForStep === 3) ? 'border-red-500' : 'border-gray-300'}`}
+                                            className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.estimatedBudget && (touched.estimatedBudget || showErrorsForStep === 3) ? 'border-red-500' : 'border-gray-300'}`}
                                         >
                                             <option value="">Select investment range (₹)</option>
                                             <option value="₹20L–₹30L">₹20L–₹30L</option>
@@ -1594,9 +1614,9 @@ export default function Home() {
                                     </div>
 
                                     {formData.hasSpace === 'yes' && (
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                                             <div>
-                                                <label className="block text-gray-700 font-semibold mb-2">Space Location *</label>
+                                                <label className="block text-gray-700 font-semibold mb-1 sm:mb-2">Space Location *</label>
                                                 <input
                                                     type="text"
                                                     name="spaceLocation"
@@ -1605,7 +1625,7 @@ export default function Home() {
                                                     onBlur={handleBlur}
                                                     required={formData.hasSpace === 'yes'}
                                                     aria-invalid={!!errors.spaceLocation}
-                                                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.spaceLocation && (touched.spaceLocation || showErrorsForStep === 3) ? 'border-red-500' : 'border-gray-300'}`}
+                                                    className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.spaceLocation && (touched.spaceLocation || showErrorsForStep === 3) ? 'border-red-500' : 'border-gray-300'}`}
                                                     placeholder="Street address or general area"
                                                 />
                                                 {(touched.spaceLocation || showErrorsForStep === 3) && errors.spaceLocation && (
@@ -1613,7 +1633,7 @@ export default function Home() {
                                                 )}
                                             </div>
                                             <div>
-                                                <label className="block text-gray-700 font-semibold mb-2">Space Size (sq ft) *</label>
+                                                <label className="block text-gray-700 font-semibold mb-1 sm:mb-2">Space Size (sq ft) *</label>
                                                 <input
                                                     type="text"
                                                     name="spaceSize"
@@ -1622,7 +1642,7 @@ export default function Home() {
                                                     onBlur={handleBlur}
                                                     required={formData.hasSpace === 'yes'}
                                                     aria-invalid={!!errors.spaceSize}
-                                                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.spaceSize && (touched.spaceSize || showErrorsForStep === 3) ? 'border-red-500' : 'border-gray-300'}`}
+                                                    className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.spaceSize && (touched.spaceSize || showErrorsForStep === 3) ? 'border-red-500' : 'border-gray-300'}`}
                                                     placeholder="e.g., 800"
                                                 />
                                                 {(touched.spaceSize || showErrorsForStep === 3) && errors.spaceSize && (
@@ -1638,9 +1658,9 @@ export default function Home() {
                             {currentStep === 4 && (
                                 <div className="space-y-6">
                                     <h4 className="text-lg font-semibold text-gray-900 mb-4">Timeline & Final Details</h4>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                                         <div>
-                                            <label className="block text-gray-700 font-semibold mb-2">When would you like to start your franchise journey? *</label>
+                                            <label className="block text-gray-700 font-semibold mb-1 sm:mb-2">When would you like to start your franchise journey? *</label>
                                             <input
                                                 type="text"
                                                 name="startTimeline"
@@ -1649,7 +1669,7 @@ export default function Home() {
                                                 onBlur={handleBlur}
                                                 required
                                                 aria-invalid={!!errors.startTimeline}
-                                                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.startTimeline && (touched.startTimeline || showErrorsForStep === 4) ? 'border-red-500' : 'border-gray-300'}`}
+                                                className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.startTimeline && (touched.startTimeline || showErrorsForStep === 4) ? 'border-red-500' : 'border-gray-300'}`}
                                                 placeholder="e.g., Within 3-6 months, As soon as possible"
                                             />
                                             {(touched.startTimeline || showErrorsForStep === 4) && errors.startTimeline && (
@@ -1657,7 +1677,7 @@ export default function Home() {
                                             )}
                                         </div>
                                         <div>
-                                            <label className="block text-gray-700 font-semibold mb-2">How did you hear about us? *</label>
+                                            <label className="block text-gray-700 font-semibold mb-1 sm:mb-2">How did you hear about us? *</label>
                                             <input
                                                 type="text"
                                                 name="hearAboutUs"
@@ -1666,7 +1686,7 @@ export default function Home() {
                                                 onBlur={handleBlur}
                                                 required
                                                 aria-invalid={!!errors.hearAboutUs}
-                                                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.hearAboutUs && (touched.hearAboutUs || showErrorsForStep === 4) ? 'border-red-500' : 'border-gray-300'}`}
+                                                className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.hearAboutUs && (touched.hearAboutUs || showErrorsForStep === 4) ? 'border-red-500' : 'border-gray-300'}`}
                                                 placeholder="e.g., Social media, Friend referral, Google search"
                                             />
                                             {(touched.hearAboutUs || showErrorsForStep === 4) && errors.hearAboutUs && (
@@ -1736,7 +1756,7 @@ export default function Home() {
                                 ) : (
                                     <button
                                         type="submit"
-                                        disabled={isSubmitting || !isStepValid() || (submitCooldownUntil && Date.now() < submitCooldownUntil) ? true : false}
+                                        disabled={!!(isSubmitting || !isStepValid() || (submitCooldownUntil && Date.now() < submitCooldownUntil))}
                                         className={`px-8 py-3 rounded-lg font-semibold transition-all duration-300 shadow-lg text-white ${
                                             isSubmitting || (submitCooldownUntil && Date.now() < submitCooldownUntil)
                                                 ? 'bg-blue-400 cursor-wait'

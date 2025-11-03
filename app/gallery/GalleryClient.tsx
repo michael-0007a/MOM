@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
 import { ChevronLeft, ChevronRight, ZoomIn } from 'lucide-react';
 
@@ -21,6 +21,16 @@ function labelFromPath(src: string) {
 export default function GalleryClient({ images }: Props) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [lightbox, setLightbox] = useState<number | null>(null);
+
+  // Preload images for smoother navigation (best-effort)
+  useEffect(() => {
+    if (typeof window === 'undefined' || !images?.length) return;
+    const limit = Math.min(images.length, 80);
+    for (let i = 0; i < limit; i++) {
+      const img = new window.Image();
+      img.src = images[i];
+    }
+  }, [images]);
 
   // Group by folder label for desktop sections
   const sections = useMemo(() => {

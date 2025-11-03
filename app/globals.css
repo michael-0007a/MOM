@@ -44,11 +44,7 @@ body {
   font-family: 'Manrope', system-ui, -apple-system, sans-serif;
 }
 
-/* Performance optimizations for animations (safe) */
-* {
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-}
+/* Only apply backface-visibility to animated components via classes, not globally, to avoid text flicker */
 
 /* Lenis Smooth Scroll Optimizations */
 html.lenis {
@@ -63,10 +59,8 @@ html.lenis {
   overscroll-behavior: contain;
 }
 
-/* Enhanced smooth scrolling styles */
-* {
-  scroll-behavior: smooth;
-}
+/* Smooth scroll only at the document level (not on all elements) */
+html { scroll-behavior: smooth; }
 
 /* Disable scroll behavior when Lenis is active */
 html.lenis * {
@@ -539,4 +533,22 @@ html.lenis * {
   .hero-no-purple .dashboard-card-3d::after {
     background: linear-gradient(145deg, rgba(43, 145, 203, 0.22), rgba(31, 41, 55, 0.08));
   }
+
+  /* Mobile performance tweaks to prevent flicker */
+  @media (max-width: 640px) {
+    html, body {
+      -webkit-overflow-scrolling: touch;
+    }
+    /* Disable any backdrop blur utilities on mobile to avoid GPU overdraw */
+    [class*="backdrop-blur"] { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+    /* Reduce expensive shadows that can cause repaints while scrolling */
+    .shadow-2xl, .shadow-xl { box-shadow: 0 4px 12px rgba(0,0,0,0.12) !important; }
+    /* Disable parallax transforms on mobile for stability */
+    .parallax-mobile-off { transform: none !important; }
+  }
+
+  /* Ensure animated components use backface-visibility only where needed */
+  .scroll-animation, .card-3d, .dashboard-card-3d { -webkit-backface-visibility: hidden; backface-visibility: hidden; }
+
+  .content-visibility-auto { content-visibility: auto; contain-intrinsic-size: 1px 1000px; }
 }

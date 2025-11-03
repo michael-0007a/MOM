@@ -57,120 +57,153 @@ export default function ScrollAnimation({
   const [isVisible, setIsVisible] = useState(false);
   const [hasAnimated, setHasAnimated] = useState(false);
 
+  // track animation lifecycle
+  const delayTimeoutRef = useRef<number | null>(null);
+  const rafIdRef = useRef<number | null>(null);
+  const parallaxActiveRef = useRef(false);
+
   useEffect(() => {
     const element = elementRef.current;
     if (!element) return;
+
+    // Feature detection for reduced motion / mobile
+    const prefersReducedMotion = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const isMobileOrCoarse = typeof window !== 'undefined' && window.matchMedia && (window.matchMedia('(pointer: coarse)').matches || window.matchMedia('(max-width: 768px)').matches);
+    const disableParallax = animation === 'parallax' && (prefersReducedMotion || isMobileOrCoarse);
+
+    // Helper to clean up parallax loop
+    const stopParallax = () => {
+      parallaxActiveRef.current = false;
+      if (rafIdRef.current != null) {
+        cancelAnimationFrame(rafIdRef.current);
+        rafIdRef.current = null;
+      }
+      if (window.lenis && handleLenisScroll) {
+        window.lenis.off('scroll', handleLenisScroll);
+      }
+      // Reset transform if we disabled parallax
+      if (animation === 'parallax') {
+        element.style.transform = '';
+      }
+    };
+
+    // Parallax updater
+    const updateParallax = () => {
+      if (!parallaxActiveRef.current || !element) return;
+      const rect = element.getBoundingClientRect();
+      // Only update when in viewport to avoid extra work
+      if (rect.bottom >= 0 && rect.top <= window.innerHeight) {
+        // Translate relative to total scroll for simplicity; cheap math
+        const offset = window.scrollY * parallaxSpeed;
+        element.style.transform = `translate3d(0, ${offset}px, 0)`;
+      }
+    };
+
+    // Lenis callback wrapper
+    const handleLenisScroll = () => {
+      updateParallax();
+    };
+
+    const startParallax = () => {
+      if (disableParallax) return; // disabled on mobile/reduced motion
+      if (parallaxActiveRef.current) return;
+      parallaxActiveRef.current = true;
+
+      if (window.lenis) {
+        // Use Lenis scroll events for sync
+        window.lenis.on('scroll', handleLenisScroll);
+        // Do an initial update
+        updateParallax();
+      } else {
+        const loop = () => {
+          if (!parallaxActiveRef.current) return;
+          updateParallax();
+          rafIdRef.current = requestAnimationFrame(loop);
+        };
+        loop();
+      }
+    };
 
     const observer = new IntersectionObserver(
       ([entry]) => {
         const isIntersecting = entry.isIntersecting;
 
+        // Reveal logic
         if (isIntersecting && (!once || !hasAnimated)) {
-          setTimeout(() => {
+          // Debounced reveal with optional delay
+          if (delayTimeoutRef.current != null) {
+            clearTimeout(delayTimeoutRef.current);
+          }
+          delayTimeoutRef.current = window.setTimeout(() => {
             setIsVisible(true);
             if (once) setHasAnimated(true);
-          }, delay);
+            // Unobserve immediately when once=true to avoid toggles/jitter
+            if (once) {
+              try { observer.unobserve(element); } catch {}
+            }
+          }, Math.max(0, delay));
         } else if (!once && !isIntersecting) {
           setIsVisible(false);
+        }
+
+        // Parallax start/stop tied to intersection visibility
+        if (animation === 'parallax') {
+          if (isIntersecting) {
+            startParallax();
+          } else {
+            stopParallax();
+          }
         }
       },
       {
         threshold: triggerPoint,
-        rootMargin: '0px 0px -50px 0px', // Trigger slightly before element is fully visible
+        rootMargin: '0px 0px -50px 0px',
       }
     );
 
     observer.observe(element);
 
-    // Handle parallax animation
-    let rafId: number;
-    if (animation === 'parallax') {
-      const handleScroll = () => {
-        if (!element) return;
-
-        const rect = element.getBoundingClientRect();
-        const scrolled = window.scrollY;
-        const rate = scrolled * parallaxSpeed;
-
-        // Only apply parallax when element is in viewport
-        if (rect.bottom >= 0 && rect.top <= window.innerHeight) {
-          element.style.transform = `translate3d(0, ${rate}px, 0)`;
-        }
-      };
-
-      const smoothParallax = () => {
-        handleScroll();
-        rafId = requestAnimationFrame(smoothParallax);
-      };
-
-      // Listen to Lenis scroll events if available, otherwise use native scroll
-      if (window.lenis) {
-        window.lenis.on('scroll', handleScroll);
-      } else {
-        window.addEventListener('scroll', handleScroll, { passive: true });
-        smoothParallax();
+    return () => {
+      try { observer.disconnect(); } catch {}
+      if (delayTimeoutRef.current != null) {
+        clearTimeout(delayTimeoutRef.current);
+        delayTimeoutRef.current = null;
       }
-
-      return () => {
-        observer.disconnect();
-        if (window.lenis) {
-          window.lenis.off('scroll', handleScroll);
-        } else {
-          window.removeEventListener('scroll', handleScroll);
-          cancelAnimationFrame(rafId);
-        }
-      };
-    }
-
-    return () => observer.disconnect();
-  }, [animation, delay, parallaxSpeed, triggerPoint, once, hasAnimated]);
+      stopParallax();
+    };
+  // We intentionally do not include hasAnimated in deps to avoid re-instantiating observer after once
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [animation, delay, parallaxSpeed, triggerPoint, once]);
 
   // Animation styles
   const getAnimationStyles = () => {
-    const baseStyles = {
-      transition: animation !== 'parallax' ? `all ${duration}ms cubic-bezier(0.4, 0, 0.2, 1)` : 'none',
-      willChange: 'transform, opacity',
+    // Only apply will-change when we expect an animation to occur
+    const applyWillChange = animation === 'parallax' || !isVisible;
+
+    const baseStyles: React.CSSProperties = {
+      transition: animation !== 'parallax' ? `opacity ${duration}ms cubic-bezier(0.4, 0, 0.2, 1), transform ${duration}ms cubic-bezier(0.4, 0, 0.2, 1)` : 'none',
+      willChange: applyWillChange ? 'transform, opacity' : undefined,
     };
 
     if (animation === 'parallax') {
       return {
         ...baseStyles,
         transition: 'none',
-      };
+      } as React.CSSProperties;
     }
 
     if (!isVisible) {
       switch (animation) {
         case 'fadeUp':
-          return {
-            ...baseStyles,
-            opacity: 0,
-            transform: 'translate3d(0, 40px, 0)',
-          };
+          return { ...baseStyles, opacity: 0, transform: 'translate3d(0, 40px, 0)' } as React.CSSProperties;
         case 'fadeDown':
-          return {
-            ...baseStyles,
-            opacity: 0,
-            transform: 'translate3d(0, -40px, 0)',
-          };
+          return { ...baseStyles, opacity: 0, transform: 'translate3d(0, -40px, 0)' } as React.CSSProperties;
         case 'fadeLeft':
-          return {
-            ...baseStyles,
-            opacity: 0,
-            transform: 'translate3d(-40px, 0, 0)',
-          };
+          return { ...baseStyles, opacity: 0, transform: 'translate3d(-40px, 0, 0)' } as React.CSSProperties;
         case 'fadeRight':
-          return {
-            ...baseStyles,
-            opacity: 0,
-            transform: 'translate3d(40px, 0, 0)',
-          };
+          return { ...baseStyles, opacity: 0, transform: 'translate3d(40px, 0, 0)' } as React.CSSProperties;
         case 'scale':
-          return {
-            ...baseStyles,
-            opacity: 0,
-            transform: 'scale3d(0.9, 0.9, 1)',
-          };
+          return { ...baseStyles, opacity: 0, transform: 'scale3d(0.9, 0.9, 1)' } as React.CSSProperties;
         default:
           return baseStyles;
       }
@@ -180,8 +213,8 @@ export default function ScrollAnimation({
     return {
       ...baseStyles,
       opacity: 1,
-      transform: 'translate3d(0, 0, 0) scale3d(1, 1, 1)',
-    };
+      transform: 'translate3d(0, 0, 0) scale3d(1, 1, 1)'
+    } as React.CSSProperties;
   };
 
   return (
