@@ -551,4 +551,33 @@ html.lenis * {
   .scroll-animation, .card-3d, .dashboard-card-3d { -webkit-backface-visibility: hidden; backface-visibility: hidden; }
 
   .content-visibility-auto { content-visibility: auto; contain-intrinsic-size: 1px 1000px; }
+
+  @keyframes float-slow {
+    0%, 100% { transform: translateY(0) }
+    50% { transform: translateY(-6px) }
+  }
+  @keyframes float-slower {
+    0%, 100% { transform: translateY(0) }
+    50% { transform: translateY(-10px) }
+  }
+
+  .animate-float-slow {
+    animation: float-slow 6s ease-in-out infinite;
+  }
+  .animate-float-slower {
+    animation: float-slower 9s ease-in-out infinite;
+  }
+
+  /* Gentle animated gradient shimmer (very subtle) */
+  @keyframes gradient-shift {
+    0% { filter: hue-rotate(0deg) saturate(100%); }
+    50% { filter: hue-rotate(-6deg) saturate(105%); }
+    100% { filter: hue-rotate(0deg) saturate(100%); }
+  }
+  .animated-gradient {
+    background-color: #1f6ea0; /* fallback if gradients fail */
+  }
+  .animated-gradient > .absolute.inset-0:first-child {
+    animation: gradient-shift 18s ease-in-out infinite;
+  }
 }

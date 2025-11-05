@@ -59,23 +59,48 @@ export default function SmoothScrollProvider({ children }: SmoothScrollProviderP
     }
     requestAnimationFrame(raf);
 
+    // Helper: compute top offset (0 on mobile, header height on desktop)
+    const getOffset = () => {
+      const isDesktop = window.matchMedia('(min-width: 1024px)').matches;
+      if (!isDesktop) return 0;
+      const header = document.querySelector('header');
+      const headerH = header instanceof HTMLElement ? header.offsetHeight : 0;
+      return headerH || 80; // fallback
+    };
+
+    // If page loads with a hash, align immediately with proper offset
+    if (window.location.hash) {
+      const targetElement = document.querySelector(window.location.hash) as HTMLElement | null;
+      if (targetElement) {
+        const offset = getOffset();
+        // Use a rAF to ensure layout is ready
+        requestAnimationFrame(() => {
+          lenis.scrollTo(targetElement, { duration: 0, offset: -offset });
+        });
+      }
+    }
+
     // Handle anchor links and hash navigation
     const handleAnchorClick = (e: Event) => {
+      // If another handler already prevented default (e.g., Navbar custom scroll), do nothing
+      if ((e as MouseEvent).defaultPrevented) return;
+
       const target = e.target as HTMLElement | null;
       if (!target) return;
       const link = target.closest('a') as HTMLAnchorElement | null;
       if (!link || !link.href) return;
 
       const url = new URL(link.href);
-      // Check if it's a hash link on the same page
+      // Only intercept same-page hash links
       if (url.pathname === window.location.pathname && url.hash) {
         e.preventDefault();
-        const targetElement = document.querySelector(url.hash);
+        const targetElement = document.querySelector(url.hash) as HTMLElement | null;
         if (targetElement) {
-          const offset = 80; // Adjust based on your navbar height
-          const targetPosition = (targetElement as HTMLElement).offsetTop - offset;
-          lenis.scrollTo(targetPosition, {
-            duration: 1.2,
+          const offset = getOffset();
+          // Use Lenis native offset API to align precisely
+          lenis.scrollTo(targetElement, {
+            duration: 1.0,
+            offset: -offset,
             easing: (t: number) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2),
           });
         }
@@ -88,11 +113,10 @@ export default function SmoothScrollProvider({ children }: SmoothScrollProviderP
     // Handle browser back/forward navigation
     const handlePopState = () => {
       if (window.location.hash) {
-        const targetElement = document.querySelector(window.location.hash);
+        const targetElement = document.querySelector(window.location.hash) as HTMLElement | null;
         if (targetElement) {
-          const offset = 80;
-          const targetPosition = (targetElement as HTMLElement).offsetTop - offset;
-          lenis.scrollTo(targetPosition, { duration: 0 });
+          const offset = getOffset();
+          lenis.scrollTo(targetElement, { duration: 0, offset: -offset });
         }
       }
     };

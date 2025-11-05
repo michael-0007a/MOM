@@ -5,11 +5,14 @@ import { ArrowRight, Sparkles, Heart, Blend, Users, Award, TrendingUp, Globe, Ch
 import Image from 'next/image';
 import FranchiseCharacterPng from '@/public/franchise_section_character.png';
 import ScrollAnimation, { ParallaxContainer } from './components/ScrollAnimation';
+import CountUp from './components/CountUp';
 
 export default function Home() {
     const [loaded, setLoaded] = useState(false);
     const [openFaq, setOpenFaq] = useState<number | null>(null);
     const [activeTimelineIndex, setActiveTimelineIndex] = useState(0);
+    // Mobile toggle to expand perks list in Franchise section
+    const [showAllPerksMobile, setShowAllPerksMobile] = useState(false);
 
     // Refs for optimized Our Story timeline
     const ourStorySectionRef = useRef<HTMLElement | null>(null);
@@ -425,7 +428,7 @@ export default function Home() {
     return (
         <div className="min-h-screen bg-white">
             {/* Milkshake Shop Hero Section - Optimized */}
-            <section id="home" className="relative min-h-screen flex items-center justify-center overflow-visible py-12 scroll-mt-20">
+            <section id="home" className="relative min-h-screen flex items-center justify-center overflow-visible pt-8 pb-12 md:py-12 scroll-mt-0 md:scroll-mt-20">
                 {/* Light Background with Enhanced Grid */}
                 <div className="absolute inset-0 bg-gradient-to-br from-gray-50 via-blue-50/40 to-blue-50/60">
                     {/* Enhanced Grid Overlay - More Visible */}
@@ -488,7 +491,7 @@ export default function Home() {
                         <ScrollAnimation animation="fadeRight" duration={1000} delay={200}>
                             <div className={`lg:col-span-1 col-span-1 mx-auto max-w-2xl lg:max-w-none space-y-6 transition-all duration-1000 ${loaded ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-10'}`}>
                             {/* Shop Badge */}
-                            <div className="flex items-center justify-center md:justify-start space-x-1 md:space-x-2 glass-3d badge-3d w-max mx-auto md:mx-0 px-2.5 py-1.5 md:px-6 md:py-3 rounded-full shadow-md md:shadow-lg mt-6 md:mt-0 mb-1 md:mb-8 border border-blue-200 md:border-2 hover:scale-105 transition-transform duration-300 cursor-pointer">
+                            <div className="flex items-center justify-center md:justify-start space-x-1 md:space-x-2 glass-3d badge-3d w-max mx-auto md:mx-0 px-2.5 py-1.5 md:px-6 md:py-3 rounded-full shadow-md md:shadow-lg mt-1 md:mt-0 mb-1 md:mb-8 border border-blue-200 md:border-2 hover:scale-105 transition-transform duration-300 cursor-pointer">
                                 <Sparkles className="w-3.5 h-3.5 md:w-5 md:h-5 text-blue-500" />
                                 <span className="text-blue-800 font-semibold text-xs md:text-base">Premium Handcrafted Milkshakes</span>
                                 <Sparkles className="w-3.5 h-3.5 md:w-5 md:h-5 text-pink-500" />
@@ -515,7 +518,7 @@ export default function Home() {
                             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center perspective-1000">
                                 <a
                                     href="/menu"
-                                    className="group relative px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-full font-bold text-lg shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 flex items-center space-x-2 overflow-hidden"
+                                    className="group relative px-5 py-2.5 sm:px-6 sm:py-3 md:px-8 md:py-4 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-full font-bold text-sm sm:text-base md:text-lg shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 flex items-center space-x-2 overflow-hidden"
                                     style={{ transformStyle: 'preserve-3d' }}
                                 >
                                     <span className="relative z-10">Explore Menu</span>
@@ -524,7 +527,7 @@ export default function Home() {
                                 </a>
                                 <a
                                     href="/store-locator"
-                                    className="relative px-8 py-4 glass-3d text-blue-600 rounded-full font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 border-2 border-blue-200 hover:border-blue-400 overflow-hidden group"
+                                    className="relative px-5 py-2.5 sm:px-6 sm:py-3 md:px-8 md:py-4 glass-3d text-blue-600 rounded-full font-bold text-sm sm:text-base md:text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 border-2 border-blue-200 hover:border-blue-400 overflow-hidden group"
                                     style={{ transformStyle: 'preserve-3d' }}
                                 >
                                     <span className="relative z-10">Find a Store</span>
@@ -535,22 +538,26 @@ export default function Home() {
                             {/* Social Proof with 3D Cards */}
                             <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto perspective-1500">
                                 {[
-                                    { icon: Users, label: '50K+', desc: 'Happy Customers' },
-                                    { icon: Award, label: '15+', desc: 'Awards Won' },
-                                    { icon: Blend, label: '30+', desc: 'Unique Flavors' },
-                                    { icon: Globe, label: '50+', desc: 'Locations' }
+                                    { icon: Users, value: 50, suffix: 'K+', desc: 'Happy Customers' },
+                                    { icon: Award, value: 15, suffix: '+', desc: 'Awards Won' },
+                                    { icon: Blend, value: 30, suffix: '+', desc: 'Unique Flavors' },
+                                    { icon: Globe, value: 50, suffix: '+', desc: 'Locations' }
                                 ].map((stat, idx) => {
+                                    const Icon = stat.icon;
                                     return (
                                         <div
                                             key={idx}
-                                            className="card-3d card-3d-shadow glass-3d rounded-2xl p-4 border border-blue-100 relative group cursor-pointer"
+                                            className="card-3d card-3d-shadow glass-3d rounded-2xl p-3 md:p-4 border border-blue-100 relative group cursor-pointer"
                                         >
-                                            <div className="relative z-10">
-                                                <div className="w-12 h-12 mx-auto mb-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center transform group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 shadow-lg">
-                                                    <stat.icon className="w-6 h-6 text-white" />
+                                            <div className="relative z-10 text-center">
+                                                <div className="w-10 h-10 md:w-12 md:h-12 mx-auto mb-2 md:mb-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center transform group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 shadow-lg">
+                                                    <Icon className="w-5 h-5 md:w-6 md:h-6 text-white" />
                                                 </div>
-                                                <div className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">{stat.label}</div>
-                                                <div className="text-sm text-gray-600 font-medium">{stat.desc}</div>
+                                                <div className="font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent text-xl md:text-2xl leading-none">
+                                                    <CountUp from={0} to={stat.value} duration={3.6} className="tabular-nums" />
+                                                    <span>{stat.suffix}</span>
+                                                </div>
+                                                <div className="text-xs md:text-sm text-gray-600 font-medium mt-1">{stat.desc}</div>
                                             </div>
                                             {/* 3D depth effect */}
                                             <div className="absolute inset-0 bg-gradient-to-br from-blue-100/50 to-blue-200/50 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10 blur-sm"></div>
@@ -822,7 +829,7 @@ export default function Home() {
             </section>
 
             {/* Our Story Section */}
-            <section id="our-story" className="py-10 sm:py-20 bg-white scroll-mt-28 md:scroll-mt-32" ref={ourStorySectionRef}>
+            <section id="our-story" className="pt-8 pb-10 sm:pt-20 sm:pb-20 bg-white scroll-mt-0 md:scroll-mt-32" ref={ourStorySectionRef}>
                  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                      <ScrollAnimation animation="fadeUp" delay={100}>
                         <div className={`relative z-10 text-center mb-0 transition-all duration-1000 ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
@@ -838,7 +845,7 @@ export default function Home() {
                      {/* Enhanced Mobile-Optimized Timeline */}
                     <ParallaxContainer className="mt-0">
                         <ScrollAnimation animation="none">
-                            <div className="relative pt-4 sm:pt-6 md:pt-8 content-visibility-auto">
+                            <div className="relative pt-4 sm:pt-6 md:pt-8 overflow-visible">
                          {/* Animated Timeline Line with Progress - Blue Theme */}
                          <div className="absolute left-1/2 transform -translate-x-1/2 w-1 top-0 bottom-0 bg-gradient-to-b from-blue-200 via-blue-300 to-blue-400 rounded-full z-0 pointer-events-none">
                              {/* Progress overlay - Blue Theme using transform scaleY for smoothness */}
@@ -892,7 +899,7 @@ export default function Home() {
                                          // Mobile: always centered, Desktop: alternating alignment
                                          'text-center sm:text-left' + (index % 2 === 0 ? ' sm:pr-8 md:pr-2 lg:pr-8 sm:text-right' : ' sm:pl-8 md:pl-2 lg:pl-8 sm:text-left')
                                      }`}>
-                                        <div className={`relative bg-white p-3 sm:p-5 md:p-4 lg:p-5 rounded-2xl border transition-all duration-500 transform ${
+                                        <div className={`relative overflow-visible bg-white p-3 sm:p-5 md:p-4 lg:p-5 pb-6 rounded-2xl border transition-all duration-500 transform ${
                                              activeTimelineIndex === index 
                                                  ? 'shadow-2xl border-blue-300 scale-105 bg-gradient-to-br from-white to-blue-50/30' 
                                                  : 'shadow-lg border-gray-200 hover:shadow-xl hover:border-blue-200'
@@ -947,7 +954,7 @@ export default function Home() {
              </section>
 
             {/* Menu Section */}
-            <section id="menu" className="py-20 bg-gradient-to-br from-blue-50 to-blue-100 scroll-mt-20">
+            <section id="menu" className="pt-8 pb-16 md:py-20 bg-gradient-to-br from-blue-50 to-blue-100 scroll-mt-0 md:scroll-mt-20">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <ScrollAnimation animation="fadeUp" delay={100}>
                         <div className={`text-center mb-16 transition-all duration-1000 ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
@@ -1154,7 +1161,7 @@ export default function Home() {
             </section>
 
             {/* Gallery Section */}
-            <section id="gallery" className="py-20 bg-gradient-to-br from-gray-50 to-blue-50 scroll-mt-20">
+            <section id="gallery" className="pt-8 pb-16 md:py-20 bg-gradient-to-br from-gray-50 to-blue-50 scroll-mt-0 md:scroll-mt-20">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <ScrollAnimation animation="fadeUp" delay={100}>
                         <div className={`text-center mb-10 sm:mb-14 transition-all duration-1000 ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
@@ -1230,7 +1237,7 @@ export default function Home() {
             </section>
 
             {/* Franchise Section - Restructured */}
-            <section id="franchise" className="py-20 bg-gradient-to-br from-blue-50/30 via-white to-purple-50/20 scroll-mt-20 relative overflow-hidden">
+            <section id="franchise" className="pt-8 pb-16 md:py-20 bg-gradient-to-br from-blue-50/30 via-white to-purple-50/20 scroll-mt-0 md:scroll-mt-20 relative overflow-hidden">
                 {/* Background decorative elements */}
                 <div className="absolute inset-0 overflow-hidden pointer-events-none">
                     {mounted && (
@@ -1265,92 +1272,102 @@ export default function Home() {
                         </p>
                     </div>
 
-                {/* Main Content and Form container */}
-                     {/* Main Content - Image Left, Details Right */}
-                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-stretch">
+                    {/* Main Content - Image Left, Details Right */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-stretch">
                         {/* Left Column - Character Image */}
                         <ScrollAnimation animation="fadeLeft" delay={200}>
                             <div className="relative flex items-center justify-center">
                                 <div className="relative w-full max-w-2xl">
-                                {/* Enhanced background effects */}
-                                <div className="absolute -inset-16">
-                                    <div className="absolute inset-0 bg-gradient-to-br from-orange-100/40 via-yellow-100/30 to-amber-100/50 rounded-3xl blur-3xl opacity-50" />
-                                    <div className="absolute top-6 right-8 w-24 h-24 bg-gradient-to-br from-orange-300/20 to-yellow-300/20 rounded-full blur-2xl" />
-                                    <div className="absolute bottom-8 left-6 w-20 h-20 bg-gradient-to-br from-amber-300/20 to-orange-300/20 rounded-full blur-2xl" />
-                                </div>
+                                    {/* Enhanced background effects */}
+                                    <div className="absolute -inset-16">
+                                        <div className="absolute inset-0 bg-gradient-to-br from-orange-100/40 via-yellow-100/30 to-amber-100/50 rounded-3xl blur-3xl opacity-50" />
+                                        <div className="absolute top-6 right-8 w-24 h-24 bg-gradient-to-br from-orange-300/20 to-yellow-300/20 rounded-full blur-2xl" />
+                                        <div className="absolute bottom-8 left-6 w-20 h-20 bg-gradient-to-br from-amber-300/20 to-orange-300/20 rounded-full blur-2xl" />
+                                    </div>
 
-                                {/* Character image - Made much larger */}
-                                <div className="relative z-10 flex justify-center">
-                                    <Image
-                                        src={FranchiseCharacterPng}
-                                        alt="Successful franchise partner showcasing business growth"
-                                        className="w-full h-auto max-w-lg lg:max-w-xl xl:max-w-2xl"
-                                        sizes="(max-width: 640px) 320px, (max-width: 768px) 512px, (max-width: 1024px) 576px, 768px"
-                                        quality={95}
-                                        priority
-                                        style={{
-                                            filter: 'drop-shadow(0 25px 50px rgba(251, 146, 60, 0.2)) drop-shadow(0 15px 30px rgba(245, 158, 11, 0.15))'
-                                        }}
-                                    />
+                                    {/* Character image */}
+                                    <div className="relative z-10 flex justify-center">
+                                        <Image
+                                            src={FranchiseCharacterPng}
+                                            alt="Successful franchise partner showcasing business growth"
+                                            className="w-full h-auto max-w-lg lg:max-w-xl xl:max-w-2xl"
+                                            sizes="(max-width: 640px) 320px, (max-width: 768px) 512px, (max-width: 1024px) 576px, 768px"
+                                            quality={95}
+                                            priority
+                                            style={{
+                                                filter: 'drop-shadow(0 25px 50px rgba(251, 146, 60, 0.2)) drop-shadow(0 15px 30px rgba(245, 158, 11, 0.15))'
+                                            }}
+                                        />
+                                    </div>
                                 </div>
                             </div>
-                        </div>
                         </ScrollAnimation>
 
                         {/* Right Column - Franchise Details */}
                         <ScrollAnimation animation="fadeRight" delay={400}>
                             <div className="flex flex-col justify-center space-y-6 sm:space-y-8">
-                                <div className="bg-white/80 backdrop-blur-sm border border-blue-100 rounded-2xl p-4 sm:p-8 shadow-lg">
-                                    <h3 className="text-lg sm:text-2xl font-bold text-gray-900 mb-3 sm:mb-6">Why Choose Our Franchise?</h3>
+                                <div className="bg-white/80 backdrop-blur-sm border border-blue-100 rounded-2xl p-3 sm:p-8 shadow-lg">
+                                    <h3 className="text-base sm:text-2xl font-bold text-gray-900 mb-2.5 sm:mb-6">Why Choose Our Franchise?</h3>
 
-                                    <div className="grid grid-cols-2 sm:grid-cols-2 gap-3 sm:gap-6 mb-5 sm:mb-8">
+                                    <div className="grid grid-cols-2 sm:grid-cols-2 gap-2 sm:gap-6 mb-4 sm:mb-8">
                                         <div className="flex items-start space-x-2 sm:space-x-4">
-                                            <div className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center">
+                                            <div className="w-7 h-7 sm:w-10 sm:h-10 flex items-center justify-center">
                                                 <DollarSign className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
                                             </div>
                                             <div>
-                                                <h4 className="font-semibold text-gray-900 text-sm sm:text-lg">High ROI</h4>
-                                                <p className="text-gray-600 text-xs sm:text-base">18–24 month returns</p>
+                                                <h4 className="font-semibold text-gray-900 text-[13px] sm:text-lg">High ROI</h4>
+                                                <p className="text-gray-600 text-[11px] sm:text-base hidden sm:block">18–24 month returns</p>
                                             </div>
                                         </div>
                                         <div className="flex items-start space-x-2 sm:space-x-4">
-                                            <div className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center">
+                                            <div className="w-7 h-7 sm:w-10 sm:h-10 flex items-center justify-center">
                                                 <Users className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
                                             </div>
                                             <div>
-                                                <h4 className="font-semibold text-gray-900 text-sm sm:text-lg">Full Support</h4>
-                                                <p className="text-gray-600 text-xs sm:text-base">Training + ongoing help</p>
+                                                <h4 className="font-semibold text-gray-900 text-[13px] sm:text-lg">Full Support</h4>
+                                                <p className="text-gray-600 text-[11px] sm:text-base hidden sm:block">Training + ongoing help</p>
                                             </div>
                                         </div>
                                         <div className="flex items-start space-x-2 sm:space-x-4">
-                                            <div className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center">
+                                            <div className="w-7 h-7 sm:w-10 sm:h-10 flex items-center justify-center">
                                                 <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
                                             </div>
                                             <div>
-                                                <h4 className="font-semibold text-gray-900 text-sm sm:text-lg">Proven Model</h4>
-                                                <p className="text-gray-600 text-xs sm:text-base">50+ locations</p>
+                                                <h4 className="font-semibold text-gray-900 text-[13px] sm:text-lg">Proven Model</h4>
+                                                <p className="text-gray-600 text-[11px] sm:text-base hidden sm:block">50+ locations</p>
                                             </div>
                                         </div>
                                         <div className="flex items-start space-x-2 sm:space-x-4">
-                                            <div className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center">
+                                            <div className="w-7 h-7 sm:w-10 sm:h-10 flex items-center justify-center">
                                                 <Award className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
                                             </div>
                                             <div>
-                                                <h4 className="font-semibold text-gray-900 text-sm sm:text-lg">Strong Brand</h4>
-                                                <p className="text-gray-600 text-xs sm:text-base">Award‑winning</p>
+                                                <h4 className="font-semibold text-gray-900 text-[13px] sm:text-lg">Strong Brand</h4>
+                                                <p className="text-gray-600 text-[11px] sm:text-base hidden sm:block">Award‑winning</p>
                                             </div>
                                         </div>
                                     </div>
 
                                     <div className="border-t border-gray-200 pt-3 sm:pt-6">
-                                        <h4 className="font-semibold text-gray-900 text-sm sm:text-lg mb-2.5 sm:mb-4">What You&apos;ll Get</h4>
-                                        <div className="grid grid-cols-2 md:grid-cols-2 gap-2 sm:gap-3 text-xs sm:text-sm text-gray-600">
+                                        <h4 className="font-semibold text-gray-900 text-sm sm:text-lg mb-2 sm:mb-4">What You&apos;ll Get</h4>
+                                        <div className="grid grid-cols-2 md:grid-cols-2 gap-2 sm:gap-3 text-[11px] sm:text-sm text-gray-600">
                                             <div className="flex items-start gap-2 sm:gap-3"><CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" /><span>Site selection + lease</span></div>
                                             <div className="flex items-start gap-2 sm:gap-3"><CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" /><span>Design + branding</span></div>
                                             <div className="flex items-start gap-2 sm:gap-3"><CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" /><span>Training + SOPs</span></div>
                                             <div className="flex items-start gap-2 sm:gap-3"><CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" /><span>Supply + quality</span></div>
-                                            <div className="flex items-start gap-2 sm:gap-3"><CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" /><span>Marketing kit</span></div>
-                                            <div className="flex items-start gap-2 sm:gap-3"><CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" /><span>Tech suite (POS, CRM)</span></div>
+                                            <div className={`flex items-start gap-2 sm:gap-3 ${showAllPerksMobile ? '' : 'hidden sm:flex'}`}><CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" /><span>Marketing kit</span></div>
+                                            <div className={`flex items-start gap-2 sm:gap-3 ${showAllPerksMobile ? '' : 'hidden sm:flex'}`}><CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" /><span>Tech suite (POS, CRM)</span></div>
+                                        </div>
+                                        {/* Mobile-only toggle */}
+                                        <div className="sm:hidden mt-3">
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowAllPerksMobile(v => !v)}
+                                                className="text-blue-600 text-xs font-semibold inline-flex items-center gap-1 hover:underline"
+                                            >
+                                                {showAllPerksMobile ? 'Show less' : 'Show more'}
+                                                {showAllPerksMobile ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
@@ -1359,7 +1376,7 @@ export default function Home() {
                     </div>
 
                     {/* Multi-Step Form - Full Width at Bottom */}
-                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-8 shadow-xl">
+                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-8 shadow-xl mt-12">
                         <div className="flex items-center justify-between mb-8">
                            <h3 className="text-2xl font-bold text-gray-900">Start Your Franchise Journey</h3>
                             <div className="flex items-center space-x-2">
@@ -1798,32 +1815,40 @@ export default function Home() {
                 <div className="mt-20">
                     <h3 className="text-3xl font-bold text-gray-900 text-center mb-12">Frequently Asked Questions</h3>
                     <div className="max-w-4xl mx-auto space-y-4">
-                        {faqs.map((faq, index) => (
-                            <div
-                                key={index}
-                                className={`bg-white border border-gray-200 rounded-xl transition-all duration-1000 ${
-                                    loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-                                }`}
-                                style={{ animationDelay: `${index * 0.1}s` }}
-                            >
-                                <button
-                                    onClick={() => setOpenFaq(openFaq === index ? null : index)}
-                                    className="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50 rounded-xl transition-colors"
+                        {faqs.map((faq, index) => {
+                            const isOpen = openFaq === index;
+                            const panelId = `faq-panel-${index}`;
+                            return (
+                                <div
+                                    key={index}
+                                    className={`bg-white border border-gray-200 rounded-xl transition-all duration-1000 ${
+                                        loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+                                    }`}
+                                    style={{ animationDelay: `${index * 0.1}s` }}
                                 >
-                                    <span className="font-semibold text-gray-900">{faq.question}</span>
-                                    {openFaq === index ? (
-                                        <ChevronUp className="w-5 h-5 text-gray-500" />
-                                    ) : (
-                                        <ChevronDown className="w-5 h-5 text-gray-500" />
-                                    )}
-                                </button>
-                                {openFaq === index && (
-                                    <div className="px-6 pb-4">
-                                        <p className="text-gray-600">{faq.answer}</p>
+                                    <button
+                                        onClick={() => setOpenFaq(isOpen ? null : index)}
+                                        className="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50 rounded-xl transition-colors"
+                                        aria-expanded={isOpen}
+                                        aria-controls={panelId}
+                                    >
+                                        <span className="font-semibold text-gray-900">{faq.question}</span>
+                                        <ChevronDown className={`w-5 h-5 text-gray-500 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+                                    </button>
+                                    {/* Smooth accordion: grid auto-height with opacity/translate */}
+                                    <div
+                                        id={panelId}
+                                        className="px-6 grid transition-[grid-template-rows] duration-300 ease-in-out"
+                                        style={{ gridTemplateRows: isOpen ? '1fr' : '0fr' }}
+                                        aria-hidden={!isOpen}
+                                    >
+                                        <div className={`overflow-hidden transform transition-all duration-300 ${isOpen ? 'opacity-100 translate-y-0 pb-4' : 'opacity-0 -translate-y-1 pb-0'}`}>
+                                            <p className="text-gray-600">{faq.answer}</p>
+                                        </div>
                                     </div>
-                                )}
-                            </div>
-                        ))}
+                                </div>
+                            );
+                        })}
                     </div>
                 </div>
             </section>

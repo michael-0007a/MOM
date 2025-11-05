@@ -7,6 +7,9 @@ import { usePathname } from 'next/navigation';
 import { Home, BookOpen, Phone as PhoneIcon, Store as StoreIcon, Building2 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
+// Minimal Lenis type to avoid any
+type LenisLike = { scrollTo: (t: HTMLElement | number, opts?: { duration?: number; offset?: number }) => void };
+
 // Link type for nav items
 type NavItem = {
   label: string;
@@ -140,9 +143,25 @@ export default function Navbar() {
       if (pathname !== '/') window.location.href = hashHref;
       return;
     }
-    const y = el.offsetTop - getHeaderOffset();
     const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    window.scrollTo({ top: Math.max(0, y), behavior: prefersReduced ? 'auto' : 'smooth' });
+    const isMobile = window.matchMedia('(max-width: 1023.98px)').matches;
+
+    // Use Lenis if present for consistent behavior with SmoothScrollProvider
+    const lenis = (window as unknown as { lenis?: LenisLike }).lenis;
+    if (lenis) {
+      const offset = isMobile ? 0 : -getHeaderOffset();
+      lenis.scrollTo(el, { duration: prefersReduced ? 0 : 1.0, offset });
+      return;
+    }
+
+    if (isMobile) {
+      // On mobile (bottom nav), align the section's top exactly to viewport top
+      el.scrollIntoView({ behavior: prefersReduced ? 'auto' : 'smooth', block: 'start' });
+    } else {
+      // Desktop: subtract fixed header height
+      const y = el.offsetTop - getHeaderOffset();
+      window.scrollTo({ top: Math.max(0, y), behavior: prefersReduced ? 'auto' : 'smooth' });
+    }
   };
 
   // Visual styles
