@@ -215,6 +215,14 @@ html.lenis * {
   font-style: normal;
 }
 
+/* Font utility classes for newly added fonts */
+.poppins {
+  font-family: var(--font-poppins), 'Poppins', system-ui, -apple-system, sans-serif;
+}
+.dmsans {
+  font-family: var(--font-dmsans), 'DM Sans', system-ui, -apple-system, sans-serif;
+}
+
 /* Global keyframes used in multiple places */
 @keyframes float {
   0%, 100% {
@@ -579,5 +587,28 @@ html.lenis * {
   }
   .animated-gradient > .absolute.inset-0:first-child {
     animation: gradient-shift 18s ease-in-out infinite;
+  }
+
+  /* Spinner overlay exit animations */
+  .loading-overlay {
+    /* Smooth transitions for multiple properties */
+    transition: opacity 520ms ease, transform 520ms ease, clip-path 640ms cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: opacity, transform, clip-path;
+  }
+  .loading-overlay.exit-fade {
+    opacity: 0;
+  }
+  .loading-overlay.exit-slide-up {
+    opacity: 0;
+    transform: translateY(-24px);
+  }
+  .loading-overlay.exit-scale-down {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  .loading-overlay.exit-wipe-up {
+    /* Reveal the page by wiping overlay upward */
+    clip-path: inset(100% 0 0 0);
+    /* Keep opacity until the wipe finishes to enhance the effect */
   }
 }

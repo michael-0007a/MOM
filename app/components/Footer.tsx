@@ -1,9 +1,39 @@
+"use client";
+
 import Link from 'next/link';
-import { Instagram, Facebook, Mail, Phone, MapPin, Twitter } from 'lucide-react';
+import { Instagram, Facebook, Mail, Phone, MapPin, Twitter, ChevronDown } from 'lucide-react';
 import Image from 'next/image';
 import { CONTACT, SOCIAL, LINKS } from '@/lib/siteConfig';
+import { useState, useRef, useEffect } from 'react';
 
 export default function Footer() {
+  const [openQuick, setOpenQuick] = useState(false);
+  const [openContact, setOpenContact] = useState(false);
+  // refs to measure content height for smooth max-height transition
+  const quickContentRef = useRef<HTMLDivElement | null>(null);
+  const contactContentRef = useRef<HTMLDivElement | null>(null);
+  const [quickHeight, setQuickHeight] = useState(0);
+  const [contactHeight, setContactHeight] = useState(0);
+
+  // Measure heights when content mounts or window resizes
+  useEffect(() => {
+    const measure = () => {
+      if (quickContentRef.current) setQuickHeight(quickContentRef.current.scrollHeight);
+      if (contactContentRef.current) setContactHeight(contactContentRef.current.scrollHeight);
+    };
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, []);
+
+  // Re-measure when toggled (in case dynamic content appears)
+  useEffect(() => {
+    if (openQuick && quickContentRef.current) setQuickHeight(quickContentRef.current.scrollHeight);
+  }, [openQuick]);
+  useEffect(() => {
+    if (openContact && contactContentRef.current) setContactHeight(contactContentRef.current.scrollHeight);
+  }, [openContact]);
+
   return (
     <footer
       className="relative overflow-hidden text-white animated-gradient"
@@ -148,46 +178,90 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Mobile accordions */}
+          {/* Mobile accordions with smooth animation */}
           <div className="md:hidden space-y-2">
-            <details className="group rounded-xl bg-white/5 border border-white/10 px-3 py-2">
-              <summary className="cursor-pointer flex items-center justify-between text-sm syne-semibold select-none">
-                Quick Links
-              </summary>
-              <ul className="mt-2 space-y-1.5 text-xs">
-                <li><Link href="/#our-story" className="text-white/85 hover:text-white transition-colors manrope-regular">Our Story</Link></li>
-                <li><Link href="/#menu" className="text-white/85 hover:text-white transition-colors manrope-regular">Menu</Link></li>
-                <li><Link href="/#gallery" className="text-white/85 hover:text-white transition-colors manrope-regular">Gallery</Link></li>
-                <li><Link href="/#franchise" className="text-white/85 hover:text-white transition-colors manrope-regular">Franchise</Link></li>
-              </ul>
-            </details>
+            {/* Quick Links */}
+            <div className="rounded-xl bg-white/5 border border-white/10 px-3 py-2">
+              <button
+                type="button"
+                className="w-full cursor-pointer flex items-center justify-between text-sm syne-semibold select-none"
+                aria-expanded={openQuick}
+                aria-controls="footer-quick-links"
+                onClick={() => setOpenQuick(v => !v)}
+              >
+                <span>Quick Links</span>
+                <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${openQuick ? 'rotate-180' : ''}`} />
+              </button>
+              <div
+                id="footer-quick-links"
+                aria-hidden={!openQuick}
+                style={{
+                  maxHeight: openQuick ? quickHeight : 0,
+                  opacity: openQuick ? 1 : 0,
+                  transform: openQuick ? 'translateY(0)' : 'translateY(-6px)',
+                  transition: 'max-height 420ms ease, opacity 300ms ease, transform 300ms ease',
+                  overflow: 'hidden'
+                }}
+              >
+                <div ref={quickContentRef}>
+                  <ul className="mt-2 space-y-1.5 text-xs">
+                    <li><Link href="/#our-story" className="text-white/85 hover:text-white transition-colors manrope-regular">Our Story</Link></li>
+                    <li><Link href="/#menu" className="text-white/85 hover:text-white transition-colors manrope-regular">Menu</Link></li>
+                    <li><Link href="/#gallery" className="text-white/85 hover:text-white transition-colors manrope-regular">Gallery</Link></li>
+                    <li><Link href="/#franchise" className="text-white/85 hover:text-white transition-colors manrope-regular">Franchise</Link></li>
+                  </ul>
+                </div>
+              </div>
+            </div>
 
-            <details className="group rounded-xl bg-white/5 border border-white/10 px-3 py-2">
-              <summary className="cursor-pointer flex items-center justify-between text-sm syne-semibold select-none">
-                Contact
-              </summary>
-              <ul className="mt-2 space-y-2">
-                <li className="flex items-start space-x-2 text-white/85">
-                  <Mail className="w-4 h-4 mt-0.5" />
-                  <a href={LINKS.mailtoHref} className="text-xs manrope-regular hover:underline break-all inline-block">
-                    {CONTACT.email}
-                  </a>
-                </li>
-                <li className="flex items-center space-x-2 text-white/85">
-                  <Phone className="w-4 h-4" />
-                  <a href={LINKS.telHref} className="text-xs manrope-regular hover:underline">
-                    {CONTACT.phoneDisplay}
-                  </a>
-                </li>
-                <li className="flex items-start space-x-2 text-white/85">
-                  <MapPin className="w-4 h-4 mt-0.5" />
-                  <div className="text-xs manrope-regular">
-                    <p>{CONTACT.addressLines[0]}</p>
-                    <p>{CONTACT.addressLines[1]}</p>
-                  </div>
-                </li>
-              </ul>
-            </details>
+            {/* Contact */}
+            <div className="rounded-xl bg-white/5 border border-white/10 px-3 py-2">
+              <button
+                type="button"
+                className="w-full cursor-pointer flex items-center justify-between text-sm syne-semibold select-none"
+                aria-expanded={openContact}
+                aria-controls="footer-contact"
+                onClick={() => setOpenContact(v => !v)}
+              >
+                <span>Contact</span>
+                <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${openContact ? 'rotate-180' : ''}`} />
+              </button>
+              <div
+                id="footer-contact"
+                aria-hidden={!openContact}
+                style={{
+                  maxHeight: openContact ? contactHeight : 0,
+                  opacity: openContact ? 1 : 0,
+                  transform: openContact ? 'translateY(0)' : 'translateY(-6px)',
+                  transition: 'max-height 420ms ease, opacity 300ms ease, transform 300ms ease',
+                  overflow: 'hidden'
+                }}
+              >
+                <div ref={contactContentRef}>
+                  <ul className="mt-2 space-y-2">
+                    <li className="flex items-start space-x-2 text-white/85">
+                      <Mail className="w-4 h-4 mt-0.5" />
+                      <a href={LINKS.mailtoHref} className="text-xs manrope-regular hover:underline break-all inline-block">
+                        {CONTACT.email}
+                      </a>
+                    </li>
+                    <li className="flex items-center space-x-2 text-white/85">
+                      <Phone className="w-4 h-4" />
+                      <a href={LINKS.telHref} className="text-xs manrope-regular hover:underline">
+                        {CONTACT.phoneDisplay}
+                      </a>
+                    </li>
+                    <li className="flex items-start space-x-2 text-white/85">
+                      <MapPin className="w-4 h-4 mt-0.5" />
+                      <div className="text-xs manrope-regular">
+                        <p>{CONTACT.addressLines[0]}</p>
+                        <p>{CONTACT.addressLines[1]}</p>
+                      </div>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 

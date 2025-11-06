@@ -216,13 +216,13 @@ export default function Navbar() {
       <Link
         href={href}
         onClick={onClick}
-        className={`w-full flex flex-col items-center justify-center gap-0.5 px-2 py-1.5 rounded-xl text-[10px] font-medium transition-colors ${
+        className={`w-full flex flex-col items-center justify-center gap-1 px-2.5 py-2 rounded-2xl text-[11px] font-medium transition-colors ${
           isActive ? 'text-[#2b91cb]' : 'text-gray-600 hover:text-[#2b91cb]'
         } ${className}`}
         aria-current={isActive ? 'page' : undefined}
       >
-        <Icon className={`h-5 w-5 ${isActive ? 'text-[#2b91cb]' : 'text-gray-600'}`} />
-        <span className="leading-none">{label}</span>
+        <Icon className={`h-6 w-6 ${isActive ? 'text-[#2b91cb]' : 'text-gray-600'}`} />
+        <span className="leading-tight">{label}</span>
       </Link>
     );
   }
@@ -268,14 +268,14 @@ export default function Navbar() {
       {/* Mobile Bottom Nav */}
       <div className="lg:hidden fixed inset-x-0 bottom-0 z-[999]">
         <div className="relative max-w-7xl mx-auto px-4">
-          <div ref={(el) => { bottomBarRef.current = el; }} className="h-12 rounded-2xl bg-white shadow-md ring-1 ring-black/10 grid grid-cols-5 gap-0 px-2 items-stretch">
+          <div ref={(el) => { bottomBarRef.current = el; }} className="h-14 rounded-2xl bg-white shadow-md ring-1 ring-black/10 grid grid-cols-5 gap-0 px-3 items-center">
             <MobileTabButton label="Home" icon={Home} href="/#home" sectionId="home" />
             <MobileTabButton label="Menu" icon={BookOpen} href="/#menu" sectionId="menu" />
             <div aria-hidden className="w-full" />
             <MobileTabButton label="Stores" icon={StoreIcon} href="/store-locator" />
             <MobileTabButton label="Contact" icon={PhoneIcon} href="/contact" />
           </div>
-          <div className="absolute left-1/2 -translate-x-1/2 -top-5">
+          <div className="absolute left-1/2 -translate-x-1/2 -top-6">
             <Link
               href="/#franchise"
               onClick={e => {
@@ -284,10 +284,10 @@ export default function Navbar() {
                   smoothScrollTo('/#franchise');
                 }
               }}
-              className="inline-flex items-center justify-center h-12 w-12 rounded-full bg-[#2b91cb] text-white shadow-md ring-4 ring-white hover:bg-[#1e7bb8] transition-colors"
+              className="inline-flex items-center justify-center h-14 w-14 rounded-full bg-[#2b91cb] text-white shadow-md ring-4 ring-white hover:bg-[#1e7bb8] transition-colors"
               aria-label="Franchise With Us"
             >
-              <Building2 className="h-5 w-5" />
+              <Building2 className="h-6 w-6" />
             </Link>
           </div>
         </div>

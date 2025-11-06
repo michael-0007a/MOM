@@ -501,15 +501,15 @@ export default function Home() {
                             <div className="text-center lg:text-left">
                                 <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-gray-900 mb-4 leading-tight">
                                     <span className="notable-regular text-gray-900 font-normal italic">THE #1</span>
-                                    <span className="block bg-gradient-to-r from-blue-600 via-blue-500 to-blue-400 bg-clip-text text-transparent text-4xl sm:text-5xl lg:text-6xl mt-2">
+                                    <span className="block poppins bg-gradient-to-r from-blue-600 via-blue-500 to-blue-400 bg-clip-text text-transparent text-4xl sm:text-5xl lg:text-6xl mt-2 tracking-tight">
                     MILKSHAKE STORE
                   </span>
                                 </h1>
-                                <p className="text-2xl sm:text-3xl lg:text-4xl font-medium text-gray-700 mt-3">
+                                <p className="text-2xl sm:text-3xl lg:text-4xl font-medium text-gray-700 mt-3 dmsans tracking-tight">
                                     Crafting Happiness in Every Cup
                                 </p>
 
-                                <p className="text-lg text-gray-600 mt-6 leading-relaxed max-w-lg mx-auto lg:mx-0">
+                                <p className="text-lg text-gray-600 mt-6 leading-relaxed max-w-lg mx-auto lg:mx-0 dmsans">
                                     Where premium ingredients meet creativity — every shake made fresh with love, crafted for pure joy.
                                 </p>
                             </div>

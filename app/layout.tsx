@@ -6,11 +6,13 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import ClientLayout from "./components/ClientLayout";
 import SmoothScrollProvider from "./components/SmoothScrollProvider";
-import { Manrope, Syne, Notable } from "next/font/google";
+import { Manrope, Syne, Notable, Poppins, DM_Sans } from "next/font/google";
 
 const manrope = Manrope({ subsets: ["latin"], variable: "--font-manrope", display: "swap", weight: ["200","300","400","500","600","700","800"] });
 const syne = Syne({ subsets: ["latin"], variable: "--font-syne", display: "swap", weight: ["400","500","600","700","800"] });
 const notable = Notable({ subsets: ["latin"], variable: "--font-notable", display: "swap", weight: "400" });
+const poppins = Poppins({ subsets: ["latin"], variable: "--font-poppins", display: "swap", weight: ["400","500","600","700","800","900"] });
+const dmsans = DM_Sans({ subsets: ["latin"], variable: "--font-dmsans", display: "swap", weight: ["400","500","600","700"] });
 
 export const metadata: Metadata = {
   title: "Makers of Milkshakes - Sip the Joy. Taste the Magic.",
@@ -29,7 +31,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${manrope.variable} ${syne.variable} ${notable.variable}`}>
+    <html lang="en" className={`${manrope.variable} ${syne.variable} ${notable.variable} ${poppins.variable} ${dmsans.variable}`}>
       <body className="antialiased">
         <SmoothScrollProvider>
           <ClientLayout>

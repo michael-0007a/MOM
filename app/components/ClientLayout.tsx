@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import LoadingSpinner from "./LoadingSpinner";
 
@@ -10,72 +10,75 @@ interface ClientLayoutProps {
 
 export default function ClientLayout({ children }: ClientLayoutProps) {
   const pathname = usePathname();
-  const [isLoading, setIsLoading] = useState(true);
-  const [minTimeComplete, setMinTimeComplete] = useState(false);
-  const [pageLoaded, setPageLoaded] = useState(false);
+  const isHome = pathname === "/";
+  const firstHomeDoneRef = useRef(false); // tracks if initial home splash already happened
 
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [exiting, setExiting] = useState<boolean>(false);
+  const [videoDone, setVideoDone] = useState<boolean>(false);
+  const [pageLoaded, setPageLoaded] = useState<boolean>(false);
+
+  // Kick off spinner cycle on every route change
   useEffect(() => {
-    // More reliable way to detect 404 - check if pathname exists or if it's a known route
-    const knownRoutes = [
-      "/",
-      "/menu",
-      "/our-story",
-      "/gallery",
-      "/contact",
-      "/store-locator",
-      "/admin",
-    ];
-    const is404 = !knownRoutes.includes(pathname) && !pathname.startsWith("/api");
-
-    // Skip loading entirely for 404 pages
-    if (is404) {
-      setIsLoading(false);
-      return;
-    }
-
-    // Reset loading state for new page
+    // Reset states
     setIsLoading(true);
-    setMinTimeComplete(false);
+    setExiting(false);
+    setVideoDone(false);
     setPageLoaded(false);
 
-    // Minimum time for GIF to play (4 seconds)
-    const minTimer = setTimeout(() => {
-      setMinTimeComplete(true);
-    }, 4000);
-
-    // Check if page is already loaded
+    // Listen for page load (if not already complete)
+    const handleLoad = () => setPageLoaded(true);
     if (document.readyState === "complete") {
       setPageLoaded(true);
     } else {
-      const handleLoad = () => setPageLoaded(true);
       window.addEventListener("load", handleLoad);
-
-      return () => {
-        clearTimeout(minTimer);
-        window.removeEventListener("load", handleLoad);
-      };
     }
-
-    return () => {
-      clearTimeout(minTimer);
-    };
+    return () => window.removeEventListener("load", handleLoad);
   }, [pathname]);
 
-  // Hide loading when both conditions are met
+  // Decide exit conditions
   useEffect(() => {
-    if (minTimeComplete && pageLoaded) {
-      const delay = setTimeout(() => {
-        setIsLoading(false);
-      }, 200); // Small delay for smooth transition
+    if (!isLoading) return;
 
-      return () => clearTimeout(delay);
+    const isMandatoryHomeSplash = isHome && !firstHomeDoneRef.current; // Only first home visit
+
+    // Mandatory home splash: wait for BOTH video + page
+    if (isMandatoryHomeSplash) {
+      if (videoDone && pageLoaded) {
+        setExiting(true);
+        const t = setTimeout(() => {
+          setIsLoading(false);
+          setExiting(false);
+          firstHomeDoneRef.current = true; // lock in that home splash occurred
+        }, 560);
+        return () => clearTimeout(t);
+      }
+      return; // still waiting
     }
-  }, [minTimeComplete, pageLoaded]);
+
+    // Non-mandatory spinner (all other routes including 404): exit when EITHER is ready
+    if (videoDone || pageLoaded) {
+      setExiting(true);
+      const t = setTimeout(() => {
+        setIsLoading(false);
+        setExiting(false);
+      }, 400); // shorter exit since non-mandatory
+      return () => clearTimeout(t);
+    }
+  }, [videoDone, pageLoaded, isLoading, isHome]);
 
   return (
     <div style={{ position: "relative" }}>
       {children}
-      {isLoading && <LoadingSpinner />}
+      {isLoading && (
+        <LoadingSpinner
+          exiting={exiting}
+          // Lock scroll only during mandatory first home splash
+          disableScroll={isHome && !firstHomeDoneRef.current}
+          exitAnimation={isHome && !firstHomeDoneRef.current ? "slide-up" : "fade"}
+          onComplete={() => setVideoDone(true)}
+        />
+      )}
     </div>
   );
 }

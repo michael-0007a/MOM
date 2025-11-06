@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useCallback, useRef } from 'react';
 import Image from 'next/image';
-import { ChevronLeft, ChevronRight, ZoomIn } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ZoomIn, X } from 'lucide-react';
 
 type Props = {
   images: string[];
@@ -21,18 +21,31 @@ function labelFromPath(src: string) {
 export default function GalleryClient({ images }: Props) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [lightbox, setLightbox] = useState<number | null>(null);
+  const [loadedSet, setLoadedSet] = useState<Set<string>>(() => new Set());
+  const [filter, setFilter] = useState<string>('All');
 
-  // Preload images for smoother navigation (best-effort)
+  const touchStartX = useRef<number | null>(null);
+
+  const handleLoaded = useCallback((src: string) => {
+    setLoadedSet((prev) => {
+      if (prev.has(src)) return prev;
+      const next = new Set(prev);
+      next.add(src);
+      return next;
+    });
+  }, []);
+
+  // Preload a subset for smoother navigation (best-effort)
   useEffect(() => {
     if (typeof window === 'undefined' || !images?.length) return;
-    const limit = Math.min(images.length, 80);
+    const limit = Math.min(images.length, 60);
     for (let i = 0; i < limit; i++) {
       const img = new window.Image();
       img.src = images[i];
     }
   }, [images]);
 
-  // Group by folder label for desktop sections
+  // Group by folder label
   const sections = useMemo(() => {
     const map = new Map<string, string[]>();
     for (const img of images) {
@@ -43,45 +56,107 @@ export default function GalleryClient({ images }: Props) {
     return Array.from(map.entries());
   }, [images]);
 
+  const labels = useMemo(() => ['All', ...sections.map(([label]) => label)], [sections]);
+
+  const filteredImages = useMemo(() => {
+    if (filter === 'All') return images;
+    return images.filter((src) => labelFromPath(src) === filter);
+  }, [images, filter]);
+
+  // Reset mobile index when filter changes
+  useEffect(() => {
+    setActiveIndex(0);
+  }, [filter]);
+
+  // Mobile carousel swipe
+  const onTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0]?.clientX ?? null;
+  };
+  const onTouchEnd = (e: React.TouchEvent) => {
+    const startX = touchStartX.current;
+    touchStartX.current = null;
+    if (startX == null) return;
+    const dx = (e.changedTouches[0]?.clientX ?? startX) - startX;
+    const threshold = 30;
+    if (dx > threshold) prev();
+    else if (dx < -threshold) next();
+  };
+
+  // Keyboard navigation for lightbox
+  useEffect(() => {
+    if (lightbox == null) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setLightbox(null);
+      else if (e.key === 'ArrowLeft') setLightbox((i) => (i == null ? 0 : (i - 1 + images.length) % images.length));
+      else if (e.key === 'ArrowRight') setLightbox((i) => (i == null ? 0 : (i + 1) % images.length));
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [lightbox, images.length]);
+
   // Mobile: basic carousel
-  const prev = () => setActiveIndex((i) => (i - 1 + images.length) % images.length);
-  const next = () => setActiveIndex((i) => (i + 1) % images.length);
+  const prev = () => setActiveIndex((i) => (i - 1 + filteredImages.length) % filteredImages.length);
+  const next = () => setActiveIndex((i) => (i + 1) % filteredImages.length);
 
   return (
     <>
-      {/* Mobile Carousel */}
-      <section className="sm:hidden">
+      {/* Filter chips */}
+      <div className="sticky top-0 z-10 sm:static bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 overflow-x-auto">
+          <div className="flex gap-2">
+            {labels.map((label) => (
+              <button
+                key={label}
+                onClick={() => setFilter(label)}
+                className={`shrink-0 px-3 py-1.5 rounded-full border text-sm transition-colors ${
+                  filter === label ? 'bg-[#2b91cb] text-white border-[#2b91cb]' : 'bg-white text-gray-700 border-gray-300 hover:border-[#2b91cb]'
+                }`}
+                aria-pressed={filter === label}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile Carousel (visible up to md) */}
+      <section className="md:hidden">
         <div className="relative w-full overflow-hidden">
-          {images.length > 0 ? (
-            <div className="relative aspect-[4/5] bg-gray-100">
+          {filteredImages.length > 0 ? (
+            <div className="relative aspect-[4/5] bg-gray-100" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
               <Image
-                src={images[activeIndex]}
+                src={filteredImages[activeIndex]}
                 alt={`Gallery ${activeIndex + 1}`}
                 fill
-                className="object-cover"
-                sizes="(max-width: 640px) 100vw, 0"
+                className={`object-cover transition-opacity duration-500 ${loadedSet.has(filteredImages[activeIndex]) ? 'opacity-100' : 'opacity-0'}`}
+                sizes="(max-width: 768px) 100vw, 0"
                 priority
+                onLoadingComplete={() => handleLoaded(filteredImages[activeIndex])}
               />
+              {!loadedSet.has(filteredImages[activeIndex]) && (
+                <div className="absolute inset-0 bg-gray-200 animate-pulse" aria-hidden />
+              )}
               <button
-                className="absolute left-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/80 shadow"
+                className="absolute left-2 top-1/2 -translate-y-1/2 p-2.5 rounded-full bg-white/80 shadow"
                 onClick={prev}
                 aria-label="Previous"
               >
-                <ChevronLeft className="w-5 h-5" />
+                <ChevronLeft className="w-6 h-6" />
               </button>
               <button
-                className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/80 shadow"
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-2.5 rounded-full bg-white/80 shadow"
                 onClick={next}
                 aria-label="Next"
               >
-                <ChevronRight className="w-5 h-5" />
+                <ChevronRight className="w-6 h-6" />
               </button>
               <button
-                className="absolute right-2 bottom-2 p-2 rounded-full bg-white/80 shadow"
-                onClick={() => setLightbox(activeIndex)}
+                className="absolute right-2 top-2 p-2.5 rounded-full bg-white/80 shadow"
+                onClick={() => setLightbox(images.indexOf(filteredImages[activeIndex]))}
                 aria-label="Open"
               >
-                <ZoomIn className="w-5 h-5" />
+                <ZoomIn className="w-6 h-6" />
               </button>
             </div>
           ) : (
@@ -89,9 +164,9 @@ export default function GalleryClient({ images }: Props) {
           )}
 
           {/* Dots */}
-          {images.length > 1 && (
+          {filteredImages.length > 1 && (
             <div className="flex items-center justify-center gap-1 py-3">
-              {images.map((_, i) => (
+              {filteredImages.map((_, i) => (
                 <button
                   key={i}
                   onClick={() => setActiveIndex(i)}
@@ -104,27 +179,36 @@ export default function GalleryClient({ images }: Props) {
         </div>
       </section>
 
-      {/* Desktop: sectional masonry-like grid with lightbox */}
-      <section className="hidden sm:block py-10 sm:py-12 bg-gradient-to-b from-white via-blue-50/30 to-white">
+      {/* Desktop: sectional masonry-like grid with lightbox (md and up) */}
+      <section className="hidden md:block py-10 sm:py-12 bg-gradient-to-b from-white via-blue-50/30 to-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
-          {sections.map(([label, imgs]) => (
+          {(filter === 'All' ? sections : sections.filter(([l]) => l === filter)).map(([label, imgs]) => (
             <div key={label}>
               <h2 className="syne-bold text-2xl sm:text-3xl text-[#1e3a5f] mb-4 sm:mb-6">{label}</h2>
-              <div className="columns-2 md:columns-3 lg:columns-4 gap-3 [&_img]:mb-3">
+              <div className="columns-2 md:columns-3 lg:columns-4 gap-3">
                 {imgs.map((src) => (
                   <button
                     key={src}
-                    className="relative w-full overflow-hidden rounded-xl shadow group"
+                    className="relative mb-3 w-full overflow-hidden rounded-xl shadow group"
+                    style={{ breakInside: 'avoid' }}
                     onClick={() => setLightbox(images.indexOf(src))}
                     aria-label="Open image"
                   >
-                    <Image
-                      src={src}
-                      alt={label}
-                      width={800}
-                      height={1000}
-                      className="w-full h-auto object-cover transition-transform duration-300 group-hover:scale-[1.03]"
-                    />
+                    <div className="relative">
+                      <Image
+                        src={src}
+                        alt={label}
+                        width={800}
+                        height={1000}
+                        className={`w-full h-auto object-cover transition-transform duration-300 group-hover:scale-[1.03] ${loadedSet.has(src) ? 'opacity-100' : 'opacity-0'}`}
+                        loading="lazy"
+                        sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                        onLoadingComplete={() => handleLoaded(src)}
+                      />
+                      {!loadedSet.has(src) && (
+                        <div className="absolute inset-0 bg-gray-200 animate-pulse" aria-hidden />
+                      )}
+                    </div>
                   </button>
                 ))}
               </div>
@@ -135,7 +219,12 @@ export default function GalleryClient({ images }: Props) {
 
       {/* Lightbox */}
       {lightbox != null && images[lightbox] && (
-        <div className="fixed inset-0 z-[1000] bg-black/90 flex items-center justify-center" onClick={() => setLightbox(null)}>
+        <div
+          className="fixed inset-0 z-[1000] bg-black/90 flex items-center justify-center"
+          role="dialog"
+          aria-modal
+          onClick={() => setLightbox(null)}
+        >
           <div className="relative w-[92vw] max-w-5xl aspect-video">
             <Image
               src={images[lightbox]}
@@ -143,6 +232,7 @@ export default function GalleryClient({ images }: Props) {
               fill
               className="object-contain"
               sizes="100vw"
+              priority
             />
             <button
               className="absolute left-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/90"
@@ -158,6 +248,16 @@ export default function GalleryClient({ images }: Props) {
             >
               <ChevronRight className="w-5 h-5" />
             </button>
+            <button
+              className="absolute top-3 right-3 p-2 rounded-full bg-white/90"
+              onClick={(e) => { e.stopPropagation(); setLightbox(null); }}
+              aria-label="Close"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 text-white text-sm bg-black/50 px-2 py-1 rounded-full">
+              {lightbox + 1} / {images.length}
+            </div>
           </div>
         </div>
       )}
