@@ -16,10 +16,10 @@ export default function LoadingSpinner({
   exitAnimation = 'slide-up',
 }: LoadingSpinnerProps) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const [toWhite, setToWhite] = useState(false);
+  const [imageFade, setImageFade] = useState(false); // fade out bg image at 3500ms
 
   useEffect(() => {
-    const t = setTimeout(() => setToWhite(true), 3530);
+    const t = setTimeout(() => setImageFade(true), 3500);
     return () => clearTimeout(t);
   }, []);
 
@@ -85,14 +85,28 @@ export default function LoadingSpinner({
         inset: 0,
         width: '100vw',
         height: '100vh',
-        backgroundColor: toWhite ? '#FFFFFF' : '#FBFBFB', // updated initial color
+        backgroundColor: '#FFFFFF',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         zIndex: 99999,
         pointerEvents: 'auto',
+        overflow: 'hidden'
       }}
     >
+      {/* Background image layer fades out to reveal white */}
+      <div
+        aria-hidden
+        className={`absolute inset-0 transition-opacity duration-700 ease-out ${imageFade ? 'opacity-0' : 'opacity-100'}`}
+        style={{
+          backgroundImage: 'url(/spinner-bg.png)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          willChange: 'opacity',
+          pointerEvents: 'none'
+        }}
+      />
       <div className="relative flex flex-col items-center">
         {/* Milkshake animation video plays once at 1.5x speed (MP4 only) */}
         <div className="relative w-40 h-40 sm:w-44 sm:h-44 md:w-60 md:h-60 lg:w-72 lg:h-72 xl:w-80 xl:h-80">

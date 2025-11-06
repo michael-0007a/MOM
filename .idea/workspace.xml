@@ -5,9 +5,6 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="e99e33dc-5643-411c-a0a0-e428ed9afd90" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/copilotDiffState.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/components/ClientLayout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/components/ClientLayout.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/components/LoadingSpinner.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/components/LoadingSpinner.tsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -133,7 +130,7 @@
       <workItem from="1762326479748" duration="2225000" />
       <workItem from="1762328759292" duration="85000" />
       <workItem from="1762328909679" duration="12970000" />
-      <workItem from="1762413428154" duration="13661000" />
+      <workItem from="1762413428154" duration="14265000" />
     </task>
     <servers />
   </component>
