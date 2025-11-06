@@ -76,6 +76,7 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
           // Lock scroll only during mandatory first home splash
           disableScroll={isHome && !firstHomeDoneRef.current}
           exitAnimation={isHome && !firstHomeDoneRef.current ? "slide-up" : "fade"}
+          videoPlaybackRate={2.25}
           onComplete={() => setVideoDone(true)}
         />
       )}

@@ -19,7 +19,7 @@ export default function LoadingSpinner({
   const [toWhite, setToWhite] = useState(false);
 
   useEffect(() => {
-    const t = setTimeout(() => setToWhite(true), 3500);
+    const t = setTimeout(() => setToWhite(true), 3530);
     return () => clearTimeout(t);
   }, []);
 
