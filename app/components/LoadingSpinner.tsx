@@ -16,12 +16,49 @@ export default function LoadingSpinner({
   exitAnimation = 'slide-up',
 }: LoadingSpinnerProps) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const [imageFade, setImageFade] = useState(false); // fade out bg image at 3500ms
+  const [isDesktop, setIsDesktop] = useState(false);
+  const [bgWhite, setBgWhite] = useState(false);
 
+  // Detect desktop (lg and up ~ 1024px)
   useEffect(() => {
-    const t = setTimeout(() => setImageFade(true), 3500);
-    return () => clearTimeout(t);
+    if (typeof window === 'undefined') return;
+    const mql: MediaQueryList = window.matchMedia('(min-width: 1024px)');
+    const handler = (ev: MediaQueryListEvent) => setIsDesktop(ev.matches);
+
+    // Apply initial state
+    setIsDesktop(mql.matches);
+
+    if (typeof mql.addEventListener === 'function') {
+      mql.addEventListener('change', handler);
+      return () => mql.removeEventListener('change', handler);
+    }
+
+    // Fallback for older browsers (Safari)
+    const legacy = mql as MediaQueryList & {
+      addListener?: (listener: (this: MediaQueryList, ev: MediaQueryListEvent) => void) => void;
+      removeListener?: (listener: (this: MediaQueryList, ev: MediaQueryListEvent) => void) => void;
+    };
+    if (typeof legacy.addListener === 'function') {
+      legacy.addListener(handler);
+      return () => {
+        if (typeof legacy.removeListener === 'function') legacy.removeListener(handler);
+      };
+    }
+
+    return;
   }, []);
+
+  // Timed background color for desktop; mobile is white immediately
+  useEffect(() => {
+    let t: ReturnType<typeof setTimeout> | null = null;
+    if (isDesktop) {
+      setBgWhite(false); // start at #FBFBFB
+      t = setTimeout(() => setBgWhite(true), 3500);
+    } else {
+      setBgWhite(true); // mobile: pure white from start
+    }
+    return () => { if (t) clearTimeout(t); };
+  }, [isDesktop]);
 
   useEffect(() => {
     if (!disableScroll) return;
@@ -51,29 +88,18 @@ export default function LoadingSpinner({
     }
   };
 
-  const handleEnded = () => {
-    if (onComplete) onComplete();
-  };
-
-  const handleError = () => {
-    // If video can't play, don't block the app
-    if (onComplete) onComplete();
-  };
+  const handleEnded = () => { if (onComplete) onComplete(); };
+  const handleError = () => { if (onComplete) onComplete(); };
 
   const overlayClass = useMemo(() => {
     const base = 'loading-overlay';
     if (!exiting) return base;
     switch (exitAnimation) {
-      case 'fade':
-        return base + ' exit-fade';
-      case 'slide-up':
-        return base + ' exit-slide-up';
-      case 'scale-down':
-        return base + ' exit-scale-down';
-      case 'wipe-up':
-        return base + ' exit-wipe-up';
-      default:
-        return base + ' exit-fade';
+      case 'fade': return base + ' exit-fade';
+      case 'slide-up': return base + ' exit-slide-up';
+      case 'scale-down': return base + ' exit-scale-down';
+      case 'wipe-up': return base + ' exit-wipe-up';
+      default: return base + ' exit-fade';
     }
   }, [exiting, exitAnimation]);
 
@@ -85,7 +111,7 @@ export default function LoadingSpinner({
         inset: 0,
         width: '100vw',
         height: '100vh',
-        backgroundColor: '#FFFFFF',
+        backgroundColor: isDesktop ? (bgWhite ? '#FFFFFF' : '#FBFBFB') : '#FFFFFF',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -94,22 +120,9 @@ export default function LoadingSpinner({
         overflow: 'hidden'
       }}
     >
-      {/* Background image layer fades out to reveal white */}
-      <div
-        aria-hidden
-        className={`absolute inset-0 transition-opacity duration-700 ease-out ${imageFade ? 'opacity-0' : 'opacity-100'}`}
-        style={{
-          backgroundImage: 'url(/spinner-bg.png)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-          willChange: 'opacity',
-          pointerEvents: 'none'
-        }}
-      />
       <div className="relative flex flex-col items-center">
-        {/* Milkshake animation video plays once at 1.5x speed (MP4 only) */}
-        <div className="relative w-40 h-40 sm:w-44 sm:h-44 md:w-60 md:h-60 lg:w-72 lg:h-72 xl:w-80 xl:h-80">
+        {/* Milkshake animation video plays once at configured speed */}
+        <div className="relative w-40 h-40 sm:w-44 sm:h-44 md:w-48 md:h-48 lg:w-56 lg:h-56 xl:w-64 xl:h-64">
           <video
             ref={videoRef}
             onLoadedData={handleLoadedData}
@@ -126,9 +139,7 @@ export default function LoadingSpinner({
 
         {/* Loading text */}
         <div className="mt-6 text-center">
-          <p className="text-xl font-semibold text-[#2b91cb]">
-            Preparing Your Milkshake...
-          </p>
+          <p className="text-xl font-semibold text-[#2b91cb]">Preparing Your Milkshake...</p>
         </div>
       </div>
     </div>
