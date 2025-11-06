@@ -2,7 +2,7 @@
 @import "./custom-colors.css";
 
 :root {
-  --background: #ffffff;
+  --background: #FDFDFD;
   --foreground: #2b91cb;
   --accent: #2b91cb;
   --light-blue: #eef8fd;

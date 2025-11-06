@@ -26,7 +26,8 @@ export default function LoadingSpinner() {
         bottom: 0,
         width: '100vw',
         height: '100vh',
-        backgroundColor: 'white',
+        background: '#fbf9fa',
+        backgroundColor: '#fbf9fa',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -35,40 +36,19 @@ export default function LoadingSpinner() {
       }}
     >
       <div className="relative flex flex-col items-center">
-        {/* Simplified spinner with focus on milkshake */}
-        <div className="relative w-28 h-28">
-          {/* Single clean spinning ring */}
-          <div className="absolute inset-0 border-4 border-gray-100 rounded-full"></div>
-          <div
-            className="absolute inset-0 border-4 border-transparent rounded-full animate-spin"
-            style={{
-              borderTopColor: '#2b91cb',
-              borderRightColor: '#2b91cb',
-            }}
-          ></div>
-
-          {/* Enhanced milkshake gif in center */}
-          <div className="absolute inset-3 flex items-center justify-center">
-            <div className="relative">
-              {/* Subtle glow behind GIF */}
-              <div
-                className="absolute inset-0 rounded-full blur-sm opacity-30"
-                style={{ backgroundColor: '#2b91cb' }}
-              ></div>
-              <Image
-                src="/spinner-milkshake.gif"
-                alt="Loading milkshake"
-                width={72}
-                height={72}
-                className="relative z-10 rounded-full shadow-lg"
-                unoptimized
-                priority
-              />
-            </div>
-          </div>
+        {/* Just the milkshake GIF, bigger on desktops */}
+        <div className="relative w-40 h-40 sm:w-44 sm:h-44 md:w-60 md:h-60 lg:w-72 lg:h-72 xl:w-80 xl:h-80">
+          <Image
+            src="/spinner-milkshake.gif"
+            alt="Loading milkshake"
+            fill
+            className="object-contain"
+            unoptimized
+            priority
+          />
         </div>
 
-        {/* Clean loading text */}
+        {/* Loading text */}
         <div className="mt-6 text-center">
           <p className="text-xl font-semibold text-[#2b91cb]">
             Preparing Your Milkshake...
