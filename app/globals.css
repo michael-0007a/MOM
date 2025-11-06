@@ -592,7 +592,7 @@ html.lenis * {
   /* Spinner overlay exit animations */
   .loading-overlay {
     /* Smooth transitions for multiple properties */
-    transition: opacity 520ms ease, transform 520ms ease, clip-path 640ms cubic-bezier(0.4, 0, 0.2, 1);
+    transition: opacity 520ms ease, transform 520ms ease, clip-path 640ms cubic-bezier(0.4, 0, 0.2, 1), background-color 360ms ease;
     will-change: opacity, transform, clip-path;
   }
   .loading-overlay.exit-fade {

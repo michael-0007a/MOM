@@ -1,4 +1,4 @@
-import { useEffect, useRef, useMemo } from 'react';
+import { useEffect, useRef, useMemo, useState } from 'react';
 
 interface LoadingSpinnerProps {
   exiting?: boolean; // when true, fade out
@@ -16,6 +16,12 @@ export default function LoadingSpinner({
   exitAnimation = 'slide-up',
 }: LoadingSpinnerProps) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const [toWhite, setToWhite] = useState(false);
+
+  useEffect(() => {
+    const t = setTimeout(() => setToWhite(true), 3500);
+    return () => clearTimeout(t);
+  }, []);
 
   useEffect(() => {
     if (!disableScroll) return;
@@ -79,8 +85,7 @@ export default function LoadingSpinner({
         inset: 0,
         width: '100vw',
         height: '100vh',
-        background: '#fbf9fa',
-        backgroundColor: '#fbf9fa',
+        backgroundColor: toWhite ? '#FFFFFF' : '#FBFBFB', // updated initial color
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
