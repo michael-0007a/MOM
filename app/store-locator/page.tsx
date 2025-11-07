@@ -119,7 +119,7 @@ export default function StoreLocator() {
 
     return enriched
       .sort((a, b) => a._distanceValue - b._distanceValue)
-      .map(({ _distanceValue: _omit, ...rest }) => rest);
+      .map(({ _distanceValue, ...rest }) => rest);
   }, [stores, searchPoint]);
 
   // Apply search + region filter (use deduced region)

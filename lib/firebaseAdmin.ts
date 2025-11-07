@@ -34,7 +34,7 @@ function ensureApp() {
       if (privateKey.includes('\\n')) privateKey = privateKey.replace(/\\n/g, '\n');
       initializeApp({ credential: cert({ projectId, clientEmail, privateKey }) });
       return;
-    } catch (e) {
+    } catch {
       // Only log in development to avoid noisy prod logs
       if (process.env.NODE_ENV !== 'production') {
         console.warn('[firebaseAdmin] Service account JSON parse failed; falling back to legacy envs.');

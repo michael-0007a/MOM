@@ -3,7 +3,6 @@ import { z } from 'zod';
 import { getDb, FieldValue } from '@/lib/firebaseAdmin';
 import brevo, { Brevo } from '@/lib/brevo';
 import { buildAdminNotificationEmail, buildUserConfirmationEmail } from '@/lib/emailTemplates';
-import type BrevoSDK from '@getbrevo/brevo';
 
 export const runtime = 'nodejs';
 

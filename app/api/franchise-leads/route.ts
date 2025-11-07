@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/firebaseAdmin';
+import type { QuerySnapshot } from 'firebase-admin/firestore';
 
 // Runtime: Node.js Firebase Admin SDK needs the node runtime (not edge)
 export const runtime = 'nodejs';
@@ -30,6 +31,11 @@ function getApiKeyFromRequest(req: NextRequest) {
   return req.headers.get('x-api-key') || '';
 }
 
+function pickString(obj: Record<string, unknown> | undefined, key: string): string {
+  const v = obj?.[key];
+  return typeof v === 'string' ? v.trim() : '';
+}
+
 export async function GET(req: NextRequest) {
   try {
     const providedKey = getApiKeyFromRequest(req);
@@ -48,19 +54,19 @@ export async function GET(req: NextRequest) {
 
     const phonesSet = new Set<string>();
 
-    const addFromSnap = (snap: FirebaseFirestore.QuerySnapshot | null) => {
+    const addFromSnap = (snap: QuerySnapshot | null) => {
       if (!snap) return;
-      snap.forEach(doc => {
+      snap.forEach((doc) => {
         const data = doc.data() as Record<string, unknown> | undefined;
-        const a = typeof data?.['Phone'] === 'string' ? (data['Phone'] as string).trim() : '';
-        const b = typeof (data as any)?.phone === 'string' ? ((data as any).phone as string).trim() : '';
+        const a = pickString(data, 'Phone');
+        const b = pickString(data, 'phone');
         const value = a || b;
         if (value) phonesSet.add(value);
       });
     };
 
-    addFromSnap(snapA);
-    addFromSnap(snapB);
+    addFromSnap(snapA as unknown as QuerySnapshot | null);
+    addFromSnap(snapB as unknown as QuerySnapshot | null);
 
     return NextResponse.json({ phones: Array.from(phonesSet) });
   } catch (err) {
