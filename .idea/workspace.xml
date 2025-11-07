@@ -5,8 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="e99e33dc-5643-411c-a0a0-e428ed9afd90" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/copilotDiffState.xml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/firebaseAdmin.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/firebaseAdmin.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -132,6 +132,8 @@
       <workItem from="1762328759292" duration="85000" />
       <workItem from="1762328909679" duration="12970000" />
       <workItem from="1762413428154" duration="15693000" />
+      <workItem from="1762499244518" duration="809000" />
+      <workItem from="1762532207912" duration="1411000" />
     </task>
     <servers />
   </component>
