@@ -11,6 +11,7 @@ const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT;
 const legacyProjectId = process.env.FIREBASE_PROJECT_ID;
 const legacyClientEmail = process.env.FIREBASE_CLIENT_EMAIL;
 let legacyPrivateKey = process.env.FIREBASE_PRIVATE_KEY;
+let serviceAccountWarningLogged = false;
 
 if (legacyPrivateKey && legacyPrivateKey.includes('\\n')) {
   legacyPrivateKey = legacyPrivateKey.replace(/\\n/g, '\n');
@@ -34,10 +35,10 @@ function ensureApp() {
       if (privateKey.includes('\\n')) privateKey = privateKey.replace(/\\n/g, '\n');
       initializeApp({ credential: cert({ projectId, clientEmail, privateKey }) });
       return;
-    } catch {
-      // Only log in development to avoid noisy prod logs
-      if (process.env.NODE_ENV !== 'production') {
-        console.warn('[firebaseAdmin] Service account JSON parse failed; falling back to legacy envs.');
+    } catch (err) {
+      if (!serviceAccountWarningLogged) {
+        console.error('[firebaseAdmin] Service account JSON parse failed; attempting legacy env fallback.', err);
+        serviceAccountWarningLogged = true;
       }
     }
   }

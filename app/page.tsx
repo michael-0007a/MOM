@@ -490,80 +490,87 @@ export default function Home() {
                         {/* Left Side - Text Content */}
                         <ScrollAnimation animation="fadeRight" duration={1000} delay={200}>
                             <div className={`lg:col-span-1 col-span-1 mx-auto max-w-2xl lg:max-w-none space-y-6 transition-all duration-1000 ${loaded ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-10'}`}>
-                            {/* Shop Badge */}
-                            <div className="flex items-center justify-center md:justify-start space-x-1 md:space-x-2 glass-3d badge-3d w-max mx-auto md:mx-0 px-2.5 py-1.5 md:px-6 md:py-3 rounded-full shadow-md md:shadow-lg mt-1 md:mt-0 mb-1 md:mb-8 border border-blue-200 md:border-2 hover:scale-105 transition-transform duration-300 cursor-pointer">
-                                <Sparkles className="w-3.5 h-3.5 md:w-5 md:h-5 text-blue-500" />
-                                <span className="text-blue-800 font-semibold text-xs md:text-base">Premium Handcrafted Milkshakes</span>
-                                <Sparkles className="w-3.5 h-3.5 md:w-5 md:h-5 text-pink-500" />
-                            </div>
+                                <div className="space-y-6 text-center lg:text-left">
+                                    <div className="flex items-center justify-center md:justify-start space-x-1 md:space-x-2 glass-3d badge-3d w-max mx-auto md:mx-0 px-2.5 py-1.5 md:px-6 md:py-3 rounded-full shadow-md md:shadow-lg mt-1 md:mt-0 border border-blue-200 md:border-2 hover:scale-105 transition-transform duration-300 cursor-pointer">
+                                        <Sparkles className="w-3.5 h-3.5 md:w-5 md:h-5 text-blue-500" />
+                                        <span className="text-blue-800 font-semibold text-xs md:text-base">Premium Handcrafted Milkshakes</span>
+                                        <Sparkles className="w-3.5 h-3.5 md:w-5 md:h-5 text-pink-500" />
+                                    </div>
 
-                            {/* Main Heading */}
-                            <div className="text-center lg:text-left">
-                                <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-gray-900 mb-4 leading-tight">
-                                    <span className="notable-regular text-gray-900 font-normal italic">THE #1</span>
-                                    <span className="block poppins bg-gradient-to-r from-blue-600 via-blue-500 to-blue-400 bg-clip-text text-transparent text-4xl sm:text-5xl lg:text-6xl mt-2 tracking-tight">
-                    MILKSHAKE STORE
-                  </span>
-                                </h1>
-                                <p className="text-2xl sm:text-3xl lg:text-4xl font-medium text-gray-700 mt-3 dmsans tracking-tight">
-                                    Crafting Happiness in Every Cup
-                                </p>
+                                    <div className="space-y-4">
+                                        <p className="uppercase tracking-[0.35em] text-xs sm:text-sm font-semibold text-blue-500">Since 2013</p>
+                                        <h1 className="leading-tight font-black poppins text-4xl sm:text-5xl lg:text-6xl text-gray-900 uppercase tracking-tight">
+                                            <span className="block lg:hidden space-y-3">
+                                                <span className="block text-gray-900">
+                                                    <span>MAKERS </span>
+                                                    <span className="bg-gradient-to-r from-blue-700 to-blue-500 bg-clip-text text-transparent">OF MILKSHAKES</span>
+                                                </span>
+                                                <span className="block text-base sm:text-2xl tracking-[0.3em] text-gray-900 font-semibold notable-regular">
+                                                    THE #1 MILKSHAKE STORE
+                                                </span>
+                                            </span>
+                                            <span className="hidden lg:block space-y-4">
+                                                <span className="block text-6xl notable-regular text-gray-900 tracking-tight">THE #1</span>
+                                                <span className="block text-6xl text-blue-600 tracking-tight">MILKSHAKE STORE</span>
+                                            </span>
+                                        </h1>
 
-                                <p className="text-lg text-gray-600 mt-6 leading-relaxed max-w-lg mx-auto lg:mx-0 dmsans">
-                                    Where premium ingredients meet creativity — every shake made fresh with love, crafted for pure joy.
-                                </p>
-                            </div>
+                                        <p className="text-xl sm:text-2xl lg:text-3xl font-medium text-gray-700 dmsans">
+                                            Crafting Happiness in Every Cup
+                                        </p>
+                                        <p className="text-lg text-gray-600 leading-relaxed max-w-lg mx-auto lg:mx-0 dmsans">
+                                            Where premium ingredients meet creativity — every shake made fresh with love, crafted for pure joy.
+                                        </p>
+                                    </div>
+                                </div>
 
-                            {/* CTA Buttons with 3D Effect */}
-                            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center perspective-1000">
-                                <a
-                                    href="/menu"
-                                    className="group relative px-5 py-2.5 sm:px-6 sm:py-3 md:px-8 md:py-4 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-full font-bold text-sm sm:text-base md:text-lg shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 flex items-center space-x-2 overflow-hidden"
-                                    style={{ transformStyle: 'preserve-3d' }}
-                                >
-                                    <span className="relative z-10">Explore Menu</span>
-                                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform relative z-10" />
-                                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-blue-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                                </a>
-                                <a
-                                    href="/store-locator"
-                                    className="relative px-5 py-2.5 sm:px-6 sm:py-3 md:px-8 md:py-4 glass-3d text-blue-600 rounded-full font-bold text-sm sm:text-base md:text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 border-2 border-blue-200 hover:border-blue-400 overflow-hidden group"
-                                    style={{ transformStyle: 'preserve-3d' }}
-                                >
-                                    <span className="relative z-10">Find a Store</span>
-                                    <div className="absolute inset-0 bg-gradient-to-r from-blue-50 to-blue-100 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                                </a>
-                            </div>
+                                {/* CTA Buttons with 3D Effect */}
+                                <div className="flex flex-col sm:flex-row gap-4 justify-center items-center perspective-1000">
+                                    <a
+                                        href="/menu"
+                                        className="group relative px-5 py-2.5 sm:px-6 sm:py-3 md:px-8 md:py-4 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-full font-bold text-sm sm:text-base md:text-lg shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 flex items-center space-x-2 overflow-hidden"
+                                        style={{ transformStyle: 'preserve-3d' }}
+                                    >
+                                        <span className="relative z-10">Explore Menu</span>
+                                        <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform relative z-10" />
+                                        <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-blue-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                                    </a>
+                                    <a
+                                        href="/store-locator"
+                                        className="relative px-5 py-2.5 sm:px-6 sm:py-3 md:px-8 md:py-4 glass-3d text-blue-600 rounded-full font-bold text-sm sm:text-base md:text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 border-2 border-blue-200 hover:border-blue-400 overflow-hidden group"
+                                        style={{ transformStyle: 'preserve-3d' }}
+                                    >
+                                        <span className="relative z-10">Find a Store</span>
+                                        <div className="absolute inset-0 bg-gradient-to-r from-blue-50 to-blue-100 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                                    </a>
+                                </div>
 
-                            {/* Social Proof with 3D Cards */}
-                            <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto perspective-1500">
-                                {[
-                                    { icon: Users, value: 50, suffix: 'K+', desc: 'Happy Customers' },
-                                    { icon: Award, value: 15, suffix: '+', desc: 'Awards Won' },
-                                    { icon: Blend, value: 30, suffix: '+', desc: 'Unique Flavors' },
-                                    { icon: Globe, value: 50, suffix: '+', desc: 'Locations' }
-                                ].map((stat, idx) => {
-                                    const Icon = stat.icon;
-                                    return (
+                                {/* Social Proof with 3D Cards */}
+                                <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto perspective-1500">
+                                    {[
+                                        { icon: Users, value: 50, suffix: 'K+', desc: 'Happy Customers' },
+                                        { icon: Award, value: 15, suffix: '+', desc: 'Awards Won' },
+                                        { icon: Blend, value: 30, suffix: '+', desc: 'Unique Flavors' },
+                                        { icon: Globe, value: 50, suffix: '+', desc: 'Locations' }
+                                    ].map(({ icon: StatIcon, value, suffix, desc }, idx) => (
                                         <div
                                             key={idx}
                                             className="card-3d card-3d-shadow glass-3d rounded-2xl p-3 md:p-4 border border-blue-100 relative group cursor-pointer"
                                         >
                                             <div className="relative z-10 text-center">
                                                 <div className="w-10 h-10 md:w-12 md:h-12 mx-auto mb-2 md:mb-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center transform group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 shadow-lg">
-                                                    <Icon className="w-5 h-5 md:w-6 md:h-6 text-white" />
+                                                    <StatIcon className="w-5 h-5 md:w-6 md:h-6 text-white" />
                                                 </div>
                                                 <div className="font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent text-xl md:text-2xl leading-none">
-                                                    <CountUp from={0} to={stat.value} duration={3.6} className="tabular-nums" />
-                                                    <span>{stat.suffix}</span>
+                                                    <CountUp from={0} to={value} duration={3.6} className="tabular-nums" />
+                                                    <span>{suffix}</span>
                                                 </div>
-                                                <div className="text-xs md:text-sm text-gray-600 font-medium mt-1">{stat.desc}</div>
+                                                <div className="text-xs md:text-sm text-gray-600 font-medium mt-1">{desc}</div>
                                             </div>
                                             {/* 3D depth effect */}
                                             <div className="absolute inset-0 bg-gradient-to-br from-blue-100/50 to-blue-200/50 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10 blur-sm"></div>
                                         </div>
-                                    );
-                                })}
+                                    ))}
                             </div>
                         </div>
                         </ScrollAnimation>
@@ -1855,4 +1862,3 @@ export default function Home() {
         </div>
     );
 }
-

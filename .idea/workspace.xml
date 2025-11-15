@@ -5,10 +5,14 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="e99e33dc-5643-411c-a0a0-e428ed9afd90" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/app/api/franchise-leads/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/api/franchise-leads/route.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/api/franchise/submit/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/api/franchise/submit/route.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/store-locator/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/store-locator/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/components/LoadingSpinner.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/components/LoadingSpinner.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/components/Navbar.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/components/Navbar.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/brevo.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/brevo.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/emailTemplates.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/emailTemplates.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/firebaseAdmin.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/firebaseAdmin.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/siteConfig.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/siteConfig.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -135,11 +139,22 @@
       <workItem from="1762328909679" duration="12970000" />
       <workItem from="1762413428154" duration="15693000" />
       <workItem from="1762499244518" duration="809000" />
-      <workItem from="1762532207912" duration="2236000" />
+      <workItem from="1762532207912" duration="2568000" />
+      <workItem from="1762693640000" duration="422000" />
+      <workItem from="1763124146497" duration="1512000" />
+      <workItem from="1763170336102" duration="12418000" />
     </task>
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="github-copilot-workspace">
+    <instructionFileLocations>
+      <option value=".github/instructions" />
+    </instructionFileLocations>
+    <promptFileLocations>
+      <option value=".github/prompts" />
+    </promptFileLocations>
   </component>
 </project>

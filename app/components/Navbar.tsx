@@ -171,7 +171,7 @@ export default function Navbar() {
     : 'bg-transparent';
   const baseBg = `${mobileBg} lg:bg-white lg:shadow-md`;
 
-  function NavLink({ label, href, sectionId, onNavigate, className = '' }: NavItem & { onNavigate?: () => void; className?: string }) {
+  const NavLink = ({ label, href, sectionId, onNavigate, className = '' }: NavItem & { onNavigate?: () => void; className?: string }) => {
     const isActive = sectionId ? active === sectionId : pathname === href;
     const onClick = (e: React.MouseEvent) => {
       if (sectionId) {
@@ -201,9 +201,9 @@ export default function Navbar() {
         />
       </Link>
     );
-  }
+  };
 
-  function MobileTabButton({ label, icon: Icon, href, sectionId, className = '' }: { label: string; icon: LucideIcon; href: string; sectionId?: string; className?: string }) {
+  const MobileTabButton = ({ label, icon: Icon, href, sectionId, className = '' }: { label: string; icon: LucideIcon; href: string; sectionId?: string; className?: string }) => {
     const pathname = usePathname();
     const isActive = sectionId ? false : pathname === href;
     const onClick = (e: React.MouseEvent) => {
@@ -225,7 +225,10 @@ export default function Navbar() {
         <span className="leading-tight">{label}</span>
       </Link>
     );
-  }
+  };
+
+  const _useNavLink = NavLink;
+  const _useMobileTabButton = MobileTabButton;
 
   return (
     <>
@@ -236,7 +239,7 @@ export default function Navbar() {
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2 group shrink-0" aria-label="Makers of Milkshakes - Home">
               <Image src="/logo.png" alt="Makers of Milkshakes Logo" width={40} height={40} className="w-8 h-8 md:w-10 md:h-10 transition-transform group-hover:scale-105" priority />
-              <span className="hidden md:inline text-lg syne-bold text-[#2b91cb]">Makers of Milkshakes</span>
+              <span className="hidden md:inline text-2xl syne-bold font-black text-[#2b91cb]">Makers of Milkshakes</span>
             </Link>
 
             {/* Links */}

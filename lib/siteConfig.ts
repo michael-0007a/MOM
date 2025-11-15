@@ -18,3 +18,9 @@ export const LINKS = {
   whatsappHref: `https://wa.me/${CONTACT.phoneE164.replace('+', '')}`,
 };
 
+export function assertEnv(keys: string[]) {
+  const missing = keys.filter((key) => !process.env[key] || process.env[key]?.trim() === '');
+  if (missing.length) {
+    throw new Error(`Missing required env vars: ${missing.join(', ')}`);
+  }
+}

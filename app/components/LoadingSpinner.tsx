@@ -1,4 +1,4 @@
-import { useEffect, useRef, useMemo, useState } from 'react';
+import { useEffect, useRef, useMemo } from 'react';
 
 interface LoadingSpinnerProps {
   exiting?: boolean; // when true, fade out
@@ -16,49 +16,6 @@ export default function LoadingSpinner({
   exitAnimation = 'slide-up',
 }: LoadingSpinnerProps) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const [isDesktop, setIsDesktop] = useState(false);
-  const [bgWhite, setBgWhite] = useState(false);
-
-  // Detect desktop (lg and up ~ 1024px)
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const mql: MediaQueryList = window.matchMedia('(min-width: 1024px)');
-    const handler = (ev: MediaQueryListEvent) => setIsDesktop(ev.matches);
-
-    // Apply initial state
-    setIsDesktop(mql.matches);
-
-    if (typeof mql.addEventListener === 'function') {
-      mql.addEventListener('change', handler);
-      return () => mql.removeEventListener('change', handler);
-    }
-
-    // Fallback for older browsers (Safari)
-    const legacy = mql as MediaQueryList & {
-      addListener?: (listener: (this: MediaQueryList, ev: MediaQueryListEvent) => void) => void;
-      removeListener?: (listener: (this: MediaQueryList, ev: MediaQueryListEvent) => void) => void;
-    };
-    if (typeof legacy.addListener === 'function') {
-      legacy.addListener(handler);
-      return () => {
-        if (typeof legacy.removeListener === 'function') legacy.removeListener(handler);
-      };
-    }
-
-    return;
-  }, []);
-
-  // Timed background color for desktop; mobile is white immediately
-  useEffect(() => {
-    let t: ReturnType<typeof setTimeout> | null = null;
-    if (isDesktop) {
-      setBgWhite(false); // start at #FBFBFB
-      t = setTimeout(() => setBgWhite(true), 3500);
-    } else {
-      setBgWhite(true); // mobile: pure white from start
-    }
-    return () => { if (t) clearTimeout(t); };
-  }, [isDesktop]);
 
   useEffect(() => {
     if (!disableScroll) return;
@@ -111,7 +68,7 @@ export default function LoadingSpinner({
         inset: 0,
         width: '100vw',
         height: '100vh',
-        backgroundColor: isDesktop ? (bgWhite ? '#FFFFFF' : '#FBFBFB') : '#FFFFFF',
+        backgroundColor: '#FFFFFF',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
